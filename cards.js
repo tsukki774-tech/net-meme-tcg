@@ -30,17 +30,16 @@ const DECK_DATA = {
       { id: "ojisan", name: "おじさん構文", type: "spell", era: "令和", cost: 2, icon: "👴", desc: "【デバフ】相手のミーム全ての攻撃力を-2する。" },
       { id: "owakon", name: "時代遅れ（オワコン認定）", type: "spell", era: "令和", cost: 3, icon: "📉", desc: "【メタ】相手の「2ch」「ニコニコ」ミーム1体を即消滅させる。" }
     ]
+  },
+  "yaju": {
+    label: "野獣先輩（例のアレ）",
+    cards: [
+      { id: "kmr", name: "KMR", type: "meme", era: "例のアレ", cost: 1, atk: 1, hp: 2, freshness: 3, icon: "👀", desc: "「まずいですよ！」軽くて出しやすい壁役。" },
+      { id: "mur", name: "MUR", type: "meme", era: "例のアレ", cost: 2, atk: 3, hp: 2, freshness: 3, icon: "😼", desc: "「そうだよ（便乗）」序盤の速攻アタッカー。" },
+      { id: "tono", name: "遠野", type: "meme", era: "例のアレ", cost: 2, atk: 2, hp: 3, freshness: 4, icon: "🍵", desc: "召喚時：アイスティーを差し入れ（1枚ドロー）。" },
+      { id: "yaju", name: "野獣先輩", type: "meme", era: "例のアレ", cost: 4, atk: 4, hp: 4, freshness: 4, icon: "🦁", desc: "召喚時：圧倒的プレッシャーで自身の攻撃力+1。" },
+      { id: "jaken", name: "邪剣「夜」", type: "spell", era: "例のアレ", cost: 3, icon: "🗡️", desc: "【闇の力】相手ミーム1体に4ダメージ＆相手本体に2ダメージ。" },
+      { id: "karate", name: "迫真空手部", type: "spell", era: "例のアレ", cost: 2, icon: "🥋", desc: "厳しい特訓により、味方全員の攻撃力を+2する。" }
+    ]
   }
 };
-    ,
-    "yaju": {
-      label: "野獣先輩（例のアレ）",
-      cards: [
-        { id: "kmr", name: "KMR", type: "meme", era: "例のアレ", cost: 1, atk: 1, hp: 2, freshness: 3, icon: "👀", desc: "「まずいですよ！」軽くて出しやすい壁役。" },
-        { id: "mur", name: "MUR", type: "meme", era: "例のアレ", cost: 2, atk: 3, hp: 2, freshness: 3, icon: "😼", desc: "「そうだよ（便乗）」序盤の速攻アタッカー。" },
-        { id: "tono", name: "遠野", type: "meme", era: "例のアレ", cost: 2, atk: 2, hp: 3, freshness: 4, icon: "🍵", desc: "召喚時：アイスティーを差し入れ（1枚ドロー）。" },
-        { id: "yaju", name: "野獣先輩", type: "meme", era: "例のアレ", cost: 4, atk: 4, hp: 4, freshness: 4, icon: "🦁", desc: "召喚時：圧倒的プレッシャーで自身の攻撃力+1。" },
-        { id: "jaken", name: "邪剣「夜」", type: "spell", era: "例のアレ", cost: 3, icon: "🗡️", desc: "【闇の力】相手ミーム1体に4ダメージ＆相手本体に2ダメージ。" },
-        { id: "karate", name: "迫真空手部", type: "spell", era: "例のアレ", cost: 2, icon: "🥋", desc: "厳しい特訓により、味方全員の攻撃力を+2する。" }
-      ]
-    }
