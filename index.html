@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ネットミームTCG - 世代間レスバ大戦</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>📱 ネットミームTCG：世代間レスバ大戦</h1>
+
+<!-- デッキ選択画面 -->
+<div id="deck-select-screen" class="select-screen">
+  <h2>使用する世代デッキを選択してください</h2>
+  <div class="deck-options">
+    <button class="deck-btn" onclick="startGame('2ch')">
+      <strong>① 2ch・Flash黎明期</strong><br>
+      <small>低コストAA展開＆高耐久</small>
+    </button>
+    <button class="deck-btn" onclick="startGame('niconico')">
+      <strong>② ニコニコ・MAD全盛期</strong><br>
+      <small>弾幕バフ＆コンボ火力</small>
+    </button>
+    <button class="deck-btn" onclick="startGame('reiwa')">
+      <strong>③ 令和・SNSバズ世代</strong><br>
+      <small>超速攻＆構文カウンター</small>
+    </button>
+  </div>
+</div>
+
+<!-- メインゲーム画面 -->
+<div id="game-screen" class="game-container" style="display: none;">
+  <div class="status-bar cpu-bar">
+    <div><strong id="cpu-title">👾 CPU</strong> <span id="cpu-deck-count" class="deck-count"></span></div>
+    <div class="stat-box">
+      メンタル: <span id="cpu-hp" class="hp">20</span> | ギガ: <span id="cpu-giga" class="giga">1/1</span>
+    </div>
+  </div>
+
+  <div class="field-label">▼ 相手のタイムライン（クリックで攻撃対象に指定）</div>
+  <div id="cpu-field" class="field-area"></div>
+
+  <div class="field-label">▲ 自分のタイムライン（緑枠をクリックして攻撃準備）</div>
+  <div id="player-field" class="field-area"></div>
+
+  <div class="status-bar player-bar">
+    <div><strong id="player-title">🧑 あなた</strong> <span id="player-deck-count" class="deck-count"></span></div>
+    <div class="stat-box">
+      メンタル: <span id="player-hp" class="hp">20</span> | ギガ: <span id="player-giga" class="giga">1/1</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div id="log" class="log-box"></div>
+    <div class="btn-group">
+      <button id="direct-attack-btn" onclick="directAttack()" class="btn-danger" disabled>相手本体にレスバ攻撃</button>
+      <button id="end-turn-btn" onclick="endTurn()">ターン終了</button>
+    </div>
+  </div>
+
+  <div class="field-label">手札（クリックで投稿・発動）</div>
+  <div id="player-hand" class="hand-area"></div>
+</div>
+
+<script src="cards.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
