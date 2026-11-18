@@ -31,6 +31,7 @@
 
 <!-- メインゲーム画面 -->
 <div id="game-screen" class="game-container" style="display: none;">
+  <!-- CPU ステータス -->
   <div class="status-bar cpu-bar">
     <div><strong id="cpu-title">👾 CPU</strong> <span id="cpu-deck-count" class="deck-count"></span></div>
     <div class="stat-box">
@@ -38,12 +39,22 @@
     </div>
   </div>
 
-  <div class="field-label">▼ 相手のタイムライン（クリックで攻撃対象に指定）</div>
-  <div id="cpu-field" class="field-area"></div>
+  <!-- CPU フィールド -->
+  <div id="cpu-field" class="field-area">
+    <span class="empty-msg">相手の場にミームはいません</span>
+  </div>
 
-  <div class="field-label">▲ 自分のタイムライン（緑枠をクリックして攻撃準備）</div>
-  <div id="player-field" class="field-area"></div>
+  <!-- 操作ガイド（ナビゲーションバー） -->
+  <div id="guide-banner" class="guide-banner">
+    ターン 1：手札のカードをタップして投稿しよう！
+  </div>
 
+  <!-- プレイヤー フィールド -->
+  <div id="player-field" class="field-area">
+    <span class="empty-msg">自分の場にミームはいません</span>
+  </div>
+
+  <!-- プレイヤー ステータス -->
   <div class="status-bar player-bar">
     <div><strong id="player-title">🧑 あなた</strong> <span id="player-deck-count" class="deck-count"></span></div>
     <div class="stat-box">
@@ -51,16 +62,23 @@
     </div>
   </div>
 
+  <!-- 操作ボタン＆最新ログ -->
   <div class="controls">
     <div id="log" class="log-box"></div>
     <div class="btn-group">
-      <button id="direct-attack-btn" onclick="directAttack()" class="btn-danger" disabled>相手本体にレスバ攻撃</button>
-      <button id="end-turn-btn" onclick="endTurn()">ターン終了</button>
+      <button id="direct-attack-btn" onclick="directAttack()" class="btn-danger" disabled>💥 相手本体に直接攻撃</button>
+      <button id="end-turn-btn" onclick="endTurn()">⏭️ ターン終了</button>
     </div>
   </div>
 
-  <div class="field-label">手札（クリックで投稿・発動）</div>
+  <!-- 手札 -->
+  <div class="field-label">▼ あなたの手札（緑枠のカードをタップして使用）</div>
   <div id="player-hand" class="hand-area"></div>
+</div>
+
+<!-- ターン切り替わり・CPU行動のカットイン表示 -->
+<div id="cutin-overlay" class="cutin-overlay" style="display: none;">
+  <div id="cutin-text" class="cutin-text"></div>
 </div>
 
 <script src="cards.js"></script>
