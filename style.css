@@ -20,7 +20,7 @@ body {
 }
 h1 { margin: 5px 0 12px; font-size: 1.3rem; }
 
-/* デッキ選択画面 */
+/* 選択画面 */
 .select-screen {
   background: var(--panel-bg); padding: 25px; border-radius: 12px;
   text-align: center; max-width: 600px; width: 100%; margin-top: 20px;
@@ -31,6 +31,17 @@ h1 { margin: 5px 0 12px; font-size: 1.3rem; }
   padding: 15px; border-radius: 8px; cursor: pointer; font-size: 1.05rem; transition: 0.2s;
 }
 .deck-btn:hover { border-color: var(--accent-main); transform: scale(1.02); }
+
+/* 端末受け渡し画面 */
+.pass-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: #0d0d12; display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.pass-box {
+  background: var(--panel-bg); border: 2px solid var(--accent-main);
+  padding: 35px; border-radius: 14px; text-align: center; max-width: 450px; width: 90%;
+}
 
 /* ゲーム画面 */
 .game-container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 10px; }
@@ -45,17 +56,10 @@ h1 { margin: 5px 0 12px; font-size: 1.3rem; }
 .hp { color: #ff4757; }
 .giga { color: #2ed573; }
 
-/* ナビゲーションガイド */
 .guide-banner {
   background: linear-gradient(90deg, #1e272e, #2f3640, #1e272e);
-  border: 1px solid var(--accent-main);
-  color: #fff;
-  text-align: center;
-  padding: 8px;
-  border-radius: 6px;
-  font-weight: bold;
-  font-size: 0.95rem;
-  box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+  border: 1px solid var(--accent-main); color: #fff; text-align: center;
+  padding: 8px; border-radius: 6px; font-weight: bold; font-size: 0.95rem;
 }
 
 .field-area {
@@ -65,7 +69,7 @@ h1 { margin: 5px 0 12px; font-size: 1.3rem; }
 .empty-msg { color: #555; font-size: 0.9rem; }
 .field-label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: -6px; }
 
-/* カードデザイン */
+/* カード */
 .card {
   width: 150px; height: 195px; background: var(--card-bg); border-radius: 8px; padding: 8px;
   box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;
@@ -79,9 +83,7 @@ h1 { margin: 5px 0 12px; font-size: 1.3rem; }
   border-color: #ffd32a; transform: translateY(-8px) scale(1.03);
   box-shadow: 0 0 16px rgba(255, 211, 42, 0.8);
 }
-.card.targetable {
-  border-color: #ff4757; animation: pulse-red 1s infinite;
-}
+.card.targetable { border-color: #ff4757; animation: pulse-red 1s infinite; }
 .card.spell { border-style: double; border-width: 3px; }
 
 @keyframes pulse-red {
@@ -131,7 +133,6 @@ button:disabled { background: #333; color: #666; cursor: not-allowed; }
 }
 .log-box p { margin: 3px 0; border-bottom: 1px solid #1a1a1a; padding-bottom: 2px; }
 
-/* カットイン演出 */
 .cutin-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0, 0, 0, 0.65); display: flex; align-items: center; justify-content: center;
