@@ -1,32 +1,56 @@
 let state = {
+  mode: 'cpu', // 'cpu' or 'pvp'
   turn: 1,
-  isPlayerTurn: true,
-  player: { label: "", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
-  cpu: { label: "", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
+  activeSide: 'p1', // 'p1' or 'p2'
+  isInputLocked: false,
+  p1: { name: "プレイヤー1", label: "", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
+  p2: { name: "CPU", label: "", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
   selectedAttackerIndex: null
 };
 
-function startGame(playerEraKey) {
-  const eraKeys = Object.keys(DECK_DATA);
-  const cpuEraKeys = eraKeys.filter(k => k !== playerEraKey);
-  const cpuEraKey = cpuEraKeys[Math.floor(Math.random() * cpuEraKeys.length)];
+let p1SelectedEra = null;
 
-  state.player.label = DECK_DATA[playerEraKey].label;
-  state.cpu.label = DECK_DATA[cpuEraKey].label;
-  state.player.deck = createDeck(DECK_DATA[playerEraKey].cards);
-  state.cpu.deck = createDeck(DECK_DATA[cpuEraKey].cards);
+function selectMode(mode) {
+  state.mode = mode;
+  document.getElementById("step-mode").style.display = "none";
+  document.getElementById("step-deck").style.display = "block";
+  document.getElementById("deck-select-title").innerText =
+    mode === 'cpu' ? "使用する世代デッキを選択してください" : "プレイヤー1（先攻）のデッキを選択";
+}
 
-  document.getElementById("deck-select-screen").style.display = "none";
+function selectDeck(eraKey) {
+  if (state.mode === 'cpu') {
+    const eraKeys = Object.keys(DECK_DATA);
+    const cpuEraKeys = eraKeys.filter(k => k !== eraKey);
+    const cpuEraKey = cpuEraKeys[Math.floor(Math.random() * cpuEraKeys.length)];
+    initMatch(eraKey, cpuEraKey);
+  } else {
+    if (!p1SelectedEra) {
+      p1SelectedEra = eraKey;
+      document.getElementById("deck-select-title").innerText = "プレイヤー2（後攻）のデッキを選択";
+    } else {
+      initMatch(p1SelectedEra, eraKey);
+    }
+  }
+}
+
+function initMatch(p1Era, p2Era) {
+  state.p1.label = DECK_DATA[p1Era].label;
+  state.p2.label = DECK_DATA[p2Era].label;
+  state.p2.name = state.mode === 'cpu' ? "CPU" : "プレイヤー2";
+
+  state.p1.deck = createDeck(DECK_DATA[p1Era].cards);
+  state.p2.deck = createDeck(DECK_DATA[p2Era].cards);
+
+  document.getElementById("setup-screen").style.display = "none";
   document.getElementById("game-screen").style.display = "flex";
-  document.getElementById("player-title").innerText = `🧑 あなた（${state.player.label}）`;
-  document.getElementById("cpu-title").innerText = `👾 CPU（${state.cpu.label}）`;
 
   for (let i = 0; i < 4; i++) {
-    drawCard('player');
-    drawCard('cpu');
+    drawCard('p1');
+    drawCard('p2');
   }
-  log(`対戦開始！『${state.player.label}』vs『${state.cpu.label}』！`);
-  showCutin(`⚔️ 対戦開始！\nあなたのターン（ターン1）`);
+  log(`対戦開始！『${state.p1.label}』vs『${state.p2.label}』！`);
+  showCutin(`⚔️ 対戦開始！\n${state.p1.name}のターン`);
   render();
 }
 
@@ -38,17 +62,19 @@ function createDeck(cardPool) {
   return deck.sort(() => Math.random() - 0.5);
 }
 
+function getSelf() { return state[state.activeSide]; }
+function getOpp() { return state[state.activeSide === 'p1' ? 'p2' : 'p1']; }
+
 function drawCard(who) {
   let p = state[who];
   if (p.deck.length === 0) {
     p.hp -= 2;
-    log(`${who === 'player' ? 'あなた' : 'CPU'}はネタ切れ（山札0）でメンタルに2ダメージ！`);
+    log(`${p.name}はネタ切れ（山札0）でメンタルに2ダメージ！`);
     return;
   }
   if (p.hand.length < 7) p.hand.push(p.deck.pop());
 }
 
-// 最新ログを一番上に追加
 function log(msg) {
   const logBox = document.getElementById("log");
   logBox.innerHTML = `<p>> ${msg}</p>` + logBox.innerHTML;
@@ -56,41 +82,38 @@ function log(msg) {
 
 function showCutin(text, duration = 1100) {
   const overlay = document.getElementById("cutin-overlay");
-  const textEl = document.getElementById("cutin-text");
-  textEl.innerText = text;
+  document.getElementById("cutin-text").innerText = text;
   overlay.style.display = "flex";
-  setTimeout(() => {
-    overlay.style.display = "none";
-  }, duration);
+  setTimeout(() => { overlay.style.display = "none"; }, duration);
 }
 
 function playCard(handIndex) {
-  if (!state.isPlayerTurn) return;
-  const p = state.player;
-  const card = p.hand[handIndex];
+  if (state.isInputLocked) return;
+  const self = getSelf();
+  const card = self.hand[handIndex];
 
-  if (p.giga < card.cost) {
+  if (self.giga < card.cost) {
     log("⚠️ ギガ（コスト）が足りません！");
     return;
   }
 
   if (card.type === "meme") {
-    if (p.field.length >= 3) {
+    if (self.field.length >= 3) {
       log("⚠️ タイムラインがいっぱいです（最大3体）。");
       return;
     }
-    p.giga -= card.cost;
-    p.hand.splice(handIndex, 1);
+    self.giga -= card.cost;
+    self.hand.splice(handIndex, 1);
     card.canAttack = true;
     card.isBuzz = true;
-    p.field.push(card);
-    log(`📱 「${card.name}」を投稿！バズ状態で即攻撃可能！`);
-    triggerSummonEffect('player', card);
+    self.field.push(card);
+    log(`📱 ${self.name}が「${card.name}」を投稿！`);
+    triggerSummonEffect(state.activeSide, card);
   } else if (card.type === "spell") {
-    p.giga -= card.cost;
-    p.hand.splice(handIndex, 1);
-    log(`⚡ 構文発動：「${card.name}」！`);
-    executeSpell('player', card);
+    self.giga -= card.cost;
+    self.hand.splice(handIndex, 1);
+    log(`⚡ ${self.name}が構文「${card.name}」を発動！`);
+    executeSpell(state.activeSide, card);
   }
 
   state.selectedAttackerIndex = null;
@@ -100,7 +123,7 @@ function playCard(handIndex) {
 
 function triggerSummonEffect(who, card) {
   const self = state[who];
-  const opponent = who === 'player' ? state.cpu : state.player;
+  const opp = state[who === 'p1' ? 'p2' : 'p1'];
 
   if (card.id === "neko") {
     drawCard(who);
@@ -114,8 +137,8 @@ function triggerSummonEffect(who, card) {
       self.field.pop();
     }
   } else if (card.id === "donald") {
-    opponent.hp -= 2;
-    log("🤡 ランランルー！相手メンタルに2ダメージ！");
+    opp.hp -= 2;
+    log(`🤡 ランランルー！${opp.name}のメンタルに2ダメージ！`);
   } else if (card.id === "shuzo") {
     self.field.forEach(m => { if (m !== card) m.atk += 1; });
     log("🔥 修造の熱血応援！他の味方全員の攻撃力+1！");
@@ -123,23 +146,23 @@ function triggerSummonEffect(who, card) {
 }
 
 function executeSpell(who, card) {
-  const opponent = who === 'player' ? state.cpu : state.player;
   const self = state[who];
+  const opp = state[who === 'p1' ? 'p2' : 'p1'];
 
-  if (card.id === "ronpa" && opponent.field.length > 0) {
-    opponent.field[0].hp -= 3;
-    log(`🤔 論破！「${opponent.field[0].name}」に3ダメージ！`);
-  } else if (card.id === "numai" && opponent.field.length > 0) {
-    opponent.field[0].hp -= 2;
-    log(`🔨 ガッ！「${opponent.field[0].name}」に2ダメージ！`);
+  if (card.id === "ronpa" && opp.field.length > 0) {
+    opp.field[0].hp -= 3;
+    log(`🤔 論破！「${opp.field[0].name}」に3ダメージ！`);
+  } else if (card.id === "numai" && opp.field.length > 0) {
+    opp.field[0].hp -= 2;
+    log(`🔨 ガッ！「${opp.field[0].name}」に2ダメージ！`);
   } else if (card.id === "ojisan") {
-    opponent.field.forEach(m => m.atk = Math.max(0, m.atk - 2));
+    opp.field.forEach(m => m.atk = Math.max(0, m.atk - 2));
     log("👴 おじさん構文のキツさで相手ミーム全員の攻撃力が-2！");
   } else if (card.id === "owakon") {
-    const idx = opponent.field.findIndex(m => m.era === "2ch" || m.era === "ニコニコ");
+    const idx = opp.field.findIndex(m => m.era === "2ch" || m.era === "ニコニコ");
     if (idx !== -1) {
-      log(`📉 「${opponent.field[idx].name}」はオワコン認定され消滅した！`);
-      opponent.field.splice(idx, 1);
+      log(`📉 「${opp.field[idx].name}」はオワコン認定され消滅した！`);
+      opp.field.splice(idx, 1);
     }
   } else if (card.id === "kusa") {
     self.field.forEach(m => m.atk += 1);
@@ -149,17 +172,17 @@ function executeSpell(who, card) {
     drawCard(who);
     log("💬 弾幕展開！味方全員の攻撃力+1＆1枚ドロー！");
   } else if (card.id === "kaiko" || card.id === "kaiko2") {
-    if (opponent.field.some(m => m.era === "令和")) {
-      opponent.hp -= 3;
-      log("📺 懐古厨の説教が刺さり、相手メンタルに3ダメージ！");
+    if (opp.field.some(m => m.era === "令和")) {
+      opp.hp -= 3;
+      log(`📺 懐古厨の説教が刺さり、${opp.name}のメンタルに3ダメージ！`);
     }
   }
   cleanupDeadMemes();
 }
 
 function selectAttacker(index) {
-  if (!state.isPlayerTurn) return;
-  const meme = state.player.field[index];
+  if (state.isInputLocked) return;
+  const meme = getSelf().field[index];
   if (!meme.canAttack) {
     log("⚠️ このミームは既に行動済みです。");
     return;
@@ -169,9 +192,11 @@ function selectAttacker(index) {
 }
 
 function attackMeme(targetIndex) {
-  if (!state.isPlayerTurn || state.selectedAttackerIndex === null) return;
-  const attacker = state.player.field[state.selectedAttackerIndex];
-  const target = state.cpu.field[targetIndex];
+  if (state.isInputLocked || state.selectedAttackerIndex === null) return;
+  const self = getSelf();
+  const opp = getOpp();
+  const attacker = self.field[state.selectedAttackerIndex];
+  const target = opp.field[targetIndex];
 
   const atkPower = attacker.atk + (attacker.isBuzz ? 1 : 0);
   const targetPower = target.atk + (target.isBuzz ? 1 : 0);
@@ -188,13 +213,15 @@ function attackMeme(targetIndex) {
 }
 
 function directAttack() {
-  if (!state.isPlayerTurn || state.selectedAttackerIndex === null) return;
-  const attacker = state.player.field[state.selectedAttackerIndex];
+  if (state.isInputLocked || state.selectedAttackerIndex === null) return;
+  const self = getSelf();
+  const opp = getOpp();
+  const attacker = self.field[state.selectedAttackerIndex];
   const atkPower = attacker.atk + (attacker.isBuzz ? 1 : 0);
 
-  state.cpu.hp -= atkPower;
+  opp.hp -= atkPower;
   attacker.canAttack = false;
-  log(`🔥 「${attacker.name}」の直接攻撃！相手メンタルに ${atkPower} ダメージ！`);
+  log(`🔥 「${attacker.name}」の直接攻撃！${opp.name}のメンタルに ${atkPower} ダメージ！`);
 
   state.selectedAttackerIndex = null;
   checkGameOver();
@@ -202,18 +229,35 @@ function directAttack() {
 }
 
 function cleanupDeadMemes() {
-  state.player.field = state.player.field.filter(m => m.hp > 0);
-  state.cpu.field = state.cpu.field.filter(m => m.hp > 0);
+  state.p1.field = state.p1.field.filter(m => m.hp > 0);
+  state.p2.field = state.p2.field.filter(m => m.hp > 0);
 }
 
 function endTurn() {
-  if (!state.isPlayerTurn) return;
-  state.isPlayerTurn = false;
+  if (state.isInputLocked) return;
   state.selectedAttackerIndex = null;
-  processTurnStart('cpu');
-  showCutin(`👾 相手のターン（CPU思考中...）`, 1200);
+
+  if (state.mode === 'cpu') {
+    state.activeSide = 'p2';
+    state.isInputLocked = true;
+    processTurnStart('p2');
+    showCutin(`👾 CPUのターン（思考中...）`, 1100);
+    render();
+    setTimeout(cpuAI, 1200);
+  } else {
+    // 2人対戦モード：交代画面を出す
+    state.activeSide = state.activeSide === 'p1' ? 'p2' : 'p1';
+    if (state.activeSide === 'p1') state.turn++;
+    processTurnStart(state.activeSide);
+    document.getElementById("pass-title").innerText = `📱 ${getSelf().name}のターンです`;
+    document.getElementById("pass-screen").style.display = "flex";
+  }
+}
+
+function resumeTurn() {
+  document.getElementById("pass-screen").style.display = "none";
+  log(`--- ${getSelf().name}のターン（ターン ${state.turn}） ---`);
   render();
-  setTimeout(cpuAI, 1300);
 }
 
 function processTurnStart(who) {
@@ -233,7 +277,7 @@ function processTurnStart(who) {
 }
 
 function cpuAI() {
-  const cpu = state.cpu;
+  const cpu = state.p2;
   let actions = [];
 
   for (let i = cpu.hand.length - 1; i >= 0; i--) {
@@ -246,28 +290,28 @@ function cpuAI() {
         cpu.field.push(card);
         actions.push(`「${card.name}」を召喚`);
         log(`👾 CPUが「${card.name}」を召喚！`);
-        triggerSummonEffect('cpu', card);
+        triggerSummonEffect('p2', card);
       } else if (card.type === "spell") {
         cpu.giga -= card.cost;
         cpu.hand.splice(i, 1);
         actions.push(`「${card.name}」を発動`);
         log(`👾 CPUが「${card.name}」を発動！`);
-        executeSpell('cpu', card);
+        executeSpell('p2', card);
       }
     }
   }
 
   cpu.field.forEach(m => {
     const power = m.atk + (m.isBuzz ? 1 : 0);
-    if (state.player.field.length > 0) {
-      const target = state.player.field[0];
+    if (state.p1.field.length > 0) {
+      const target = state.p1.field[0];
       target.hp -= power;
       m.hp -= (target.atk + (target.isBuzz ? 1 : 0));
       actions.push(`「${m.name}」で攻撃`);
       log(`👾 CPUの「${m.name}」が「${target.name}」を攻撃！`);
       cleanupDeadMemes();
     } else {
-      state.player.hp -= power;
+      state.p1.hp -= power;
       actions.push(`「${m.name}」で直接攻撃(${power}ダメ)`);
       log(`👾 CPUの「${m.name}」が直接攻撃！メンタルに ${power} ダメージ！`);
     }
@@ -276,21 +320,22 @@ function cpuAI() {
   if (checkGameOver()) return;
 
   state.turn++;
-  state.isPlayerTurn = true;
-  processTurnStart('player');
-  const summary = actions.length > 0 ? `相手は ${actions.join(" → ")}！\n` : "相手は何もしなかった。\n";
+  state.activeSide = 'p1';
+  state.isInputLocked = false;
+  processTurnStart('p1');
+  const summary = actions.length > 0 ? `CPUは ${actions.join(" → ")}！\n` : "CPUは何もしなかった。\n";
   showCutin(`${summary}🧑 あなたのターン（ターン ${state.turn}）`, 1400);
   log(`--- あなたのターン（ターン ${state.turn}） ---`);
   render();
 }
 
 function checkGameOver() {
-  if (state.cpu.hp <= 0) {
-    setTimeout(() => { alert("🎉 勝利！相手のアカウントを凍結（メンタル0）に追い込みました！"); location.reload(); }, 200);
+  if (state.p2.hp <= 0) {
+    setTimeout(() => { alert(`🎉 ${state.p1.name}の勝利！相手をSNS引退に追い込みました！`); location.reload(); }, 200);
     return true;
   }
-  if (state.player.hp <= 0) {
-    setTimeout(() => { alert("💀 敗北... レスバに負けてSNSを引退しました..."); location.reload(); }, 200);
+  if (state.p1.hp <= 0) {
+    setTimeout(() => { alert(`🎉 ${state.p2.name}の勝利！相手をSNS引退に追い込みました！`); location.reload(); }, 200);
     return true;
   }
   return false;
@@ -298,16 +343,19 @@ function checkGameOver() {
 
 function updateGuideBanner() {
   const banner = document.getElementById("guide-banner");
-  if (!state.isPlayerTurn) {
-    banner.innerText = "⏳ 相手のターンです...";
+  const self = getSelf();
+  const opp = getOpp();
+
+  if (state.isInputLocked) {
+    banner.innerText = "⏳ CPUのターンです...";
     banner.style.borderColor = "#ff6b6b";
     return;
   }
   banner.style.borderColor = "#00d2ff";
 
   if (state.selectedAttackerIndex !== null) {
-    const attacker = state.player.field[state.selectedAttackerIndex];
-    if (state.cpu.field.length > 0) {
+    const attacker = self.field[state.selectedAttackerIndex];
+    if (opp.field.length > 0) {
       banner.innerText = `🎯 「${attacker.name}」で攻撃！赤く点滅している相手のミームをタップしよう`;
     } else {
       banner.innerText = `🔥 相手の場が空です！「💥 相手本体に直接攻撃」ボタンを押そう！`;
@@ -315,13 +363,13 @@ function updateGuideBanner() {
     return;
   }
 
-  const canPlayAny = state.player.hand.some(c => c.cost <= state.player.giga);
-  const canAttackAny = state.player.field.some(m => m.canAttack);
+  const canPlayAny = self.hand.some(c => c.cost <= self.giga);
+  const canAttackAny = self.field.some(m => m.canAttack);
 
   if (canPlayAny && canAttackAny) {
-    banner.innerText = `💡 ターン${state.turn}：手札（緑枠）を出すか、場のミーム（緑枠）をタップして攻撃しよう！`;
+    banner.innerText = `💡 ${self.name}のターン：手札（緑枠）を出すか、場のミーム（緑枠）で攻撃しよう！`;
   } else if (canPlayAny) {
-    banner.innerText = `💡 ターン${state.turn}：手札の緑枠カードをタップして投稿しよう！`;
+    banner.innerText = `💡 ${self.name}のターン：手札の緑枠カードをタップして投稿しよう！`;
   } else if (canAttackAny) {
     banner.innerText = `⚔️ 場の緑枠ミームをタップして攻撃しよう！`;
   } else {
@@ -330,46 +378,51 @@ function updateGuideBanner() {
 }
 
 function render() {
-  document.getElementById("cpu-hp").innerText = state.cpu.hp;
-  document.getElementById("cpu-giga").innerText = `${state.cpu.giga}/${state.cpu.maxGiga}`;
-  document.getElementById("cpu-deck-count").innerText = `(山札: ${state.cpu.deck.length}枚)`;
+  const self = getSelf();
+  const opp = getOpp();
 
-  document.getElementById("player-hp").innerText = state.player.hp;
-  document.getElementById("player-giga").innerText = `${state.player.giga}/${state.player.maxGiga}`;
-  document.getElementById("player-deck-count").innerText = `(山札: ${state.player.deck.length}枚)`;
+  document.getElementById("opp-title").innerText = `👾 ${opp.name}（${opp.label}）`;
+  document.getElementById("opp-hp").innerText = opp.hp;
+  document.getElementById("opp-giga").innerText = `${opp.giga}/${opp.maxGiga}`;
+  document.getElementById("opp-deck-count").innerText = `(山札: ${opp.deck.length}枚)`;
+
+  document.getElementById("self-title").innerText = `🧑 ${self.name}（${self.label}）`;
+  document.getElementById("self-hp").innerText = self.hp;
+  document.getElementById("self-giga").innerText = `${self.giga}/${self.maxGiga}`;
+  document.getElementById("self-deck-count").innerText = `(山札: ${self.deck.length}枚)`;
 
   updateGuideBanner();
 
-  const canDirect = state.isPlayerTurn && state.selectedAttackerIndex !== null && state.cpu.field.length === 0;
+  const canDirect = !state.isInputLocked && state.selectedAttackerIndex !== null && opp.field.length === 0;
   const directBtn = document.getElementById("direct-attack-btn");
   directBtn.disabled = !canDirect;
   if (canDirect) directBtn.classList.add("ready");
   else directBtn.classList.remove("ready");
 
-  document.getElementById("end-turn-btn").disabled = !state.isPlayerTurn;
+  document.getElementById("end-turn-btn").disabled = state.isInputLocked;
 
-  // CPUフィールド描画
-  const cpuFieldEl = document.getElementById("cpu-field");
-  cpuFieldEl.innerHTML = state.cpu.field.length === 0 ? `<span class="empty-msg">相手の場にミームはいません</span>` : "";
-  state.cpu.field.forEach((c, idx) => {
-    const isTarget = state.isPlayerTurn && state.selectedAttackerIndex !== null;
-    cpuFieldEl.appendChild(createCardElement(c, () => attackMeme(idx), { isTarget }));
+  // 相手フィールド描画
+  const oppFieldEl = document.getElementById("opp-field");
+  oppFieldEl.innerHTML = opp.field.length === 0 ? `<span class="empty-msg">相手の場にミームはいません</span>` : "";
+  opp.field.forEach((c, idx) => {
+    const isTarget = !state.isInputLocked && state.selectedAttackerIndex !== null;
+    oppFieldEl.appendChild(createCardElement(c, () => attackMeme(idx), { isTarget }));
   });
 
-  // プレイヤーフィールド描画
-  const playerFieldEl = document.getElementById("player-field");
-  playerFieldEl.innerHTML = state.player.field.length === 0 ? `<span class="empty-msg">自分の場にミームはいません</span>` : "";
-  state.player.field.forEach((c, idx) => {
+  // 自分フィールド描画
+  const selfFieldEl = document.getElementById("self-field");
+  selfFieldEl.innerHTML = self.field.length === 0 ? `<span class="empty-msg">自分の場にミームはいません</span>` : "";
+  self.field.forEach((c, idx) => {
     const isSelected = state.selectedAttackerIndex === idx;
-    const canAttack = state.isPlayerTurn && c.canAttack;
-    playerFieldEl.appendChild(createCardElement(c, () => selectAttacker(idx), { isSelected, canAttack }));
+    const canAttack = !state.isInputLocked && c.canAttack;
+    selfFieldEl.appendChild(createCardElement(c, () => selectAttacker(idx), { isSelected, canAttack }));
   });
 
-  // 手札描画
-  const handEl = document.getElementById("player-hand");
+  // 自分の手札描画
+  const handEl = document.getElementById("self-hand");
   handEl.innerHTML = "";
-  state.player.hand.forEach((c, idx) => {
-    const playable = state.isPlayerTurn && c.cost <= state.player.giga;
+  self.hand.forEach((c, idx) => {
+    const playable = !state.isInputLocked && c.cost <= self.giga;
     handEl.appendChild(createCardElement(c, () => playCard(idx), { playable, unplayable: !playable }));
   });
 }
