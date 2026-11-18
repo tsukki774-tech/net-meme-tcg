@@ -10,55 +10,82 @@
 
 <h1>📱 ネットミームTCG：世代間レスバ大戦</h1>
 
-<!-- デッキ選択画面 -->
-<div id="deck-select-screen" class="select-screen">
-  <h2>使用する世代デッキを選択してください</h2>
-  <div class="deck-options">
-    <button class="deck-btn" onclick="startGame('2ch')">
-      <strong>① 2ch・Flash黎明期</strong><br>
-      <small>低コストAA展開＆高耐久</small>
-    </button>
-    <button class="deck-btn" onclick="startGame('niconico')">
-      <strong>② ニコニコ・MAD全盛期</strong><br>
-      <small>弾幕バフ＆コンボ火力</small>
-    </button>
-    <button class="deck-btn" onclick="startGame('reiwa')">
-      <strong>③ 令和・SNSバズ世代</strong><br>
-      <small>超速攻＆構文カウンター</small>
+<!-- モード＆デッキ選択画面 -->
+<div id="setup-screen" class="select-screen">
+  <div id="step-mode">
+    <h2>対戦モードを選んでください</h2>
+    <div class="deck-options">
+      <button class="deck-btn" onclick="selectMode('cpu')">
+        <strong>🤖 1人でCPUと対戦</strong><br>
+        <small>AI相手にデッキのテスト・練習</small>
+      </button>
+      <button class="deck-btn" onclick="selectMode('pvp')">
+        <strong>👥 友達と2人で対戦（1台の端末を交代）</strong><br>
+        <small>ターンごとにiPad・スマホを渡して対戦</small>
+      </button>
+    </div>
+  </div>
+
+  <div id="step-deck" style="display: none;">
+    <h2 id="deck-select-title">プレイヤー1の世代デッキを選択</h2>
+    <div class="deck-options">
+      <button class="deck-btn" onclick="selectDeck('2ch')">
+        <strong>① 2ch・Flash黎明期</strong><br>
+        <small>低コストAA展開＆高耐久</small>
+      </button>
+      <button class="deck-btn" onclick="selectDeck('niconico')">
+        <strong>② ニコニコ・MAD全盛期</strong><br>
+        <small>弾幕バフ＆コンボ火力</small>
+      </button>
+      <button class="deck-btn" onclick="selectDeck('reiwa')">
+        <strong>③ 令和・SNSバズ世代</strong><br>
+        <small>超速攻＆構文カウンター</small>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 2人対戦用：端末受け渡し（手札隠し）画面 -->
+<div id="pass-screen" class="pass-overlay" style="display: none;">
+  <div class="pass-box">
+    <h2 id="pass-title">📱 プレイヤー2のターンです</h2>
+    <p>手札が見えないように端末を渡してください</p>
+    <button onclick="resumeTurn()" style="margin-top: 15px; font-size: 1.1rem; padding: 14px 28px;">
+      準備OK（ターンを開始する）
     </button>
   </div>
 </div>
 
 <!-- メインゲーム画面 -->
 <div id="game-screen" class="game-container" style="display: none;">
-  <!-- CPU ステータス -->
+  <!-- 相手（上側）ステータス -->
   <div class="status-bar cpu-bar">
-    <div><strong id="cpu-title">👾 CPU</strong> <span id="cpu-deck-count" class="deck-count"></span></div>
+    <div><strong id="opp-title">相手</strong> <span id="opp-deck-count" class="deck-count"></span></div>
     <div class="stat-box">
-      メンタル: <span id="cpu-hp" class="hp">20</span> | ギガ: <span id="cpu-giga" class="giga">1/1</span>
+      メンタル: <span id="opp-hp" class="hp">20</span> | ギガ: <span id="opp-giga" class="giga">1/1</span>
     </div>
   </div>
 
-  <!-- CPU フィールド -->
-  <div id="cpu-field" class="field-area">
+  <!-- 相手（上側）フィールド -->
+  <div id="opp-field" class="field-area">
     <span class="empty-msg">相手の場にミームはいません</span>
   </div>
 
-  <!-- 操作ガイド（ナビゲーションバー） -->
+  <!-- 操作ガイド -->
   <div id="guide-banner" class="guide-banner">
     ターン 1：手札のカードをタップして投稿しよう！
   </div>
 
-  <!-- プレイヤー フィールド -->
-  <div id="player-field" class="field-area">
+  <!-- 自分（下側）フィールド -->
+  <div id="self-field" class="field-area">
     <span class="empty-msg">自分の場にミームはいません</span>
   </div>
 
-  <!-- プレイヤー ステータス -->
+  <!-- 自分（下側）ステータス -->
   <div class="status-bar player-bar">
-    <div><strong id="player-title">🧑 あなた</strong> <span id="player-deck-count" class="deck-count"></span></div>
+    <div><strong id="self-title">自分</strong> <span id="self-deck-count" class="deck-count"></span></div>
     <div class="stat-box">
-      メンタル: <span id="player-hp" class="hp">20</span> | ギガ: <span id="player-giga" class="giga">1/1</span>
+      メンタル: <span id="self-hp" class="hp">20</span> | ギガ: <span id="self-giga" class="giga">1/1</span>
     </div>
   </div>
 
@@ -71,12 +98,12 @@
     </div>
   </div>
 
-  <!-- 手札 -->
+  <!-- 自分の手札 -->
   <div class="field-label">▼ あなたの手札（緑枠のカードをタップして使用）</div>
-  <div id="player-hand" class="hand-area"></div>
+  <div id="self-hand" class="hand-area"></div>
 </div>
 
-<!-- ターン切り替わり・CPU行動のカットイン表示 -->
+<!-- カットイン演出 -->
 <div id="cutin-overlay" class="cutin-overlay" style="display: none;">
   <div id="cutin-text" class="cutin-text"></div>
 </div>
