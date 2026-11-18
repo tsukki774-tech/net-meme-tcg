@@ -26,6 +26,7 @@ function startGame(playerEraKey) {
     drawCard('cpu');
   }
   log(`対戦開始！『${state.player.label}』vs『${state.cpu.label}』！`);
+  showCutin(`⚔️ 対戦開始！\nあなたのターン（ターン1）`);
   render();
 }
 
@@ -47,10 +48,20 @@ function drawCard(who) {
   if (p.hand.length < 7) p.hand.push(p.deck.pop());
 }
 
+// 最新ログを一番上に追加
 function log(msg) {
   const logBox = document.getElementById("log");
-  logBox.innerHTML += `<p>> ${msg}</p>`;
-  logBox.scrollTop = logBox.scrollHeight;
+  logBox.innerHTML = `<p>> ${msg}</p>` + logBox.innerHTML;
+}
+
+function showCutin(text, duration = 1100) {
+  const overlay = document.getElementById("cutin-overlay");
+  const textEl = document.getElementById("cutin-text");
+  textEl.innerText = text;
+  overlay.style.display = "flex";
+  setTimeout(() => {
+    overlay.style.display = "none";
+  }, duration);
 }
 
 function playCard(handIndex) {
@@ -73,7 +84,7 @@ function playCard(handIndex) {
     card.canAttack = true;
     card.isBuzz = true;
     p.field.push(card);
-    log(`📱 「${card.name}」を投稿！バズ状態で攻撃可能！`);
+    log(`📱 「${card.name}」を投稿！バズ状態で即攻撃可能！`);
     triggerSummonEffect('player', card);
   } else if (card.type === "spell") {
     p.giga -= card.cost;
@@ -183,7 +194,7 @@ function directAttack() {
 
   state.cpu.hp -= atkPower;
   attacker.canAttack = false;
-  log(`🔥 「${attacker.name}」のダイレクトレスバ！相手メンタルに ${atkPower} ダメージ！`);
+  log(`🔥 「${attacker.name}」の直接攻撃！相手メンタルに ${atkPower} ダメージ！`);
 
   state.selectedAttackerIndex = null;
   checkGameOver();
@@ -200,8 +211,9 @@ function endTurn() {
   state.isPlayerTurn = false;
   state.selectedAttackerIndex = null;
   processTurnStart('cpu');
+  showCutin(`👾 相手のターン（CPU思考中...）`, 1200);
   render();
-  setTimeout(cpuAI, 800);
+  setTimeout(cpuAI, 1300);
 }
 
 function processTurnStart(who) {
@@ -222,7 +234,7 @@ function processTurnStart(who) {
 
 function cpuAI() {
   const cpu = state.cpu;
-  log(`--- CPU（${cpu.label}）のターン ---`);
+  let actions = [];
 
   for (let i = cpu.hand.length - 1; i >= 0; i--) {
     const card = cpu.hand[i];
@@ -232,11 +244,13 @@ function cpuAI() {
         cpu.hand.splice(i, 1);
         card.isBuzz = true;
         cpu.field.push(card);
+        actions.push(`「${card.name}」を召喚`);
         log(`👾 CPUが「${card.name}」を召喚！`);
         triggerSummonEffect('cpu', card);
       } else if (card.type === "spell") {
         cpu.giga -= card.cost;
         cpu.hand.splice(i, 1);
+        actions.push(`「${card.name}」を発動`);
         log(`👾 CPUが「${card.name}」を発動！`);
         executeSpell('cpu', card);
       }
@@ -249,10 +263,12 @@ function cpuAI() {
       const target = state.player.field[0];
       target.hp -= power;
       m.hp -= (target.atk + (target.isBuzz ? 1 : 0));
+      actions.push(`「${m.name}」で攻撃`);
       log(`👾 CPUの「${m.name}」が「${target.name}」を攻撃！`);
       cleanupDeadMemes();
     } else {
       state.player.hp -= power;
+      actions.push(`「${m.name}」で直接攻撃(${power}ダメ)`);
       log(`👾 CPUの「${m.name}」が直接攻撃！メンタルに ${power} ダメージ！`);
     }
   });
@@ -262,22 +278,55 @@ function cpuAI() {
   state.turn++;
   state.isPlayerTurn = true;
   processTurnStart('player');
+  const summary = actions.length > 0 ? `相手は ${actions.join(" → ")}！\n` : "相手は何もしなかった。\n";
+  showCutin(`${summary}🧑 あなたのターン（ターン ${state.turn}）`, 1400);
   log(`--- あなたのターン（ターン ${state.turn}） ---`);
   render();
 }
 
 function checkGameOver() {
   if (state.cpu.hp <= 0) {
-    alert("🎉 勝利！相手のアカウントを凍結（メンタル0）に追い込みました！");
-    location.reload();
+    setTimeout(() => { alert("🎉 勝利！相手のアカウントを凍結（メンタル0）に追い込みました！"); location.reload(); }, 200);
     return true;
   }
   if (state.player.hp <= 0) {
-    alert("💀 敗北... レスバに負けてSNSを引退しました...");
-    location.reload();
+    setTimeout(() => { alert("💀 敗北... レスバに負けてSNSを引退しました..."); location.reload(); }, 200);
     return true;
   }
   return false;
+}
+
+function updateGuideBanner() {
+  const banner = document.getElementById("guide-banner");
+  if (!state.isPlayerTurn) {
+    banner.innerText = "⏳ 相手のターンです...";
+    banner.style.borderColor = "#ff6b6b";
+    return;
+  }
+  banner.style.borderColor = "#00d2ff";
+
+  if (state.selectedAttackerIndex !== null) {
+    const attacker = state.player.field[state.selectedAttackerIndex];
+    if (state.cpu.field.length > 0) {
+      banner.innerText = `🎯 「${attacker.name}」で攻撃！赤く点滅している相手のミームをタップしよう`;
+    } else {
+      banner.innerText = `🔥 相手の場が空です！「💥 相手本体に直接攻撃」ボタンを押そう！`;
+    }
+    return;
+  }
+
+  const canPlayAny = state.player.hand.some(c => c.cost <= state.player.giga);
+  const canAttackAny = state.player.field.some(m => m.canAttack);
+
+  if (canPlayAny && canAttackAny) {
+    banner.innerText = `💡 ターン${state.turn}：手札（緑枠）を出すか、場のミーム（緑枠）をタップして攻撃しよう！`;
+  } else if (canPlayAny) {
+    banner.innerText = `💡 ターン${state.turn}：手札の緑枠カードをタップして投稿しよう！`;
+  } else if (canAttackAny) {
+    banner.innerText = `⚔️ 場の緑枠ミームをタップして攻撃しよう！`;
+  } else {
+    banner.innerText = `✅ できる行動がありません。「⏭️ ターン終了」を押そう！`;
+  }
 }
 
 function render() {
@@ -289,34 +338,53 @@ function render() {
   document.getElementById("player-giga").innerText = `${state.player.giga}/${state.player.maxGiga}`;
   document.getElementById("player-deck-count").innerText = `(山札: ${state.player.deck.length}枚)`;
 
+  updateGuideBanner();
+
+  const canDirect = state.isPlayerTurn && state.selectedAttackerIndex !== null && state.cpu.field.length === 0;
   const directBtn = document.getElementById("direct-attack-btn");
-  directBtn.disabled = !(state.isPlayerTurn && state.selectedAttackerIndex !== null && state.cpu.field.length === 0);
+  directBtn.disabled = !canDirect;
+  if (canDirect) directBtn.classList.add("ready");
+  else directBtn.classList.remove("ready");
+
   document.getElementById("end-turn-btn").disabled = !state.isPlayerTurn;
 
+  // CPUフィールド描画
   const cpuFieldEl = document.getElementById("cpu-field");
-  cpuFieldEl.innerHTML = "";
+  cpuFieldEl.innerHTML = state.cpu.field.length === 0 ? `<span class="empty-msg">相手の場にミームはいません</span>` : "";
   state.cpu.field.forEach((c, idx) => {
-    cpuFieldEl.appendChild(createCardElement(c, () => attackMeme(idx), false, false));
+    const isTarget = state.isPlayerTurn && state.selectedAttackerIndex !== null;
+    cpuFieldEl.appendChild(createCardElement(c, () => attackMeme(idx), { isTarget }));
   });
 
+  // プレイヤーフィールド描画
   const playerFieldEl = document.getElementById("player-field");
-  playerFieldEl.innerHTML = "";
+  playerFieldEl.innerHTML = state.player.field.length === 0 ? `<span class="empty-msg">自分の場にミームはいません</span>` : "";
   state.player.field.forEach((c, idx) => {
     const isSelected = state.selectedAttackerIndex === idx;
-    const canAtk = state.isPlayerTurn && c.canAttack;
-    playerFieldEl.appendChild(createCardElement(c, () => selectAttacker(idx), isSelected, canAtk));
+    const canAttack = state.isPlayerTurn && c.canAttack;
+    playerFieldEl.appendChild(createCardElement(c, () => selectAttacker(idx), { isSelected, canAttack }));
   });
 
+  // 手札描画
   const handEl = document.getElementById("player-hand");
   handEl.innerHTML = "";
   state.player.hand.forEach((c, idx) => {
-    handEl.appendChild(createCardElement(c, () => playCard(idx), false, false));
+    const playable = state.isPlayerTurn && c.cost <= state.player.giga;
+    handEl.appendChild(createCardElement(c, () => playCard(idx), { playable, unplayable: !playable }));
   });
 }
 
-function createCardElement(card, onClick, isSelected, canAttack) {
+function createCardElement(card, onClick, flags = {}) {
   const div = document.createElement("div");
-  div.className = `card ${card.type === 'spell' ? 'spell' : ''} ${isSelected ? 'selected' : ''} ${canAttack ? 'can-attack' : ''}`;
+  let classes = ["card"];
+  if (card.type === 'spell') classes.push("spell");
+  if (flags.isSelected) classes.push("selected");
+  if (flags.canAttack) classes.push("can-attack");
+  if (flags.isTarget) classes.push("targetable");
+  if (flags.playable) classes.push("playable");
+  if (flags.unplayable) classes.push("unplayable");
+
+  div.className = classes.join(" ");
   div.onclick = onClick;
 
   const displayAtk = card.atk + (card.isBuzz ? 1 : 0);
