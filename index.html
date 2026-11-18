@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ネットミームTCG - 世代間レスバ大戦</title>
+  <!-- 通信対戦用ライブラリ（PeerJS） -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
     :root {
       --bg-color: #121212;
@@ -37,6 +39,16 @@
       padding: 16px; border-radius: 8px; cursor: pointer; font-size: 1.05rem; transition: 0.2s;
     }
     .deck-btn:active { border-color: var(--accent-main); transform: scale(0.98); }
+
+    .room-input {
+      font-size: 1.5rem; padding: 10px; width: 160px; text-align: center;
+      border-radius: 8px; border: 2px solid var(--accent-main); background: #121212; color: #fff;
+      letter-spacing: 4px; margin-bottom: 10px;
+    }
+    .room-code-display {
+      font-size: 2.2rem; font-weight: bold; color: #ffd32a; letter-spacing: 6px;
+      background: #121212; padding: 12px 24px; border-radius: 8px; display: inline-block; margin: 10px 0;
+    }
 
     .pass-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -151,25 +163,55 @@
 
 <h1>📱 ネットミームTCG：世代間レスバ大戦</h1>
 
-<!-- モード＆デッキ選択画面 -->
+<!-- セットアップ画面 -->
 <div id="setup-screen" class="select-screen">
+  <!-- ステップ1：モード選択 -->
   <div id="step-mode">
     <h2>対戦モードを選んでください</h2>
     <div class="deck-options">
+      <button type="button" class="deck-btn" id="btn-mode-online">
+        <strong>🌐 2台の端末で通信対戦（オンライン）</strong><br>
+        <small>それぞれのiPad・スマホから部屋番号で対戦</small>
+      </button>
       <button type="button" class="deck-btn" id="btn-mode-cpu">
         <strong>🤖 1人でCPUと対戦</strong><br>
         <small>AI相手にデッキのテスト・練習</small>
       </button>
-      <button type="button" class="deck-btn" id="btn-mode-pvp">
-        <strong>👥 友達と2人で対戦（1台の端末を交代）</strong><br>
-        <small>ターンごとにiPad・スマホを渡して対戦</small>
+      <button type="button" class="deck-btn" id="btn-mode-local">
+        <strong>👥 1台の端末を交代して2人対戦</strong><br>
+        <small>ターンごとにiPadを渡して対戦</small>
       </button>
     </div>
   </div>
 
+  <!-- ステップ1.5：オンライン部屋作成・参加 -->
+  <div id="step-online" style="display: none;">
+    <h2>🌐 通信対戦ロビー</h2>
+    <div style="margin: 20px 0; padding: 15px; background: #18181f; border-radius: 8px;">
+      <p style="margin-top:0;"><strong>【部屋を作る人】</strong></p>
+      <button type="button" id="btn-create-room" style="padding: 12px 24px; font-size: 1rem;">部屋番号を発行する</button>
+      <div id="host-info" style="display: none; margin-top: 10px;">
+        <div>友達にこの4桁の番号を教えてください：</div>
+        <div id="my-room-code" class="room-code-display">----</div>
+        <div id="host-status" style="color: #2ed573; font-size: 0.9rem;">相手の参加を待っています...</div>
+      </div>
+    </div>
+
+    <div style="margin: 20px 0; padding: 15px; background: #18181f; border-radius: 8px;">
+      <p style="margin-top:0;"><strong>【部屋に入る人】</strong></p>
+      <input type="tel" id="join-room-input" class="room-input" maxlength="4" placeholder="0000"><br>
+      <button type="button" id="btn-join-room" style="padding: 12px 24px; font-size: 1rem; background: #2ed573;">この部屋に参加する</button>
+      <div id="join-status" style="color: #ff6b6b; font-size: 0.9rem; margin-top: 8px;"></div>
+    </div>
+  </div>
+
+  <!-- ステップ2：デッキ選択 -->
   <div id="step-deck" style="display: none;">
-    <h2 id="deck-select-title">プレイヤー1の世代デッキを選択</h2>
-    <div class="deck-options">
+    <h2 id="deck-select-title">使用する世代デッキを選択</h2>
+    <div id="online-wait-msg" style="display:none; color:#ffd32a; font-weight:bold; margin: 15px 0;">
+      ⏳ 相手がデッキを選ぶのを待っています...
+    </div>
+    <div id="deck-btn-list" class="deck-options">
       <button type="button" class="deck-btn" id="btn-deck-2ch">
         <strong>① 2ch・Flash黎明期</strong><br>
         <small>低コストAA展開＆高耐久</small>
@@ -186,7 +228,7 @@
   </div>
 </div>
 
-<!-- 2人対戦用：端末受け渡し画面 -->
+<!-- ローカル2人対戦用：端末受け渡し画面 -->
 <div id="pass-screen" class="pass-overlay" style="display: none;">
   <div class="pass-box">
     <h2 id="pass-title">📱 プレイヤー2のターンです</h2>
@@ -279,27 +321,144 @@ document.addEventListener("DOMContentLoaded", function() {
   };
 
   let state = {
-    mode: 'cpu',
+    mode: 'cpu', // 'online', 'cpu', 'local'
+    myRole: 'p1', // online時：ホスト='p1'(先攻), ゲスト='p2'(後攻)
     turn: 1,
     activeSide: 'p1',
     isInputLocked: false,
     p1: { name: "プレイヤー1", label: "", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
-    p2: { name: "CPU", label: "", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
+    p2: { name: "プレイヤー2", label: "", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
     selectedAttackerIndex: null
   };
 
   let p1SelectedEra = null;
+  let p2SelectedEra = null;
+  let peer = null;
+  let conn = null;
+  const ROOM_PREFIX = "netmeme-tcg-room-";
 
-  // ボタンイベント登録
+  // === イベント登録 ===
+  document.getElementById("btn-mode-online").addEventListener("click", () => {
+    state.mode = 'online';
+    document.getElementById("step-mode").style.display = "none";
+    document.getElementById("step-online").style.display = "block";
+  });
   document.getElementById("btn-mode-cpu").addEventListener("click", () => selectMode('cpu'));
-  document.getElementById("btn-mode-pvp").addEventListener("click", () => selectMode('pvp'));
+  document.getElementById("btn-mode-local").addEventListener("click", () => selectMode('local'));
+
+  document.getElementById("btn-create-room").addEventListener("click", createOnlineRoom);
+  document.getElementById("btn-join-room").addEventListener("click", joinOnlineRoom);
+
   document.getElementById("btn-deck-2ch").addEventListener("click", () => selectDeck('2ch'));
   document.getElementById("btn-deck-nico").addEventListener("click", () => selectDeck('niconico'));
   document.getElementById("btn-deck-reiwa").addEventListener("click", () => selectDeck('reiwa'));
+
   document.getElementById("btn-resume").addEventListener("click", resumeTurn);
   document.getElementById("direct-attack-btn").addEventListener("click", directAttack);
   document.getElementById("end-turn-btn").addEventListener("click", endTurn);
 
+  // === 通信対戦（PeerJS）セットアップ ===
+  function createOnlineRoom() {
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
+    document.getElementById("btn-create-room").disabled = true;
+    document.getElementById("host-info").style.display = "block";
+    document.getElementById("my-room-code").innerText = code;
+
+    peer = new Peer(ROOM_PREFIX + code);
+    peer.on('connection', (connection) => {
+      conn = connection;
+      state.myRole = 'p1';
+      setupConnectionHandlers();
+      document.getElementById("step-online").style.display = "none";
+      document.getElementById("step-deck").style.display = "block";
+      document.getElementById("deck-select-title").innerText = "あなたは【先攻】です！デッキを選択";
+    });
+    peer.on('error', (err) => {
+      alert("通信エラーが発生しました。ページを再読み込みしてください。");
+    });
+  }
+
+  function joinOnlineRoom() {
+    const code = document.getElementById("join-room-input").value.trim();
+    if (code.length !== 4) {
+      document.getElementById("join-status").innerText = "4桁の番号を入力してください";
+      return;
+    }
+    document.getElementById("join-status").innerText = "接続中...";
+    peer = new Peer();
+    peer.on('open', () => {
+      conn = peer.connect(ROOM_PREFIX + code);
+      conn.on('open', () => {
+        state.myRole = 'p2';
+        setupConnectionHandlers();
+        document.getElementById("step-online").style.display = "none";
+        document.getElementById("step-deck").style.display = "block";
+        document.getElementById("deck-select-title").innerText = "あなたは【後攻】です！デッキを選択";
+      });
+    });
+    peer.on('error', () => {
+      document.getElementById("join-status").innerText = "部屋が見つかりません。番号を確認してください。";
+    });
+  }
+
+  function setupConnectionHandlers() {
+    conn.on('data', (data) => {
+      if (data.type === 'DECK_SELECTED') {
+        if (state.myRole === 'p1') {
+          p2SelectedEra = data.era;
+          tryStartOnlineMatch();
+        }
+      } else if (data.type === 'START_MATCH') {
+        state.p1 = data.p1;
+        state.p2 = data.p2;
+        state.turn = 1;
+        state.activeSide = 'p1';
+        state.isInputLocked = (state.myRole !== 'p1');
+        document.getElementById("setup-screen").style.display = "none";
+        document.getElementById("game-screen").style.display = "flex";
+        log(`対戦開始！『${state.p1.label}』vs『${state.p2.label}』！`);
+        showCutin(`⚔️ 対戦開始！\n先攻（プレイヤー1）のターン`);
+        render();
+      } else if (data.type === 'SYNC_STATE') {
+        state.p1 = data.p1;
+        state.p2 = data.p2;
+        state.turn = data.turn;
+        state.activeSide = data.activeSide;
+        state.isInputLocked = (state.activeSide !== state.myRole);
+        if (data.logMsg) log(data.logMsg);
+        if (data.cutinMsg) showCutin(data.cutinMsg);
+        checkGameOver();
+        render();
+      }
+    });
+  }
+
+  function sendSync(logMsg = null, cutinMsg = null) {
+    if (state.mode === 'online' && conn && conn.open) {
+      conn.send({
+        type: 'SYNC_STATE',
+        p1: state.p1,
+        p2: state.p2,
+        turn: state.turn,
+        activeSide: state.activeSide,
+        logMsg: logMsg,
+        cutinMsg: cutinMsg
+      });
+    }
+  }
+
+  function tryStartOnlineMatch() {
+    if (p1SelectedEra && p2SelectedEra) {
+      initMatch(p1SelectedEra, p2SelectedEra);
+      conn.send({
+        type: 'START_MATCH',
+        p1: state.p1,
+        p2: state.p2
+      });
+    }
+  }
+
+  // === モード＆デッキ選択 ===
   function selectMode(mode) {
     state.mode = mode;
     document.getElementById("step-mode").style.display = "none";
@@ -309,7 +468,16 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function selectDeck(eraKey) {
-    if (state.mode === 'cpu') {
+    if (state.mode === 'online') {
+      document.getElementById("deck-btn-list").style.display = "none";
+      document.getElementById("online-wait-msg").style.display = "block";
+      if (state.myRole === 'p1') {
+        p1SelectedEra = eraKey;
+        tryStartOnlineMatch();
+      } else {
+        conn.send({ type: 'DECK_SELECTED', era: eraKey });
+      }
+    } else if (state.mode === 'cpu') {
       const eraKeys = Object.keys(DECK_DATA);
       const cpuEraKeys = eraKeys.filter(k => k !== eraKey);
       const cpuEraKey = cpuEraKeys[Math.floor(Math.random() * cpuEraKeys.length)];
@@ -339,6 +507,7 @@ document.addEventListener("DOMContentLoaded", function() {
       drawCard('p1');
       drawCard('p2');
     }
+    state.isInputLocked = (state.mode === 'online' && state.myRole !== 'p1');
     log(`対戦開始！『${state.p1.label}』vs『${state.p2.label}』！`);
     showCutin(`⚔️ 対戦開始！\n${state.p1.name}のターン`);
     render();
@@ -352,8 +521,15 @@ document.addEventListener("DOMContentLoaded", function() {
     return deck.sort(() => Math.random() - 0.5);
   }
 
-  function getSelf() { return state[state.activeSide]; }
-  function getOpp() { return state[state.activeSide === 'p1' ? 'p2' : 'p1']; }
+  // オンライン時は自分の役割（p1かp2）を常に画面下側に表示する
+  function getViewSelf() {
+    if (state.mode === 'online') return state[state.myRole];
+    return state[state.activeSide];
+  }
+  function getViewOpp() {
+    if (state.mode === 'online') return state[state.myRole === 'p1' ? 'p2' : 'p1'];
+    return state[state.activeSide === 'p1' ? 'p2' : 'p1'];
+  }
 
   function drawCard(who) {
     let p = state[who];
@@ -379,7 +555,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   function playCard(handIndex) {
     if (state.isInputLocked) return;
-    const self = getSelf();
+    const self = getViewSelf();
     const card = self.hand[handIndex];
 
     if (self.giga < card.cost) {
@@ -387,6 +563,7 @@ document.addEventListener("DOMContentLoaded", function() {
       return;
     }
 
+    let actionLog = "";
     if (card.type === "meme") {
       if (self.field.length >= 3) {
         log("⚠️ タイムラインがいっぱいです（最大3体）。");
@@ -397,16 +574,19 @@ document.addEventListener("DOMContentLoaded", function() {
       card.canAttack = true;
       card.isBuzz = true;
       self.field.push(card);
-      log(`📱 ${self.name}が「${card.name}」を投稿！`);
+      actionLog = `📱 ${self.name}が「${card.name}」を投稿！`;
+      log(actionLog);
       triggerSummonEffect(state.activeSide, card);
     } else if (card.type === "spell") {
       self.giga -= card.cost;
       self.hand.splice(handIndex, 1);
-      log(`⚡ ${self.name}が構文「${card.name}」を発動！`);
+      actionLog = `⚡ ${self.name}が構文「${card.name}」を発動！`;
+      log(actionLog);
       executeSpell(state.activeSide, card);
     }
 
     state.selectedAttackerIndex = null;
+    sendSync(actionLog);
     checkGameOver();
     render();
   }
@@ -472,7 +652,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   function selectAttacker(index) {
     if (state.isInputLocked) return;
-    const meme = getSelf().field[index];
+    const meme = getViewSelf().field[index];
     if (!meme.canAttack) {
       log("⚠️ このミームは既に行動済みです。");
       return;
@@ -483,8 +663,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
   function attackMeme(targetIndex) {
     if (state.isInputLocked || state.selectedAttackerIndex === null) return;
-    const self = getSelf();
-    const opp = getOpp();
+    const self = getViewSelf();
+    const opp = getViewOpp();
     const attacker = self.field[state.selectedAttackerIndex];
     const target = opp.field[targetIndex];
 
@@ -495,25 +675,29 @@ document.addEventListener("DOMContentLoaded", function() {
     attacker.hp -= targetPower;
     attacker.canAttack = false;
 
-    log(`⚔️ 「${attacker.name}」が「${target.name}」とレスバ！`);
+    const actionLog = `⚔️ 「${attacker.name}」が「${target.name}」とレスバ！`;
+    log(actionLog);
     state.selectedAttackerIndex = null;
     cleanupDeadMemes();
+    sendSync(actionLog);
     checkGameOver();
     render();
   }
 
   function directAttack() {
     if (state.isInputLocked || state.selectedAttackerIndex === null) return;
-    const self = getSelf();
-    const opp = getOpp();
+    const self = getViewSelf();
+    const opp = getViewOpp();
     const attacker = self.field[state.selectedAttackerIndex];
     const atkPower = attacker.atk + (attacker.isBuzz ? 1 : 0);
 
     opp.hp -= atkPower;
     attacker.canAttack = false;
-    log(`🔥 「${attacker.name}」の直接攻撃！${opp.name}のメンタルに ${atkPower} ダメージ！`);
+    const actionLog = `🔥 「${attacker.name}」の直接攻撃！${opp.name}のメンタルに ${atkPower} ダメージ！`;
+    log(actionLog);
 
     state.selectedAttackerIndex = null;
+    sendSync(actionLog);
     checkGameOver();
     render();
   }
@@ -534,18 +718,27 @@ document.addEventListener("DOMContentLoaded", function() {
       showCutin(`👾 CPUのターン（思考中...）`, 1100);
       render();
       setTimeout(cpuAI, 1200);
-    } else {
+    } else if (state.mode === 'local') {
       state.activeSide = state.activeSide === 'p1' ? 'p2' : 'p1';
       if (state.activeSide === 'p1') state.turn++;
       processTurnStart(state.activeSide);
-      document.getElementById("pass-title").innerText = `📱 ${getSelf().name}のターンです`;
+      document.getElementById("pass-title").innerText = `📱 ${getViewSelf().name}のターンです`;
       document.getElementById("pass-screen").style.display = "flex";
+    } else if (state.mode === 'online') {
+      state.activeSide = state.activeSide === 'p1' ? 'p2' : 'p1';
+      if (state.activeSide === 'p1') state.turn++;
+      state.isInputLocked = true;
+      processTurnStart(state.activeSide);
+      const nextName = state[state.activeSide].name;
+      log(`--- ${nextName}のターン（ターン ${state.turn}） ---`);
+      sendSync(`--- ${nextName}のターン（ターン ${state.turn}） ---`, `⚔️ あなたのターンです！`);
+      render();
     }
   }
 
   function resumeTurn() {
     document.getElementById("pass-screen").style.display = "none";
-    log(`--- ${getSelf().name}のターン（ターン ${state.turn}） ---`);
+    log(`--- ${getViewSelf().name}のターン（ターン ${state.turn}） ---`);
     render();
   }
 
@@ -632,11 +825,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
   function updateGuideBanner() {
     const banner = document.getElementById("guide-banner");
-    const self = getSelf();
-    const opp = getOpp();
+    const self = getViewSelf();
+    const opp = getViewOpp();
 
     if (state.isInputLocked) {
-      banner.innerText = "⏳ CPUのターンです...";
+      banner.innerText = state.mode === 'online' ? "⏳ 相手プレイヤーのターンです..." : "⏳ CPUのターンです...";
       banner.style.borderColor = "#ff6b6b";
       return;
     }
@@ -656,9 +849,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const canAttackAny = self.field.some(m => m.canAttack);
 
     if (canPlayAny && canAttackAny) {
-      banner.innerText = `💡 ${self.name}のターン：手札（緑枠）を出すか、場のミーム（緑枠）で攻撃しよう！`;
+      banner.innerText = `💡 あなたのターン：手札（緑枠）を出すか、場のミーム（緑枠）で攻撃しよう！`;
     } else if (canPlayAny) {
-      banner.innerText = `💡 ${self.name}のターン：手札の緑枠カードをタップして投稿しよう！`;
+      banner.innerText = `💡 あなたのターン：手札の緑枠カードをタップして投稿しよう！`;
     } else if (canAttackAny) {
       banner.innerText = `⚔️ 場の緑枠ミームをタップして攻撃しよう！`;
     } else {
@@ -667,8 +860,8 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function render() {
-    const self = getSelf();
-    const opp = getOpp();
+    const self = getViewSelf();
+    const opp = getViewOpp();
 
     document.getElementById("opp-title").innerText = `👾 ${opp.name}（${opp.label}）`;
     document.getElementById("opp-hp").innerText = opp.hp;
