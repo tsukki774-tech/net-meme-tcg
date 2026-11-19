@@ -294,3 +294,63 @@ button:disabled { background: #333; color: #666; cursor: not-allowed; }
   padding: 20px 35px; border-radius: 12px; font-size: 1.3rem; font-weight: bold;
   text-align: center; box-shadow: 0 0 25px rgba(255, 107, 107, 0.6);
 }
+/* --- パック開封アニメーション演出 --- */
+@keyframes pack-shake {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  20% { transform: rotate(-6deg) scale(1.05); }
+  40% { transform: rotate(6deg) scale(1.08); }
+  60% { transform: rotate(-6deg) scale(1.1); }
+  80% { transform: rotate(6deg) scale(1.12); }
+}
+
+@keyframes flash-bang {
+  0% { background-color: rgba(255, 255, 255, 0.95); }
+  100% { background-color: rgba(255, 255, 255, 0); }
+}
+
+@keyframes card-reveal {
+  0% { transform: scale(0.3) rotateY(90deg); opacity: 0; }
+  70% { transform: scale(1.08) rotateY(0deg); opacity: 1; }
+  100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+}
+
+@keyframes rainbow-glow {
+  0% { box-shadow: 0 0 18px #ff4757, 0 0 8px #ffd32a; }
+  33% { box-shadow: 0 0 22px #2ed573, 0 0 10px #00d2ff; }
+  66% { box-shadow: 0 0 22px #a55eea, 0 0 10px #ff6b81; }
+  100% { box-shadow: 0 0 18px #ff4757, 0 0 8px #ffd32a; }
+}
+
+.pack-opening-anim {
+  animation: pack-shake 0.9s ease-in-out;
+}
+.pack-glow-SR {
+  border-color: #ffd32a !important;
+  box-shadow: 0 0 30px rgba(255, 211, 42, 0.9) !important;
+}
+.pack-glow-UR {
+  border-color: #ff4757 !important;
+  animation: pack-shake 0.9s ease-in-out, rainbow-glow 0.6s infinite !important;
+}
+
+.screen-flash {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 2000;
+  animation: flash-bang 0.6s ease-out forwards;
+}
+
+.card-back-mystery {
+  width: 148px; height: 195px;
+  background: linear-gradient(135deg, #1e272e, #2f3640);
+  border: 2px solid #555; border-radius: 8px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 2.2rem; color: #ffd32a; font-weight: bold;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+}
+
+.card-revealed {
+  animation: card-reveal 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.rarity-UR.card-revealed {
+  animation: card-reveal 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, rainbow-glow 1.5s infinite;
+}
