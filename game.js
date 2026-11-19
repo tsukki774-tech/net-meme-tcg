@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
-  var SAVE_KEY = "netmeme_tcg_save_v1";
+  var SAVE_KEY = "netmeme_tcg_save_v2";
+  var DECK_SIZE = 40;
   var userData = loadUserData();
 
   function loadUserData() {
@@ -9,13 +10,19 @@ document.addEventListener("DOMContentLoaded", function() {
         return JSON.parse(raw);
       } catch (e) {}
     }
+    var defaultDeck = [
+      "mona","mona","mona","giko","giko","giko","yaruo","yaruo","yaruo","numai","numai","numai","kusa","kusa","kusa",
+      "neko","neko","neko","chiikawa","chiikawa","chiikawa","ronpa","ronpa","ojisan","ojisan",
+      "kmr","kmr","kmr","mur","mur","mur","tono","tono","kirinuki","kirinuki","kirinuki","zombie","zombie","zombie","kagiaka"
+    ];
     return {
-      points: 1000,
+      points: 1500,
       collection: {
-        mona: 3, giko: 3, yaruo: 2, numai: 2, kusa: 2,
-        neko: 3, chiikawa: 2, kmr: 3, mur: 2, kirinuki: 2, zombie: 3
+        mona: 3, giko: 3, yaruo: 3, numai: 3, kusa: 3,
+        neko: 3, chiikawa: 3, ronpa: 2, ojisan: 2,
+        kmr: 3, mur: 3, tono: 2, kirinuki: 3, zombie: 3, kagiaka: 2
       },
-      myDeck: ["mona","mona","giko","giko","yaruo","numai","kusa","neko","neko","chiikawa","kmr","mur","kirinuki","zombie","zombie"]
+      myDeck: defaultDeck
     };
   }
 
@@ -161,8 +168,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
       var inDeckCount = userData.myDeck.filter(function(id) { return id === card.id; }).length;
       var el = createCardElement(card, function() {
-        if (userData.myDeck.length >= 15) {
-          alert("デッキは15枚までです！");
+        if (userData.myDeck.length >= DECK_SIZE) {
+          alert("デッキは" + DECK_SIZE + "枚までです！");
           return;
         }
         if (inDeckCount >= 3 || inDeckCount >= owned) {
@@ -188,7 +195,7 @@ document.addEventListener("DOMContentLoaded", function() {
       for (var i = 0; i < count; i++) available.push(id);
     });
     available.sort(function() { return Math.random() - 0.5; });
-    userData.myDeck = available.slice(0, 15);
+    userData.myDeck = available.slice(0, DECK_SIZE);
     renderDeckBuilder();
   });
 
@@ -198,12 +205,12 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   document.getElementById("btn-save-deck").addEventListener("click", function() {
-    if (userData.myDeck.length !== 15) {
-      alert("デッキはちょうど15枚にしてください！（現在 " + userData.myDeck.length + " 枚）");
+    if (userData.myDeck.length !== DECK_SIZE) {
+      alert("デッキはちょうど" + DECK_SIZE + "枚にしてください！（現在 " + userData.myDeck.length + " 枚）");
       return;
     }
     saveUserData();
-    alert("✅ マイデッキ（15枚）を保存しました！");
+    alert("✅ マイデッキ（" + DECK_SIZE + "枚）を保存しました！");
   });
 
   var state = {
@@ -228,8 +235,8 @@ document.addEventListener("DOMContentLoaded", function() {
     var ids = [];
     var label = "";
     if (choice === "mydeck") {
-      if (userData.myDeck.length !== 15) {
-        alert("マイデッキが15枚になっていません！デッキ編成で15枚揃えるか、レンタルデッキを選んでください。");
+      if (userData.myDeck.length !== DECK_SIZE) {
+        alert("マイデッキが" + DECK_SIZE + "枚になっていません！デッキ編成で" + DECK_SIZE + "枚揃えるか、レンタルデッキを選んでください。");
         return null;
       }
       ids = userData.myDeck.slice();
@@ -249,7 +256,10 @@ document.addEventListener("DOMContentLoaded", function() {
     if (!p1Deck) return;
     state.mode = "cpu";
 
-    var cpuIds = ALL_CARDS.slice().sort(function() { return Math.random() - 0.5; }).slice(0, 15).map(function(c) { return c.id; });
+    var pool = [];
+    ALL_CARDS.forEach(function(c) { pool.push(c.id, c.id); });
+    pool.sort(function() { return Math.random() - 0.5; });
+    var cpuIds = pool.slice(0, DECK_SIZE);
     var cpuCards = cpuIds.map(function(id) {
       return JSON.parse(JSON.stringify(ALL_CARDS.find(function(c) { return c.id === id; })));
     });
