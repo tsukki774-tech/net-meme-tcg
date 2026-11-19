@@ -1,42 +1,244 @@
 document.addEventListener("DOMContentLoaded", function() {
+  // --- セーブデータ管理 ---
+  const SAVE_KEY = "netmeme_tcg_save_v1";
+  let userData = loadUserData();
+
+  function loadUserData() {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch (e) {}
+    }
+    // 初期データ（1000P + 初期カード少し）
+    return {
+      points: 1000,
+      collection: {
+        mona: 3, giko: 3, yaruo: 2, numai: 2, kusa: 2,
+        neko: 3, chiikawa: 2, kmr: 3, mur: 2, kirinuki: 2, zombie: 3
+      },
+      myDeck: ["mona","mona","giko","giko","yaruo","numai","kusa","neko","neko","chiikawa","kmr","mur","kirinuki","zombie","zombie"]
+    };
+  }
+
+  function saveUserData() {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(userData));
+    updatePointsUI();
+  }
+
+  function updatePointsUI() {
+    document.getElementById("user-points").innerText = userData.points;
+  }
+  updatePointsUI();
+
+  // --- 画面遷移 ---
+  const screens = ["home-screen", "pack-screen", "deck-screen", "setup-screen", "game-screen"];
+  function showScreen(id) {
+    screens.forEach(s => document.getElementById(s).style.display = (s === id) ? (id === "game-screen" ? "flex" : "block") : "none");
+  }
+
+  document.getElementById("nav-battle").addEventListener("click", () => {
+    document.getElementById("step-mode").style.display = "block";
+    document.getElementById("step-online").style.display = "none";
+    showScreen("setup-screen");
+  });
+  document.getElementById("nav-pack").addEventListener("click", () => {
+    document.getElementById("pack-result-area").innerHTML = "";
+    showScreen("pack-screen");
+  });
+  document.getElementById("nav-deck").addEventListener("click", () => {
+    renderDeckBuilder();
+    showScreen("deck-screen");
+  });
+
+  document.getElementById("back-from-pack").addEventListener("click", () => showScreen("home-screen"));
+  document.getElementById("back-from-deck").addEventListener("click", () => showScreen("home-screen"));
+  document.getElementById("back-from-setup").addEventListener("click", () => showScreen("home-screen"));
+
+  // --- パック開封システム ---
+  document.getElementById("btn-open-pack").addEventListener("click", openPack);
+
+  function openPack() {
+    if (userData.points < 100) {
+      alert("バズPが足りません！CPU戦に勝利してポイントを貯めよう！");
+      return;
+    }
+    userData.points -= 100;
+
+    const resultArea = document.getElementById("pack-result-area");
+    resultArea.innerHTML = "";
+
+    const poolN = ALL_CARDS.filter(c => c.rarity === "N");
+    const poolR = ALL_CARDS.filter(c => c.rarity === "R");
+    const poolSR = ALL_CARDS.filter(c => c.rarity === "SR");
+    const poolUR = ALL_CARDS.filter(c => c.rarity === "UR");
+
+    let pulled = [];
+    for (let i = 0; i < 5; i++) {
+      const rand = Math.random() * 100;
+      let pool = poolN;
+      if (i === 4) {
+        // 5枚目はR以上確定
+        if (rand < 8) pool = poolUR;
+        else if (rand < 35) pool = poolSR;
+        else pool = poolR;
+      } else {
+        if (rand < 3) pool = poolUR;
+        else if (rand < 15) pool = poolSR;
+        else if (rand < 45) pool = poolR;
+      }
+      const card = pool[Math.floor(Math.random() * pool.length)];
+      pulled.push(card);
+      userData.collection[card.id] = (userData.collection[card.id] || 0) + 1;
+    }
+
+    saveUserData();
+
+    pulled.forEach(c => {
+      const el = createCardElement(c, () => {}, {});
+      resultArea.appendChild(el);
+    });
+  }
+
+  // --- デッキ編成システム ---
+  function renderDeckBuilder() {
+    document.getElementById("deck-count-label").innerText = userData.myDeck.length;
+
+    const deckListEl = document.getElementById("current-deck-list");
+    deckListEl.innerHTML = "";
+    userData.myDeck.forEach((cardId, index) => {
+      const card = ALL_CARDS.find(c => c.id === cardId);
+      if (!card) return;
+      const chip = document.createElement("div");
+      chip.className = "mini-chip";
+      chip.innerHTML = `<span class="cost-badge" style="width:16px;height:16px;font-size:0.7rem;">${card.cost}</span> ${card.icon} ${card.name} ✕`;
+      chip.addEventListener("click", () => {
+        userData.myDeck.splice(index, 1);
+        renderDeckBuilder();
+      });
+      deckListEl.appendChild(chip);
+    });
+
+    const colListEl = document.getElementById("collection-list");
+    colListEl.innerHTML = "";
+    ALL_CARDS.forEach(card => {
+      const owned = userData.collection[card.id] || 0;
+      if (owned <= 0) return;
+
+      const inDeckCount = userData.myDeck.filter(id => id === card.id).length;
+      const el = createCardElement(card, () => {
+        if (userData.myDeck.length >= 15) {
+          alert("デッキは15枚までです！");
+          return;
+        }
+        if (inDeckCount >= 3 || inDeckCount >= owned) {
+          alert("これ以上同じカードを入れられません（所持数または上限3枚）");
+          return;
+        }
+        userData.myDeck.push(card.id);
+        renderDeckBuilder();
+      }, {});
+
+      const badge = document.createElement("div");
+      badge.className = "owned-badge";
+      badge.innerText = `デッキ:${inDeckCount} / 所持:${owned}`;
+      el.appendChild(badge);
+      colListEl.appendChild(el);
+    });
+  }
+
+  document.getElementById("btn-auto-deck").addEventListener("click", () => {
+    let available = [];
+    Object.keys(userData.collection).forEach(id => {
+      const count = Math.min(3, userData.collection[id]);
+      for (let i = 0; i < count; i++) available.push(id);
+    });
+    available.sort(() => Math.random() - 0.5);
+    userData.myDeck = available.slice(0, 15);
+    renderDeckBuilder();
+  });
+
+  document.getElementById("btn-clear-deck").addEventListener("click", () => {
+    userData.myDeck = [];
+    renderDeckBuilder();
+  });
+
+  document.getElementById("btn-save-deck").addEventListener("click", () => {
+    if (userData.myDeck.length !== 15) {
+      alert(`デッキはちょうど15枚にしてください！（現在 ${userData.myDeck.length} 枚）`);
+      return;
+    }
+    saveUserData();
+    alert("✅ マイデッキ（15枚）を保存しました！");
+  });
+
+  // --- バトル＆オンライン通信システム ---
   let state = {
     mode: 'cpu',
     myRole: 'p1',
     turn: 1,
     activeSide: 'p1',
     isInputLocked: false,
-    p1: { name: "プレイヤー1", label: "", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
-    p2: { name: "プレイヤー2", label: "", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
+    p1: { name: "プレイヤー1", label: "マイデッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
+    p2: { name: "CPU", label: "相手デッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
     selectedAttackerIndex: null
   };
 
-  let p1SelectedEra = null;
-  let p2SelectedEra = null;
   let peer = null;
   let conn = null;
-  const ROOM_PREFIX = "netmeme-tcg-room-";
+  let p1OnlineDeck = null;
+  let p2OnlineDeck = null;
+  const ROOM_PREFIX = "netmeme-tcg-v2-";
+
+  function getSelectedDeckCards() {
+    const choice = document.getElementById("battle-deck-select").value;
+    let ids = [];
+    let label = "";
+    if (choice === "mydeck") {
+      if (userData.myDeck.length !== 15) {
+        alert("マイデッキが15枚になっていません！デッキ編成で15枚揃えるか、レンタルデッキを選んでください。");
+        return null;
+      }
+      ids = [...userData.myDeck];
+      label = "マイデッキ";
+    } else {
+      ids = [...RENTAL_DECKS[choice].ids];
+      label = RENTAL_DECKS[choice].label;
+    }
+    const cards = ids.map(id => JSON.parse(JSON.stringify(ALL_CARDS.find(c => c.id === id)))).sort(() => Math.random() - 0.5);
+    return { label, cards };
+  }
+
+  document.getElementById("btn-mode-cpu").addEventListener("click", () => {
+    const p1Deck = getSelectedDeckCards();
+    if (!p1Deck) return;
+    state.mode = 'cpu';
+
+    // CPUは全カードからランダム15枚構築
+    const cpuIds = [...ALL_CARDS].sort(() => Math.random() - 0.5).slice(0, 15).map(c => c.id);
+    const cpuCards = cpuIds.map(id => JSON.parse(JSON.stringify(ALL_CARDS.find(c => c.id === id))));
+
+    startMatch(p1Deck, { label: "CPU混成デッキ", cards: cpuCards }, "CPU");
+  });
+
+  document.getElementById("btn-mode-local").addEventListener("click", () => {
+    const p1Deck = getSelectedDeckCards();
+    if (!p1Deck) return;
+    state.mode = 'local';
+    const p2Cards = [...RENTAL_DECKS.rental_yaju.ids].map(id => JSON.parse(JSON.stringify(ALL_CARDS.find(c => c.id === id)))).sort(() => Math.random() - 0.5);
+    startMatch(p1Deck, { label: "プレイヤー2デッキ", cards: p2Cards }, "プレイヤー2");
+  });
 
   document.getElementById("btn-mode-online").addEventListener("click", () => {
+    const myDeck = getSelectedDeckCards();
+    if (!myDeck) return;
     state.mode = 'online';
+    p1OnlineDeck = myDeck;
     document.getElementById("step-mode").style.display = "none";
     document.getElementById("step-online").style.display = "block";
   });
-  document.getElementById("btn-mode-cpu").addEventListener("click", () => selectMode('cpu'));
-  document.getElementById("btn-mode-local").addEventListener("click", () => selectMode('local'));
 
-  document.getElementById("btn-create-room").addEventListener("click", createOnlineRoom);
-  document.getElementById("btn-join-room").addEventListener("click", joinOnlineRoom);
-
-  document.getElementById("btn-deck-2ch").addEventListener("click", () => selectDeck('2ch'));
-  document.getElementById("btn-deck-nico").addEventListener("click", () => selectDeck('niconico'));
-  document.getElementById("btn-deck-reiwa").addEventListener("click", () => selectDeck('reiwa'));
-  document.getElementById("btn-deck-yaju").addEventListener("click", () => selectDeck('yaju'));
-
-  document.getElementById("btn-resume").addEventListener("click", resumeTurn);
-  document.getElementById("direct-attack-btn").addEventListener("click", directAttack);
-  document.getElementById("end-turn-btn").addEventListener("click", endTurn);
-
-  function createOnlineRoom() {
+  document.getElementById("btn-create-room").addEventListener("click", () => {
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     document.getElementById("btn-create-room").disabled = true;
     document.getElementById("host-info").style.display = "block";
@@ -47,16 +249,11 @@ document.addEventListener("DOMContentLoaded", function() {
       conn = connection;
       state.myRole = 'p1';
       setupConnectionHandlers();
-      document.getElementById("step-online").style.display = "none";
-      document.getElementById("step-deck").style.display = "block";
-      document.getElementById("deck-select-title").innerText = "あなたは【先攻】です！デッキを選択";
     });
-    peer.on('error', () => {
-      alert("通信エラーが発生しました。ページを再読み込みしてください。");
-    });
-  }
+    peer.on('error', () => alert("通信エラーが発生しました。再読み込みしてください。"));
+  });
 
-  function joinOnlineRoom() {
+  document.getElementById("btn-join-room").addEventListener("click", () => {
     const code = document.getElementById("join-room-input").value.trim();
     if (code.length !== 4) {
       document.getElementById("join-status").innerText = "4桁の番号を入力してください";
@@ -69,31 +266,27 @@ document.addEventListener("DOMContentLoaded", function() {
       conn.on('open', () => {
         state.myRole = 'p2';
         setupConnectionHandlers();
-        document.getElementById("step-online").style.display = "none";
-        document.getElementById("step-deck").style.display = "block";
-        document.getElementById("deck-select-title").innerText = "あなたは【後攻】です！デッキを選択";
+        conn.send({ type: 'SEND_DECK', deck: p1OnlineDeck });
       });
     });
     peer.on('error', () => {
-      document.getElementById("join-status").innerText = "部屋が見つかりません。番号を確認してください。";
+      document.getElementById("join-status").innerText = "部屋が見つかりません。";
     });
-  }
+  });
 
   function setupConnectionHandlers() {
     conn.on('data', (data) => {
-      if (data.type === 'DECK_SELECTED') {
-        if (state.myRole === 'p1') {
-          p2SelectedEra = data.era;
-          tryStartOnlineMatch();
-        }
+      if (data.type === 'SEND_DECK' && state.myRole === 'p1') {
+        p2OnlineDeck = data.deck;
+        startMatch(p1OnlineDeck, p2OnlineDeck, "プレイヤー2");
+        conn.send({ type: 'START_MATCH', p1: state.p1, p2: state.p2 });
       } else if (data.type === 'START_MATCH') {
         state.p1 = data.p1;
         state.p2 = data.p2;
         state.turn = 1;
         state.activeSide = 'p1';
         state.isInputLocked = (state.myRole !== 'p1');
-        document.getElementById("setup-screen").style.display = "none";
-        document.getElementById("game-screen").style.display = "flex";
+        showScreen("game-screen");
         log(`対戦開始！『${state.p1.label}』vs『${state.p2.label}』！`);
         showCutin(`⚔️ 対戦開始！\n先攻（プレイヤー1）のターン`);
         render();
@@ -115,70 +308,20 @@ document.addEventListener("DOMContentLoaded", function() {
     if (state.mode === 'online' && conn && conn.open) {
       conn.send({
         type: 'SYNC_STATE',
-        p1: state.p1,
-        p2: state.p2,
-        turn: state.turn,
-        activeSide: state.activeSide,
-        logMsg: logMsg,
-        cutinMsg: cutinMsg
+        p1: state.p1, p2: state.p2, turn: state.turn, activeSide: state.activeSide,
+        logMsg, cutinMsg
       });
     }
   }
 
-  function tryStartOnlineMatch() {
-    if (p1SelectedEra && p2SelectedEra) {
-      initMatch(p1SelectedEra, p2SelectedEra);
-      conn.send({
-        type: 'START_MATCH',
-        p1: state.p1,
-        p2: state.p2
-      });
-    }
-  }
+  function startMatch(p1Deck, p2Deck, p2Name) {
+    state.turn = 1;
+    state.activeSide = 'p1';
+    state.p1 = { name: "プレイヤー1", label: p1Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p1Deck.cards, hand: [], field: [] };
+    state.p2 = { name: p2Name, label: p2Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p2Deck.cards, hand: [], field: [] };
 
-  function selectMode(mode) {
-    state.mode = mode;
-    document.getElementById("step-mode").style.display = "none";
-    document.getElementById("step-deck").style.display = "block";
-    document.getElementById("deck-select-title").innerText =
-      mode === 'cpu' ? "使用する世代デッキを選択してください" : "プレイヤー1（先攻）のデッキを選択";
-  }
-
-  function selectDeck(eraKey) {
-    if (state.mode === 'online') {
-      document.getElementById("deck-btn-list").style.display = "none";
-      document.getElementById("online-wait-msg").style.display = "block";
-      if (state.myRole === 'p1') {
-        p1SelectedEra = eraKey;
-        tryStartOnlineMatch();
-      } else {
-        conn.send({ type: 'DECK_SELECTED', era: eraKey });
-      }
-    } else if (state.mode === 'cpu') {
-      const eraKeys = Object.keys(DECK_DATA);
-      const cpuEraKeys = eraKeys.filter(k => k !== eraKey);
-      const cpuEraKey = cpuEraKeys[Math.floor(Math.random() * cpuEraKeys.length)];
-      initMatch(eraKey, cpuEraKey);
-    } else {
-      if (!p1SelectedEra) {
-        p1SelectedEra = eraKey;
-        document.getElementById("deck-select-title").innerText = "プレイヤー2（後攻）のデッキを選択";
-      } else {
-        initMatch(p1SelectedEra, eraKey);
-      }
-    }
-  }
-
-  function initMatch(p1Era, p2Era) {
-    state.p1.label = DECK_DATA[p1Era].label;
-    state.p2.label = DECK_DATA[p2Era].label;
-    state.p2.name = state.mode === 'cpu' ? "CPU" : "プレイヤー2";
-
-    state.p1.deck = createDeck(DECK_DATA[p1Era].cards);
-    state.p2.deck = createDeck(DECK_DATA[p2Era].cards);
-
-    document.getElementById("setup-screen").style.display = "none";
-    document.getElementById("game-screen").style.display = "flex";
+    showScreen("game-screen");
+    document.getElementById("log").innerHTML = "";
 
     for (let i = 0; i < 4; i++) {
       drawCard('p1');
@@ -188,14 +331,6 @@ document.addEventListener("DOMContentLoaded", function() {
     log(`対戦開始！『${state.p1.label}』vs『${state.p2.label}』！`);
     showCutin(`⚔️ 対戦開始！\n${state.p1.name}のターン`);
     render();
-  }
-
-  function createDeck(cardPool) {
-    let deck = [];
-    for (let i = 0; i < 3; i++) {
-      cardPool.forEach(c => deck.push(JSON.parse(JSON.stringify(c))));
-    }
-    return deck.sort(() => Math.random() - 0.5);
   }
 
   function getViewSelf() {
@@ -228,6 +363,14 @@ document.addEventListener("DOMContentLoaded", function() {
     overlay.style.display = "flex";
     setTimeout(() => { overlay.style.display = "none"; }, duration);
   }
+
+  document.getElementById("btn-resume").addEventListener("click", () => {
+    document.getElementById("pass-screen").style.display = "none";
+    log(`--- ${getViewSelf().name}のターン（ターン ${state.turn}） ---`);
+    render();
+  });
+  document.getElementById("direct-attack-btn").addEventListener("click", directAttack);
+  document.getElementById("end-turn-btn").addEventListener("click", endTurn);
 
   function playCard(handIndex) {
     if (state.isInputLocked) return;
@@ -271,9 +414,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const self = state[who];
     const opp = state[who === 'p1' ? 'p2' : 'p1'];
 
-    if (card.id === "neko") {
+    if (card.id === "neko" || card.id === "tono" || card.id === "kirinuki") {
       drawCard(who);
-      log("🐱 猫ミーム効果：1枚ドロー！");
+      log(`✨ 「${card.name}」効果：1枚ドロー！`);
     } else if (card.id === "genba") {
       if (Math.random() < 0.5) {
         card.atk += 2;
@@ -288,12 +431,21 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (card.id === "shuzo") {
       self.field.forEach(m => { if (m !== card) m.atk += 1; });
       log("🔥 修造の熱血応援！他の味方全員の攻撃力+1！");
-    } else if (card.id === "tono") {
-      drawCard(who);
-      log("🍵 遠野の差し入れ（アイスティー）：1枚ドロー！");
     } else if (card.id === "yaju") {
       card.atk += 1;
       log("🦁 野獣先輩のプレッシャー！自身の攻撃力+1！");
+    } else if (card.id === "savanna") {
+      if (opp.field.length > 0) {
+        opp.field[0].atk = 1;
+        log(`🦁 サバンナ男効果！「${opp.field[0].name}」の攻撃力が1になった！`);
+      }
+    } else if (card.id === "nyan") {
+      drawCard(who);
+      card.atk += 1;
+      log("🌈 Nyan Cat効果：1枚ドロー＆攻撃力+1！");
+    } else if (card.id === "streamer") {
+      self.giga = Math.min(self.maxGiga, self.giga + 1);
+      log("🎙️ 大手配信者効果：ギガを1回復！");
     }
   }
 
@@ -307,9 +459,12 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (card.id === "numai" && opp.field.length > 0) {
       opp.field[0].hp -= 2;
       log(`🔨 ガッ！「${opp.field[0].name}」に2ダメージ！`);
+    } else if (card.id === "seiron" && opp.field.length > 0) {
+      opp.field[0].hp -= 4;
+      log(`🥊 正論パンチ！「${opp.field[0].name}」に4ダメージ！`);
     } else if (card.id === "ojisan") {
       opp.field.forEach(m => m.atk = Math.max(0, m.atk - 2));
-      log("👴 おじさん構文のキツさで相手ミーム全員の攻撃力が-2！");
+      log("👴 おじさん構文で相手ミーム全員の攻撃力が-2！");
     } else if (card.id === "owakon") {
       const idx = opp.field.findIndex(m => m.era === "2ch" || m.era === "ニコニコ");
       if (idx !== -1) {
@@ -323,22 +478,41 @@ document.addEventListener("DOMContentLoaded", function() {
       self.field.forEach(m => m.atk += 1);
       drawCard(who);
       log("💬 弾幕展開！味方全員の攻撃力+1＆1枚ドロー！");
-    } else if (card.id === "kaiko" || card.id === "kaiko2") {
+    } else if (card.id === "kaiko") {
       if (opp.field.some(m => m.era === "令和")) {
         opp.hp -= 3;
         log(`📺 懐古厨の説教が刺さり、${opp.name}のメンタルに3ダメージ！`);
       }
     } else if (card.id === "jaken") {
-      if (opp.field.length > 0) {
-        opp.field[0].hp -= 4;
-        log(`🗡️ 邪剣「夜」発動！「${opp.field[0].name}」に4ダメージ＆本体に2ダメージ！`);
-      } else {
-        log(`🗡️ 邪剣「夜」発動！相手本体に2ダメージ！`);
-      }
+      if (opp.field.length > 0) opp.field[0].hp -= 4;
       opp.hp -= 2;
+      log(`🗡️ 邪剣「夜」発動！相手場と本体に大ダメージ！`);
     } else if (card.id === "karate") {
       self.field.forEach(m => m.atk += 2);
       log("🥋 迫真空手部の特訓！味方全員の攻撃力+2！");
+    } else if (card.id === "rickroll" && opp.hand.length > 0) {
+      const rIdx = Math.floor(Math.random() * opp.hand.length);
+      const discarded = opp.hand.splice(rIdx, 1)[0];
+      log(`🕺 Rickroll！相手の手札「${discarded.name}」を捨てさせた！`);
+    } else if (card.id === "supacha") {
+      self.giga = Math.min(self.maxGiga, self.giga + 2);
+      log("💸 ナイスパ！ギガが2回復した！");
+    } else if (card.id === "shazai") {
+      self.field = [];
+      opp.field = [];
+      log("🙇 炎上謝罪会見！場のミームが全て消滅した！");
+    } else if (card.id === "comnote") {
+      if (opp.field.length > 0) opp.field[0].hp -= 3;
+      self.hp = Math.min(20, self.hp + 2);
+      log("📝 コミュニティノート！相手に3ダメージ＆自分のメンタル2回復！");
+    } else if (card.id === "gakkyukai") {
+      self.field.forEach(m => m.hp -= 2);
+      opp.field.forEach(m => m.hp -= 2);
+      log("🔥 Xの学級会！お互いの場のミーム全てに2ダメージ！");
+    } else if (card.id === "ban") {
+      if (opp.field.length > 0) opp.field.splice(0, 1);
+      opp.hp -= 2;
+      log("❄️ アカウント凍結！相手ミーム消滅＆本体に2ダメージ！");
     }
     cleanupDeadMemes();
   }
@@ -429,12 +603,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  function resumeTurn() {
-    document.getElementById("pass-screen").style.display = "none";
-    log(`--- ${getViewSelf().name}のターン（ターン ${state.turn}） ---`);
-    render();
-  }
-
   function processTurnStart(who) {
     const p = state[who];
     if (p.maxGiga < 10) p.maxGiga++;
@@ -506,11 +674,21 @@ document.addEventListener("DOMContentLoaded", function() {
 
   function checkGameOver() {
     if (state.p2.hp <= 0) {
-      setTimeout(() => { alert(`🎉 ${state.p1.name}の勝利！相手をSNS引退に追い込みました！`); location.reload(); }, 200);
+      userData.points += 150;
+      saveUserData();
+      setTimeout(() => {
+        alert(`🎉 ${state.p1.name}の勝利！報酬として 150 バズP を獲得しました！`);
+        showScreen("home-screen");
+      }, 200);
       return true;
     }
     if (state.p1.hp <= 0) {
-      setTimeout(() => { alert(`🎉 ${state.p2.name}の勝利！相手をSNS引退に追い込みました！`); location.reload(); }, 200);
+      userData.points += 50;
+      saveUserData();
+      setTimeout(() => {
+        alert(`💀 ${state.p2.name}の勝利... 参加賞として 50 バズP を獲得しました。`);
+        showScreen("home-screen");
+      }, 200);
       return true;
     }
     return false;
@@ -601,7 +779,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   function createCardElement(card, onClick, flags = {}) {
     const div = document.createElement("div");
-    let classes = ["card"];
+    let classes = ["card", `rarity-${card.rarity || 'N'}`];
     if (card.type === 'spell') classes.push("spell");
     if (flags.isSelected) classes.push("selected");
     if (flags.canAttack) classes.push("can-attack");
@@ -622,6 +800,7 @@ document.addEventListener("DOMContentLoaded", function() {
       ${buzzBadge}
       <div class="card-header">
         <span class="cost-badge">${card.cost}</span>
+        <span class="rarity-tag">${card.rarity || 'N'}</span>
         <span class="era-tag">${card.era}</span>
       </div>
       <div class="card-title">${card.name}</div>
