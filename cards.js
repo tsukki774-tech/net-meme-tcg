@@ -59,11 +59,19 @@ const ALL_CARDS = [
 
 const RENTAL_DECKS = {
   rental_2ch: {
-    label: "レンタル：① 2ch・Flash黎明期",
-    ids: ["mona","mona","mona","giko","giko","giko","yaruo","yaruo","yaruo","numai","numai","kusa","kusa","kaiko","kaiko"]
+    label: "レンタル：レトロ＆ネット黎明期（40枚）",
+    ids: [
+      "mona","mona","mona","giko","giko","giko","yaruo","yaruo","yaruo","numai","numai","numai","kusa","kusa","kusa","kaiko","kaiko","kaiko",
+      "donald","donald","donald","kbc","kbc","shuzo","shuzo","shuzo","danmaku","danmaku","danmaku",
+      "chigyu","chigyu","chigyu","savanna","savanna","seiron","seiron","tokutei","tokutei","doge","doge"
+    ]
   },
   rental_yaju: {
-    label: "レンタル：④ 野獣先輩（例のアレ）",
-    ids: ["kmr","kmr","kmr","mur","mur","mur","tono","tono","tono","yaju","yaju","jaken","jaken","karate","karate"]
+    label: "レンタル：令和・配信・例のアレ連合（40枚）",
+    ids: [
+      "kmr","kmr","kmr","mur","mur","mur","tono","tono","tono","yaju","yaju","jaken","jaken","jaken","karate","karate","karate",
+      "neko","neko","neko","genba","genba","chiikawa","chiikawa","ronpa","ronpa","ojisan","ojisan","owakon","owakon",
+      "kirinuki","kirinuki","streamer","streamer","supacha","supacha","copyright","copyright","zombie","zombie"
+    ]
   }
 };
