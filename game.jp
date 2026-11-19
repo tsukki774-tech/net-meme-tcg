@@ -1,3 +1,5 @@
+alert("game.jsは正常に読み込まれています！"); // ← これをgame.jsの1行目に追加
+
 document.addEventListener("DOMContentLoaded", function() {
   // --- セーブデータ管理 ---
   const SAVE_KEY = "netmeme_tcg_save_v1";
