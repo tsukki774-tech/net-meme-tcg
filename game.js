@@ -62,6 +62,8 @@ document.addEventListener("DOMContentLoaded", function() {
       alert("バズPが足りません！CPU戦に勝利してポイントを貯めよう！");
       return;
     }
+    var btn = document.getElementById("btn-open-pack");
+    btn.disabled = true;
     userData.points -= 100;
 
     var resultArea = document.getElementById("pack-result-area");
@@ -73,6 +75,9 @@ document.addEventListener("DOMContentLoaded", function() {
     var poolUR = ALL_CARDS.filter(function(c) { return c.rarity === "UR"; });
 
     var pulled = [];
+    var hasSR = false;
+    var hasUR = false;
+
     for (var i = 0; i < 5; i++) {
       var rand = Math.random() * 100;
       var pool = poolN;
@@ -86,16 +91,48 @@ document.addEventListener("DOMContentLoaded", function() {
         else if (rand < 45) pool = poolR;
       }
       var card = pool[Math.floor(Math.random() * pool.length)];
+      if (card.rarity === "SR") hasSR = true;
+      if (card.rarity === "UR") hasUR = true;
       pulled.push(card);
       userData.collection[card.id] = (userData.collection[card.id] || 0) + 1;
     }
 
     saveUserData();
 
-    pulled.forEach(function(c) {
-      var el = createCardElement(c, function() {}, {});
-      resultArea.appendChild(el);
-    });
+    var packBox = document.querySelector(".pack-box-visual");
+    packBox.classList.remove("pack-opening-anim", "pack-glow-SR", "pack-glow-UR");
+    void packBox.offsetWidth;
+    packBox.classList.add("pack-opening-anim");
+    if (hasUR) packBox.classList.add("pack-glow-UR");
+    else if (hasSR) packBox.classList.add("pack-glow-SR");
+
+    setTimeout(function() {
+      packBox.classList.remove("pack-opening-anim", "pack-glow-SR", "pack-glow-UR");
+
+      var flash = document.createElement("div");
+      flash.className = "screen-flash";
+      document.body.appendChild(flash);
+      setTimeout(function() { flash.remove(); }, 650);
+
+      for (var j = 0; j < 5; j++) {
+        var back = document.createElement("div");
+        back.className = "card-back-mystery";
+        back.innerHTML = "❓<br><span style='font-size:0.75rem; color:#aaa;'>MEME</span>";
+        resultArea.appendChild(back);
+      }
+
+      pulled.forEach(function(c, idx) {
+        setTimeout(function() {
+          var el = createCardElement(c, function() {}, {});
+          el.classList.add("card-revealed");
+          resultArea.replaceChild(el, resultArea.children[idx]);
+
+          if (idx === pulled.length - 1) {
+            btn.disabled = false;
+          }
+        }, 300 + idx * 350);
+      });
+    }, 900);
   }
 
   function renderDeckBuilder() {
@@ -467,10 +504,13 @@ document.addEventListener("DOMContentLoaded", function() {
       opp.field.forEach(function(m) { m.atk = Math.max(0, m.atk - 2); });
       log("👴 おじさん構文で相手ミーム全員の攻撃力が-2！");
     } else if (card.id === "owakon") {
-      var idx = opp.field.findIndex(function(m) { return m.era === "2ch" || m.era === "ニコニコ"; });
+      var oldEras = ["2ch", "ニコニコ", "例のアレ", "VIP/なんJ"];
+      var idx = opp.field.findIndex(function(m) { return oldEras.indexOf(m.era) !== -1; });
       if (idx !== -1) {
-        log("📉 オワコン認定で相手ミームが消滅した！");
+        log("📉 「" + opp.field[idx].name + "」はオワコン認定され消滅した！");
         opp.field.splice(idx, 1);
+      } else {
+        log("📉 対象となる古い世代のミームがいなかった...");
       }
     } else if (card.id === "kusa") {
       self.field.forEach(function(m) { m.atk += 1; });
@@ -480,9 +520,39 @@ document.addEventListener("DOMContentLoaded", function() {
       drawCard(who);
       log("💬 弾幕展開！味方全員の攻撃力+1＆1枚ドロー！");
     } else if (card.id === "kaiko") {
-      if (opp.field.some(function(m) { return m.era === "令和"; })) {
-        opp.hp -= 3;
-        log("📺 懐古厨の説教が刺さり、相手メンタルに3ダメージ！");
+      var newEras = ["令和", "配信者", "X炎上"];
+      if (opp.field.some(function(m) { return newEras.indexOf(m.era) !== -1; })) {
+        opp.hp -= 4;
+        log("📺 懐古厨の説教が刺さり、相手メンタルに4ダメージ！");
+      } else {
+        opp.hp -= 1;
+        log("📺 懐古厨のぼやきで相手メンタルに1ダメージ。");
+      }
+    } else if (card.id === "copyright") {
+      var cIdx = opp.field.findIndex(function(m) { return m.era === "ニコニコ" || m.era === "海外"; });
+      if (cIdx !== -1) {
+        log("⚠️ 著作権侵害により「" + opp.field[cIdx].name + "」は削除された！");
+        opp.field.splice(cIdx, 1);
+        drawCard(who);
+      } else {
+        log("⚠️ 削除対象のミームがいなかった...");
+      }
+    } else if (card.id === "tokutei") {
+      var tIdx = opp.field.findIndex(function(m) { return m.era === "配信者" || m.era === "X炎上"; });
+      if (tIdx !== -1) {
+        opp.field[tIdx].atk = 0;
+        opp.field[tIdx].freshness = 1;
+        log("🔍 特定班により「" + opp.field[tIdx].name + "」は炎上し無力化（攻撃0・鮮度1）！");
+      } else {
+        log("🔍 特定対象のミームがいなかった...");
+      }
+    } else if (card.id === "honyaku") {
+      drawCard(who);
+      if (self.field.some(function(m) { return m.era === "海外"; })) {
+        drawCard(who);
+        log("🌐 翻訳ニキの解説で海外ミームの理解が深まり2枚ドロー！");
+      } else {
+        log("🌐 翻訳ニキの解説で1枚ドロー！");
       }
     } else if (card.id === "jaken") {
       if (opp.field.length > 0) opp.field[0].hp -= 4;
