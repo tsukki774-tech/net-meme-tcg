@@ -1,7 +1,4 @@
-alert("game.jsは正常に読み込まれています！"); // ← これをgame.jsの1行目に追加
-
 document.addEventListener("DOMContentLoaded", function() {
-  // --- セーブデータ管理 ---
   const SAVE_KEY = "netmeme_tcg_save_v1";
   let userData = loadUserData();
 
@@ -12,7 +9,6 @@ document.addEventListener("DOMContentLoaded", function() {
         return JSON.parse(raw);
       } catch (e) {}
     }
-    // 初期データ（1000P + 初期カード少し）
     return {
       points: 1000,
       collection: {
@@ -33,10 +29,11 @@ document.addEventListener("DOMContentLoaded", function() {
   }
   updatePointsUI();
 
-  // --- 画面遷移 ---
   const screens = ["home-screen", "pack-screen", "deck-screen", "setup-screen", "game-screen"];
   function showScreen(id) {
-    screens.forEach(s => document.getElementById(s).style.display = (s === id) ? (id === "game-screen" ? "flex" : "block") : "none");
+    screens.forEach(s => {
+      document.getElementById(s).style.display = (s === id) ? (id === "game-screen" ? "flex" : "block") : "none";
+    });
   }
 
   document.getElementById("nav-battle").addEventListener("click", () => {
@@ -57,7 +54,6 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("back-from-deck").addEventListener("click", () => showScreen("home-screen"));
   document.getElementById("back-from-setup").addEventListener("click", () => showScreen("home-screen"));
 
-  // --- パック開封システム ---
   document.getElementById("btn-open-pack").addEventListener("click", openPack);
 
   function openPack() {
@@ -80,7 +76,6 @@ document.addEventListener("DOMContentLoaded", function() {
       const rand = Math.random() * 100;
       let pool = poolN;
       if (i === 4) {
-        // 5枚目はR以上確定
         if (rand < 8) pool = poolUR;
         else if (rand < 35) pool = poolSR;
         else pool = poolR;
@@ -102,7 +97,6 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
 
-  // --- デッキ編成システム ---
   function renderDeckBuilder() {
     document.getElementById("deck-count-label").innerText = userData.myDeck.length;
 
@@ -173,8 +167,6 @@ document.addEventListener("DOMContentLoaded", function() {
     saveUserData();
     alert("✅ マイデッキ（15枚）を保存しました！");
   });
-
-  // --- バトル＆オンライン通信システム ---
   let state = {
     mode: 'cpu',
     myRole: 'p1',
@@ -216,7 +208,6 @@ document.addEventListener("DOMContentLoaded", function() {
     if (!p1Deck) return;
     state.mode = 'cpu';
 
-    // CPUは全カードからランダム15枚構築
     const cpuIds = [...ALL_CARDS].sort(() => Math.random() - 0.5).slice(0, 15).map(c => c.id);
     const cpuCards = cpuIds.map(id => JSON.parse(JSON.stringify(ALL_CARDS.find(c => c.id === id))));
 
@@ -289,8 +280,8 @@ document.addEventListener("DOMContentLoaded", function() {
         state.activeSide = 'p1';
         state.isInputLocked = (state.myRole !== 'p1');
         showScreen("game-screen");
-        log(`対戦開始！『${state.p1.label}』vs『${state.p2.label}』！`);
-        showCutin(`⚔️ 対戦開始！\n先攻（プレイヤー1）のターン`);
+        log("対戦開始！");
+        showCutin("⚔️ 対戦開始！\n先攻（プレイヤー1）のターン");
         render();
       } else if (data.type === 'SYNC_STATE') {
         state.p1 = data.p1;
@@ -330,8 +321,8 @@ document.addEventListener("DOMContentLoaded", function() {
       drawCard('p2');
     }
     state.isInputLocked = (state.mode === 'online' && state.myRole !== 'p1');
-    log(`対戦開始！『${state.p1.label}』vs『${state.p2.label}』！`);
-    showCutin(`⚔️ 対戦開始！\n${state.p1.name}のターン`);
+    log("対戦開始！");
+    showCutin("⚔️ 対戦開始！\n" + state.p1.name + "のターン");
     render();
   }
 
@@ -348,7 +339,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let p = state[who];
     if (p.deck.length === 0) {
       p.hp -= 2;
-      log(`${p.name}はネタ切れ（山札0）でメンタルに2ダメージ！`);
+      log(p.name + "はネタ切れでメンタルに2ダメージ！");
       return;
     }
     if (p.hand.length < 7) p.hand.push(p.deck.pop());
@@ -356,7 +347,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   function log(msg) {
     const logBox = document.getElementById("log");
-    logBox.innerHTML = `<p>> ${msg}</p>` + logBox.innerHTML;
+    logBox.innerHTML = "<p>> " + msg + "</p>" + logBox.innerHTML;
   }
 
   function showCutin(text, duration = 1100) {
@@ -368,7 +359,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   document.getElementById("btn-resume").addEventListener("click", () => {
     document.getElementById("pass-screen").style.display = "none";
-    log(`--- ${getViewSelf().name}のターン（ターン ${state.turn}） ---`);
+    log("--- " + getViewSelf().name + "のターン（ターン " + state.turn + "） ---");
     render();
   });
   document.getElementById("direct-attack-btn").addEventListener("click", directAttack);
@@ -395,13 +386,13 @@ document.addEventListener("DOMContentLoaded", function() {
       card.canAttack = true;
       card.isBuzz = true;
       self.field.push(card);
-      actionLog = `📱 ${self.name}が「${card.name}」を投稿！`;
+      actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！";
       log(actionLog);
       triggerSummonEffect(state.activeSide, card);
     } else if (card.type === "spell") {
       self.giga -= card.cost;
       self.hand.splice(handIndex, 1);
-      actionLog = `⚡ ${self.name}が構文「${card.name}」を発動！`;
+      actionLog = "⚡ " + self.name + "が構文「" + card.name + "」を発動！";
       log(actionLog);
       executeSpell(state.activeSide, card);
     }
@@ -418,7 +409,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     if (card.id === "neko" || card.id === "tono" || card.id === "kirinuki") {
       drawCard(who);
-      log(`✨ 「${card.name}」効果：1枚ドロー！`);
+      log("✨ 「" + card.name + "」効果：1枚ドロー！");
     } else if (card.id === "genba") {
       if (Math.random() < 0.5) {
         card.atk += 2;
@@ -429,7 +420,7 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     } else if (card.id === "donald") {
       opp.hp -= 2;
-      log(`🤡 ランランルー！${opp.name}のメンタルに2ダメージ！`);
+      log("🤡 ランランルー！メンタルに2ダメージ！");
     } else if (card.id === "shuzo") {
       self.field.forEach(m => { if (m !== card) m.atk += 1; });
       log("🔥 修造の熱血応援！他の味方全員の攻撃力+1！");
@@ -439,7 +430,7 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (card.id === "savanna") {
       if (opp.field.length > 0) {
         opp.field[0].atk = 1;
-        log(`🦁 サバンナ男効果！「${opp.field[0].name}」の攻撃力が1になった！`);
+        log("🦁 サバンナ男効果！相手ミームの攻撃力が1になった！");
       }
     } else if (card.id === "nyan") {
       drawCard(who);
@@ -457,20 +448,20 @@ document.addEventListener("DOMContentLoaded", function() {
 
     if (card.id === "ronpa" && opp.field.length > 0) {
       opp.field[0].hp -= 3;
-      log(`🤔 論破！「${opp.field[0].name}」に3ダメージ！`);
+      log("🤔 論破！相手ミームに3ダメージ！");
     } else if (card.id === "numai" && opp.field.length > 0) {
       opp.field[0].hp -= 2;
-      log(`🔨 ガッ！「${opp.field[0].name}」に2ダメージ！`);
+      log("🔨 ガッ！相手ミームに2ダメージ！");
     } else if (card.id === "seiron" && opp.field.length > 0) {
       opp.field[0].hp -= 4;
-      log(`🥊 正論パンチ！「${opp.field[0].name}」に4ダメージ！`);
+      log("🥊 正論パンチ！相手ミームに4ダメージ！");
     } else if (card.id === "ojisan") {
       opp.field.forEach(m => m.atk = Math.max(0, m.atk - 2));
       log("👴 おじさん構文で相手ミーム全員の攻撃力が-2！");
     } else if (card.id === "owakon") {
       const idx = opp.field.findIndex(m => m.era === "2ch" || m.era === "ニコニコ");
       if (idx !== -1) {
-        log(`📉 「${opp.field[idx].name}」はオワコン認定され消滅した！`);
+        log("📉 オワコン認定で相手ミームが消滅した！");
         opp.field.splice(idx, 1);
       }
     } else if (card.id === "kusa") {
@@ -483,19 +474,19 @@ document.addEventListener("DOMContentLoaded", function() {
     } else if (card.id === "kaiko") {
       if (opp.field.some(m => m.era === "令和")) {
         opp.hp -= 3;
-        log(`📺 懐古厨の説教が刺さり、${opp.name}のメンタルに3ダメージ！`);
+        log("📺 懐古厨の説教が刺さり、相手メンタルに3ダメージ！");
       }
     } else if (card.id === "jaken") {
       if (opp.field.length > 0) opp.field[0].hp -= 4;
       opp.hp -= 2;
-      log(`🗡️ 邪剣「夜」発動！相手場と本体に大ダメージ！`);
+      log("🗡️ 邪剣「夜」発動！相手場と本体に大ダメージ！");
     } else if (card.id === "karate") {
       self.field.forEach(m => m.atk += 2);
       log("🥋 迫真空手部の特訓！味方全員の攻撃力+2！");
     } else if (card.id === "rickroll" && opp.hand.length > 0) {
       const rIdx = Math.floor(Math.random() * opp.hand.length);
-      const discarded = opp.hand.splice(rIdx, 1)[0];
-      log(`🕺 Rickroll！相手の手札「${discarded.name}」を捨てさせた！`);
+      opp.hand.splice(rIdx, 1);
+      log("🕺 Rickroll！相手の手札を1枚捨てさせた！");
     } else if (card.id === "supacha") {
       self.giga = Math.min(self.maxGiga, self.giga + 2);
       log("💸 ナイスパ！ギガが2回復した！");
@@ -544,7 +535,7 @@ document.addEventListener("DOMContentLoaded", function() {
     attacker.hp -= targetPower;
     attacker.canAttack = false;
 
-    const actionLog = `⚔️ 「${attacker.name}」が「${target.name}」とレスバ！`;
+    const actionLog = "⚔️ 「" + attacker.name + "」が「" + target.name + "」とレスバ！";
     log(actionLog);
     state.selectedAttackerIndex = null;
     cleanupDeadMemes();
@@ -562,7 +553,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     opp.hp -= atkPower;
     attacker.canAttack = false;
-    const actionLog = `🔥 「${attacker.name}」の直接攻撃！${opp.name}のメンタルに ${atkPower} ダメージ！`;
+    const actionLog = "🔥 「" + attacker.name + "」の直接攻撃！メンタルに " + atkPower + " ダメージ！";
     log(actionLog);
 
     state.selectedAttackerIndex = null;
@@ -584,14 +575,14 @@ document.addEventListener("DOMContentLoaded", function() {
       state.activeSide = 'p2';
       state.isInputLocked = true;
       processTurnStart('p2');
-      showCutin(`👾 CPUのターン（思考中...）`, 1100);
+      showCutin("👾 CPUのターン（思考中...）", 1100);
       render();
       setTimeout(cpuAI, 1200);
     } else if (state.mode === 'local') {
       state.activeSide = state.activeSide === 'p1' ? 'p2' : 'p1';
       if (state.activeSide === 'p1') state.turn++;
       processTurnStart(state.activeSide);
-      document.getElementById("pass-title").innerText = `📱 ${getViewSelf().name}のターンです`;
+      document.getElementById("pass-title").innerText = "📱 " + getViewSelf().name + "のターンです";
       document.getElementById("pass-screen").style.display = "flex";
     } else if (state.mode === 'online') {
       state.activeSide = state.activeSide === 'p1' ? 'p2' : 'p1';
@@ -599,8 +590,8 @@ document.addEventListener("DOMContentLoaded", function() {
       state.isInputLocked = true;
       processTurnStart(state.activeSide);
       const nextName = state[state.activeSide].name;
-      log(`--- ${nextName}のターン（ターン ${state.turn}） ---`);
-      sendSync(`--- ${nextName}のターン（ターン ${state.turn}） ---`, `⚔️ あなたのターンです！`);
+      log("--- " + nextName + "のターン（ターン " + state.turn + "） ---");
+      sendSync("--- " + nextName + "のターン ---", "⚔️ あなたのターンです！");
       render();
     }
   }
@@ -617,7 +608,7 @@ document.addEventListener("DOMContentLoaded", function() {
       m.canAttack = true;
     });
     const expired = p.field.filter(m => m.freshness <= 0);
-    expired.forEach(m => log(`⌛ 「${m.name}」は飽きられてオワコン化（消滅）した...`));
+    expired.forEach(m => log("⌛ 「" + m.name + "」は飽きられてオワコン化した..."));
     p.field = p.field.filter(m => m.freshness > 0);
   }
 
@@ -633,14 +624,14 @@ document.addEventListener("DOMContentLoaded", function() {
           cpu.hand.splice(i, 1);
           card.isBuzz = true;
           cpu.field.push(card);
-          actions.push(`「${card.name}」を召喚`);
-          log(`👾 CPUが「${card.name}」を召喚！`);
+          actions.push("「" + card.name + "」を召喚");
+          log("👾 CPUが「" + card.name + "」を召喚！");
           triggerSummonEffect('p2', card);
         } else if (card.type === "spell") {
           cpu.giga -= card.cost;
           cpu.hand.splice(i, 1);
-          actions.push(`「${card.name}」を発動`);
-          log(`👾 CPUが「${card.name}」を発動！`);
+          actions.push("「" + card.name + "」を発動");
+          log("👾 CPUが「" + card.name + "」を発動！");
           executeSpell('p2', card);
         }
       }
@@ -652,13 +643,13 @@ document.addEventListener("DOMContentLoaded", function() {
         const target = state.p1.field[0];
         target.hp -= power;
         m.hp -= (target.atk + (target.isBuzz ? 1 : 0));
-        actions.push(`「${m.name}」で攻撃`);
-        log(`👾 CPUの「${m.name}」が「${target.name}」を攻撃！`);
+        actions.push("「" + m.name + "」で攻撃");
+        log("👾 CPUの「" + m.name + "」が「" + target.name + "」を攻撃！");
         cleanupDeadMemes();
       } else {
         state.p1.hp -= power;
-        actions.push(`「${m.name}」で直接攻撃(${power}ダメ)`);
-        log(`👾 CPUの「${m.name}」が直接攻撃！メンタルに ${power} ダメージ！`);
+        actions.push("「" + m.name + "」で直接攻撃");
+        log("👾 CPUの「" + m.name + "」が直接攻撃！メンタルに " + power + " ダメージ！");
       }
     });
 
@@ -668,9 +659,9 @@ document.addEventListener("DOMContentLoaded", function() {
     state.activeSide = 'p1';
     state.isInputLocked = false;
     processTurnStart('p1');
-    const summary = actions.length > 0 ? `CPUは ${actions.join(" → ")}！\n` : "CPUは何もしなかった。\n";
-    showCutin(`${summary}🧑 あなたのターン（ターン ${state.turn}）`, 1400);
-    log(`--- あなたのターン（ターン ${state.turn}） ---`);
+    const summary = actions.length > 0 ? "CPUは " + actions.join(" → ") + "！\n" : "CPUは何もしなかった。\n";
+    showCutin(summary + "🧑 あなたのターン（ターン " + state.turn + "）", 1400);
+    log("--- あなたのターン（ターン " + state.turn + "） ---");
     render();
   }
 
@@ -679,7 +670,7 @@ document.addEventListener("DOMContentLoaded", function() {
       userData.points += 150;
       saveUserData();
       setTimeout(() => {
-        alert(`🎉 ${state.p1.name}の勝利！報酬として 150 バズP を獲得しました！`);
+        alert("🎉 " + state.p1.name + "の勝利！報酬として 150 バズP を獲得しました！");
         showScreen("home-screen");
       }, 200);
       return true;
@@ -688,7 +679,7 @@ document.addEventListener("DOMContentLoaded", function() {
       userData.points += 50;
       saveUserData();
       setTimeout(() => {
-        alert(`💀 ${state.p2.name}の勝利... 参加賞として 50 バズP を獲得しました。`);
+        alert("💀 " + state.p2.name + "の勝利... 参加賞として 50 バズP を獲得しました。");
         showScreen("home-screen");
       }, 200);
       return true;
@@ -711,9 +702,9 @@ document.addEventListener("DOMContentLoaded", function() {
     if (state.selectedAttackerIndex !== null) {
       const attacker = self.field[state.selectedAttackerIndex];
       if (opp.field.length > 0) {
-        banner.innerText = `🎯 「${attacker.name}」で攻撃！赤く点滅している相手のミームをタップしよう`;
+        banner.innerText = "🎯 「" + attacker.name + "」で攻撃！赤く点滅している相手のミームをタップしよう";
       } else {
-        banner.innerText = `🔥 相手の場が空です！「💥 相手本体に直接攻撃」ボタンを押そう！`;
+        banner.innerText = "🔥 相手の場が空です！「💥 相手本体に直接攻撃」ボタンを押そう！";
       }
       return;
     }
@@ -722,13 +713,13 @@ document.addEventListener("DOMContentLoaded", function() {
     const canAttackAny = self.field.some(m => m.canAttack);
 
     if (canPlayAny && canAttackAny) {
-      banner.innerText = `💡 あなたのターン：手札（緑枠）を出すか、場のミーム（緑枠）で攻撃しよう！`;
+      banner.innerText = "💡 あなたのターン：手札（緑枠）を出すか、場のミーム（緑枠）で攻撃しよう！";
     } else if (canPlayAny) {
-      banner.innerText = `💡 あなたのターン：手札の緑枠カードをタップして投稿しよう！`;
+      banner.innerText = "💡 あなたのターン：手札の緑枠カードをタップして投稿しよう！";
     } else if (canAttackAny) {
-      banner.innerText = `⚔️ 場の緑枠ミームをタップして攻撃しよう！`;
+      banner.innerText = "⚔️ 場の緑枠ミームをタップして攻撃しよう！";
     } else {
-      banner.innerText = `✅ できる行動がありません。「⏭️ ターン終了」を押そう！`;
+      banner.innerText = "✅ できる行動がありません。「⏭️ ターン終了」を押そう！";
     }
   }
 
@@ -736,15 +727,15 @@ document.addEventListener("DOMContentLoaded", function() {
     const self = getViewSelf();
     const opp = getViewOpp();
 
-    document.getElementById("opp-title").innerText = `👾 ${opp.name}（${opp.label}）`;
+    document.getElementById("opp-title").innerText = "👾 " + opp.name + "（" + opp.label + "）";
     document.getElementById("opp-hp").innerText = opp.hp;
-    document.getElementById("opp-giga").innerText = `${opp.giga}/${opp.maxGiga}`;
-    document.getElementById("opp-deck-count").innerText = `(山札: ${opp.deck.length}枚)`;
+    document.getElementById("opp-giga").innerText = opp.giga + "/" + opp.maxGiga;
+    document.getElementById("opp-deck-count").innerText = "(山札: " + opp.deck.length + "枚)";
 
-    document.getElementById("self-title").innerText = `🧑 ${self.name}（${self.label}）`;
+    document.getElementById("self-title").innerText = "🧑 " + self.name + "（" + self.label + "）";
     document.getElementById("self-hp").innerText = self.hp;
-    document.getElementById("self-giga").innerText = `${self.giga}/${self.maxGiga}`;
-    document.getElementById("self-deck-count").innerText = `(山札: ${self.deck.length}枚)`;
+    document.getElementById("self-giga").innerText = self.giga + "/" + self.maxGiga;
+    document.getElementById("self-deck-count").innerText = "(山札: " + self.deck.length + "枚)";
 
     updateGuideBanner();
 
@@ -757,14 +748,14 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("end-turn-btn").disabled = state.isInputLocked;
 
     const oppFieldEl = document.getElementById("opp-field");
-    oppFieldEl.innerHTML = opp.field.length === 0 ? `<span class="empty-msg">相手の場にミームはいません</span>` : "";
+    oppFieldEl.innerHTML = opp.field.length === 0 ? '<span class="empty-msg">相手の場にミームはいません</span>' : "";
     opp.field.forEach((c, idx) => {
       const isTarget = !state.isInputLocked && state.selectedAttackerIndex !== null;
       oppFieldEl.appendChild(createCardElement(c, () => attackMeme(idx), { isTarget }));
     });
 
     const selfFieldEl = document.getElementById("self-field");
-    selfFieldEl.innerHTML = self.field.length === 0 ? `<span class="empty-msg">自分の場にミームはいません</span>` : "";
+    selfFieldEl.innerHTML = self.field.length === 0 ? '<span class="empty-msg">自分の場にミームはいません</span>' : "";
     self.field.forEach((c, idx) => {
       const isSelected = state.selectedAttackerIndex === idx;
       const canAttack = !state.isInputLocked && c.canAttack;
@@ -781,7 +772,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   function createCardElement(card, onClick, flags = {}) {
     const div = document.createElement("div");
-    let classes = ["card", `rarity-${card.rarity || 'N'}`];
+    let classes = ["card", "rarity-" + (card.rarity || "N")];
     if (card.type === 'spell') classes.push("spell");
     if (flags.isSelected) classes.push("selected");
     if (flags.canAttack) classes.push("can-attack");
@@ -793,23 +784,656 @@ document.addEventListener("DOMContentLoaded", function() {
     div.addEventListener("click", onClick);
 
     const displayAtk = card.atk + (card.isBuzz ? 1 : 0);
-    const buzzBadge = card.isBuzz ? `<div class="buzz-badge">🔥バズ中(+1)</div>` : '';
+    const buzzBadge = card.isBuzz ? '<div class="buzz-badge">🔥バズ中(+1)</div>' : '';
     const statsHtml = card.type === 'meme'
-      ? `<div class="card-stats"><span>⚔️${displayAtk}</span><span>⏳鮮度:${card.freshness}</span><span>❤️${card.hp}</span></div>`
-      : `<div class="card-stats" style="justify-content:center; color:#ffd32a;">【構文 / スペル】</div>`;
+      ? '<div class="card-stats"><span>⚔️' + displayAtk + '</span><span>⏳鮮度:' + card.freshness + '</span><span>❤️' + card.hp + '</span></div>'
+      : '<div class="card-stats" style="justify-content:center; color:#ffd32a;">【構文 / スペル】</div>';
 
-    div.innerHTML = `
-      ${buzzBadge}
-      <div class="card-header">
-        <span class="cost-badge">${card.cost}</span>
-        <span class="rarity-tag">${card.rarity || 'N'}</span>
-        <span class="era-tag">${card.era}</span>
-      </div>
-      <div class="card-title">${card.name}</div>
-      <div class="card-art">${card.icon}</div>
-      <div class="card-desc">${card.desc}</div>
-      ${statsHtml}
-    `;
+    div.innerHTML = buzzBadge +
+      '<div class="card-header">' +
+        '<span class="cost-badge">' + card.cost + '</span>' +
+        '<span class="rarity-tag">' + (card.rarity || 'N') + '</span>' +
+        '<span class="era-tag">' + card.era + '</span>' +
+      '</div>' +
+      '<div class="card-title">' + card.name + '</div>' +
+      '<div class="card-art">' + card.icon + '</div>' +
+      '<div class="card-desc">' + card.desc + '</div>' +
+      statsHtml;
+    return div;
+  }
+});
+  let state = {
+    mode: 'cpu',
+    myRole: 'p1',
+    turn: 1,
+    activeSide: 'p1',
+    isInputLocked: false,
+    p1: { name: "プレイヤー1", label: "マイデッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
+    p2: { name: "CPU", label: "相手デッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
+    selectedAttackerIndex: null
+  };
+
+  let peer = null;
+  let conn = null;
+  let p1OnlineDeck = null;
+  let p2OnlineDeck = null;
+  const ROOM_PREFIX = "netmeme-tcg-v2-";
+
+  function getSelectedDeckCards() {
+    const choice = document.getElementById("battle-deck-select").value;
+    let ids = [];
+    let label = "";
+    if (choice === "mydeck") {
+      if (userData.myDeck.length !== 15) {
+        alert("マイデッキが15枚になっていません！デッキ編成で15枚揃えるか、レンタルデッキを選んでください。");
+        return null;
+      }
+      ids = [...userData.myDeck];
+      label = "マイデッキ";
+    } else {
+      ids = [...RENTAL_DECKS[choice].ids];
+      label = RENTAL_DECKS[choice].label;
+    }
+    const cards = ids.map(id => JSON.parse(JSON.stringify(ALL_CARDS.find(c => c.id === id)))).sort(() => Math.random() - 0.5);
+    return { label, cards };
+  }
+
+  document.getElementById("btn-mode-cpu").addEventListener("click", () => {
+    const p1Deck = getSelectedDeckCards();
+    if (!p1Deck) return;
+    state.mode = 'cpu';
+
+    const cpuIds = [...ALL_CARDS].sort(() => Math.random() - 0.5).slice(0, 15).map(c => c.id);
+    const cpuCards = cpuIds.map(id => JSON.parse(JSON.stringify(ALL_CARDS.find(c => c.id === id))));
+
+    startMatch(p1Deck, { label: "CPU混成デッキ", cards: cpuCards }, "CPU");
+  });
+
+  document.getElementById("btn-mode-local").addEventListener("click", () => {
+    const p1Deck = getSelectedDeckCards();
+    if (!p1Deck) return;
+    state.mode = 'local';
+    const p2Cards = [...RENTAL_DECKS.rental_yaju.ids].map(id => JSON.parse(JSON.stringify(ALL_CARDS.find(c => c.id === id)))).sort(() => Math.random() - 0.5);
+    startMatch(p1Deck, { label: "プレイヤー2デッキ", cards: p2Cards }, "プレイヤー2");
+  });
+
+  document.getElementById("btn-mode-online").addEventListener("click", () => {
+    const myDeck = getSelectedDeckCards();
+    if (!myDeck) return;
+    state.mode = 'online';
+    p1OnlineDeck = myDeck;
+    document.getElementById("step-mode").style.display = "none";
+    document.getElementById("step-online").style.display = "block";
+  });
+
+  document.getElementById("btn-create-room").addEventListener("click", () => {
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
+    document.getElementById("btn-create-room").disabled = true;
+    document.getElementById("host-info").style.display = "block";
+    document.getElementById("my-room-code").innerText = code;
+
+    peer = new Peer(ROOM_PREFIX + code);
+    peer.on('connection', (connection) => {
+      conn = connection;
+      state.myRole = 'p1';
+      setupConnectionHandlers();
+    });
+    peer.on('error', () => alert("通信エラーが発生しました。再読み込みしてください。"));
+  });
+
+  document.getElementById("btn-join-room").addEventListener("click", () => {
+    const code = document.getElementById("join-room-input").value.trim();
+    if (code.length !== 4) {
+      document.getElementById("join-status").innerText = "4桁の番号を入力してください";
+      return;
+    }
+    document.getElementById("join-status").innerText = "接続中...";
+    peer = new Peer();
+    peer.on('open', () => {
+      conn = peer.connect(ROOM_PREFIX + code);
+      conn.on('open', () => {
+        state.myRole = 'p2';
+        setupConnectionHandlers();
+        conn.send({ type: 'SEND_DECK', deck: p1OnlineDeck });
+      });
+    });
+    peer.on('error', () => {
+      document.getElementById("join-status").innerText = "部屋が見つかりません。";
+    });
+  });
+
+  function setupConnectionHandlers() {
+    conn.on('data', (data) => {
+      if (data.type === 'SEND_DECK' && state.myRole === 'p1') {
+        p2OnlineDeck = data.deck;
+        startMatch(p1OnlineDeck, p2OnlineDeck, "プレイヤー2");
+        conn.send({ type: 'START_MATCH', p1: state.p1, p2: state.p2 });
+      } else if (data.type === 'START_MATCH') {
+        state.p1 = data.p1;
+        state.p2 = data.p2;
+        state.turn = 1;
+        state.activeSide = 'p1';
+        state.isInputLocked = (state.myRole !== 'p1');
+        showScreen("game-screen");
+        log("対戦開始！");
+        showCutin("⚔️ 対戦開始！\n先攻（プレイヤー1）のターン");
+        render();
+      } else if (data.type === 'SYNC_STATE') {
+        state.p1 = data.p1;
+        state.p2 = data.p2;
+        state.turn = data.turn;
+        state.activeSide = data.activeSide;
+        state.isInputLocked = (state.activeSide !== state.myRole);
+        if (data.logMsg) log(data.logMsg);
+        if (data.cutinMsg) showCutin(data.cutinMsg);
+        checkGameOver();
+        render();
+      }
+    });
+  }
+
+  function sendSync(logMsg = null, cutinMsg = null) {
+    if (state.mode === 'online' && conn && conn.open) {
+      conn.send({
+        type: 'SYNC_STATE',
+        p1: state.p1, p2: state.p2, turn: state.turn, activeSide: state.activeSide,
+        logMsg, cutinMsg
+      });
+    }
+  }
+
+  function startMatch(p1Deck, p2Deck, p2Name) {
+    state.turn = 1;
+    state.activeSide = 'p1';
+    state.p1 = { name: "プレイヤー1", label: p1Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p1Deck.cards, hand: [], field: [] };
+    state.p2 = { name: p2Name, label: p2Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p2Deck.cards, hand: [], field: [] };
+
+    showScreen("game-screen");
+    document.getElementById("log").innerHTML = "";
+
+    for (let i = 0; i < 4; i++) {
+      drawCard('p1');
+      drawCard('p2');
+    }
+    state.isInputLocked = (state.mode === 'online' && state.myRole !== 'p1');
+    log("対戦開始！");
+    showCutin("⚔️ 対戦開始！\n" + state.p1.name + "のターン");
+    render();
+  }
+
+  function getViewSelf() {
+    if (state.mode === 'online') return state[state.myRole];
+    return state[state.activeSide];
+  }
+  function getViewOpp() {
+    if (state.mode === 'online') return state[state.myRole === 'p1' ? 'p2' : 'p1'];
+    return state[state.activeSide === 'p1' ? 'p2' : 'p1'];
+  }
+
+  function drawCard(who) {
+    let p = state[who];
+    if (p.deck.length === 0) {
+      p.hp -= 2;
+      log(p.name + "はネタ切れでメンタルに2ダメージ！");
+      return;
+    }
+    if (p.hand.length < 7) p.hand.push(p.deck.pop());
+  }
+
+  function log(msg) {
+    const logBox = document.getElementById("log");
+    logBox.innerHTML = "<p>> " + msg + "</p>" + logBox.innerHTML;
+  }
+
+  function showCutin(text, duration = 1100) {
+    const overlay = document.getElementById("cutin-overlay");
+    document.getElementById("cutin-text").innerText = text;
+    overlay.style.display = "flex";
+    setTimeout(() => { overlay.style.display = "none"; }, duration);
+  }
+
+  document.getElementById("btn-resume").addEventListener("click", () => {
+    document.getElementById("pass-screen").style.display = "none";
+    log("--- " + getViewSelf().name + "のターン（ターン " + state.turn + "） ---");
+    render();
+  });
+  document.getElementById("direct-attack-btn").addEventListener("click", directAttack);
+  document.getElementById("end-turn-btn").addEventListener("click", endTurn);
+
+  function playCard(handIndex) {
+    if (state.isInputLocked) return;
+    const self = getViewSelf();
+    const card = self.hand[handIndex];
+
+    if (self.giga < card.cost) {
+      log("⚠️ ギガ（コスト）が足りません！");
+      return;
+    }
+
+    let actionLog = "";
+    if (card.type === "meme") {
+      if (self.field.length >= 3) {
+        log("⚠️ タイムラインがいっぱいです（最大3体）。");
+        return;
+      }
+      self.giga -= card.cost;
+      self.hand.splice(handIndex, 1);
+      card.canAttack = true;
+      card.isBuzz = true;
+      self.field.push(card);
+      actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！";
+      log(actionLog);
+      triggerSummonEffect(state.activeSide, card);
+    } else if (card.type === "spell") {
+      self.giga -= card.cost;
+      self.hand.splice(handIndex, 1);
+      actionLog = "⚡ " + self.name + "が構文「" + card.name + "」を発動！";
+      log(actionLog);
+      executeSpell(state.activeSide, card);
+    }
+
+    state.selectedAttackerIndex = null;
+    sendSync(actionLog);
+    checkGameOver();
+    render();
+  }
+
+  function triggerSummonEffect(who, card) {
+    const self = state[who];
+    const opp = state[who === 'p1' ? 'p2' : 'p1'];
+
+    if (card.id === "neko" || card.id === "tono" || card.id === "kirinuki") {
+      drawCard(who);
+      log("✨ 「" + card.name + "」効果：1枚ドロー！");
+    } else if (card.id === "genba") {
+      if (Math.random() < 0.5) {
+        card.atk += 2;
+        log("👷 ヨシ！安全確認完了（攻撃力+2）！");
+      } else {
+        log("💥 労災発生！現場猫は自爆した！");
+        self.field.pop();
+      }
+    } else if (card.id === "donald") {
+      opp.hp -= 2;
+      log("🤡 ランランルー！メンタルに2ダメージ！");
+    } else if (card.id === "shuzo") {
+      self.field.forEach(m => { if (m !== card) m.atk += 1; });
+      log("🔥 修造の熱血応援！他の味方全員の攻撃力+1！");
+    } else if (card.id === "yaju") {
+      card.atk += 1;
+      log("🦁 野獣先輩のプレッシャー！自身の攻撃力+1！");
+    } else if (card.id === "savanna") {
+      if (opp.field.length > 0) {
+        opp.field[0].atk = 1;
+        log("🦁 サバンナ男効果！相手ミームの攻撃力が1になった！");
+      }
+    } else if (card.id === "nyan") {
+      drawCard(who);
+      card.atk += 1;
+      log("🌈 Nyan Cat効果：1枚ドロー＆攻撃力+1！");
+    } else if (card.id === "streamer") {
+      self.giga = Math.min(self.maxGiga, self.giga + 1);
+      log("🎙️ 大手配信者効果：ギガを1回復！");
+    }
+  }
+
+  function executeSpell(who, card) {
+    const self = state[who];
+    const opp = state[who === 'p1' ? 'p2' : 'p1'];
+
+    if (card.id === "ronpa" && opp.field.length > 0) {
+      opp.field[0].hp -= 3;
+      log("🤔 論破！相手ミームに3ダメージ！");
+    } else if (card.id === "numai" && opp.field.length > 0) {
+      opp.field[0].hp -= 2;
+      log("🔨 ガッ！相手ミームに2ダメージ！");
+    } else if (card.id === "seiron" && opp.field.length > 0) {
+      opp.field[0].hp -= 4;
+      log("🥊 正論パンチ！相手ミームに4ダメージ！");
+    } else if (card.id === "ojisan") {
+      opp.field.forEach(m => m.atk = Math.max(0, m.atk - 2));
+      log("👴 おじさん構文で相手ミーム全員の攻撃力が-2！");
+    } else if (card.id === "owakon") {
+      const idx = opp.field.findIndex(m => m.era === "2ch" || m.era === "ニコニコ");
+      if (idx !== -1) {
+        log("📉 オワコン認定で相手ミームが消滅した！");
+        opp.field.splice(idx, 1);
+      }
+    } else if (card.id === "kusa") {
+      self.field.forEach(m => m.atk += 1);
+      log("🌱 大草原！味方全員の攻撃力+1！");
+    } else if (card.id === "danmaku") {
+      self.field.forEach(m => m.atk += 1);
+      drawCard(who);
+      log("💬 弾幕展開！味方全員の攻撃力+1＆1枚ドロー！");
+    } else if (card.id === "kaiko") {
+      if (opp.field.some(m => m.era === "令和")) {
+        opp.hp -= 3;
+        log("📺 懐古厨の説教が刺さり、相手メンタルに3ダメージ！");
+      }
+    } else if (card.id === "jaken") {
+      if (opp.field.length > 0) opp.field[0].hp -= 4;
+      opp.hp -= 2;
+      log("🗡️ 邪剣「夜」発動！相手場と本体に大ダメージ！");
+    } else if (card.id === "karate") {
+      self.field.forEach(m => m.atk += 2);
+      log("🥋 迫真空手部の特訓！味方全員の攻撃力+2！");
+    } else if (card.id === "rickroll" && opp.hand.length > 0) {
+      const rIdx = Math.floor(Math.random() * opp.hand.length);
+      opp.hand.splice(rIdx, 1);
+      log("🕺 Rickroll！相手の手札を1枚捨てさせた！");
+    } else if (card.id === "supacha") {
+      self.giga = Math.min(self.maxGiga, self.giga + 2);
+      log("💸 ナイスパ！ギガが2回復した！");
+    } else if (card.id === "shazai") {
+      self.field = [];
+      opp.field = [];
+      log("🙇 炎上謝罪会見！場のミームが全て消滅した！");
+    } else if (card.id === "comnote") {
+      if (opp.field.length > 0) opp.field[0].hp -= 3;
+      self.hp = Math.min(20, self.hp + 2);
+      log("📝 コミュニティノート！相手に3ダメージ＆自分のメンタル2回復！");
+    } else if (card.id === "gakkyukai") {
+      self.field.forEach(m => m.hp -= 2);
+      opp.field.forEach(m => m.hp -= 2);
+      log("🔥 Xの学級会！お互いの場のミーム全てに2ダメージ！");
+    } else if (card.id === "ban") {
+      if (opp.field.length > 0) opp.field.splice(0, 1);
+      opp.hp -= 2;
+      log("❄️ アカウント凍結！相手ミーム消滅＆本体に2ダメージ！");
+    }
+    cleanupDeadMemes();
+  }
+
+  function selectAttacker(index) {
+    if (state.isInputLocked) return;
+    const meme = getViewSelf().field[index];
+    if (!meme.canAttack) {
+      log("⚠️ このミームは既に行動済みです。");
+      return;
+    }
+    state.selectedAttackerIndex = (state.selectedAttackerIndex === index) ? null : index;
+    render();
+  }
+
+  function attackMeme(targetIndex) {
+    if (state.isInputLocked || state.selectedAttackerIndex === null) return;
+    const self = getViewSelf();
+    const opp = getViewOpp();
+    const attacker = self.field[state.selectedAttackerIndex];
+    const target = opp.field[targetIndex];
+
+    const atkPower = attacker.atk + (attacker.isBuzz ? 1 : 0);
+    const targetPower = target.atk + (target.isBuzz ? 1 : 0);
+
+    target.hp -= atkPower;
+    attacker.hp -= targetPower;
+    attacker.canAttack = false;
+
+    const actionLog = "⚔️ 「" + attacker.name + "」が「" + target.name + "」とレスバ！";
+    log(actionLog);
+    state.selectedAttackerIndex = null;
+    cleanupDeadMemes();
+    sendSync(actionLog);
+    checkGameOver();
+    render();
+  }
+
+  function directAttack() {
+    if (state.isInputLocked || state.selectedAttackerIndex === null) return;
+    const self = getViewSelf();
+    const opp = getViewOpp();
+    const attacker = self.field[state.selectedAttackerIndex];
+    const atkPower = attacker.atk + (attacker.isBuzz ? 1 : 0);
+
+    opp.hp -= atkPower;
+    attacker.canAttack = false;
+    const actionLog = "🔥 「" + attacker.name + "」の直接攻撃！メンタルに " + atkPower + " ダメージ！";
+    log(actionLog);
+
+    state.selectedAttackerIndex = null;
+    sendSync(actionLog);
+    checkGameOver();
+    render();
+  }
+
+  function cleanupDeadMemes() {
+    state.p1.field = state.p1.field.filter(m => m.hp > 0);
+    state.p2.field = state.p2.field.filter(m => m.hp > 0);
+  }
+
+  function endTurn() {
+    if (state.isInputLocked) return;
+    state.selectedAttackerIndex = null;
+
+    if (state.mode === 'cpu') {
+      state.activeSide = 'p2';
+      state.isInputLocked = true;
+      processTurnStart('p2');
+      showCutin("👾 CPUのターン（思考中...）", 1100);
+      render();
+      setTimeout(cpuAI, 1200);
+    } else if (state.mode === 'local') {
+      state.activeSide = state.activeSide === 'p1' ? 'p2' : 'p1';
+      if (state.activeSide === 'p1') state.turn++;
+      processTurnStart(state.activeSide);
+      document.getElementById("pass-title").innerText = "📱 " + getViewSelf().name + "のターンです";
+      document.getElementById("pass-screen").style.display = "flex";
+    } else if (state.mode === 'online') {
+      state.activeSide = state.activeSide === 'p1' ? 'p2' : 'p1';
+      if (state.activeSide === 'p1') state.turn++;
+      state.isInputLocked = true;
+      processTurnStart(state.activeSide);
+      const nextName = state[state.activeSide].name;
+      log("--- " + nextName + "のターン（ターン " + state.turn + "） ---");
+      sendSync("--- " + nextName + "のターン ---", "⚔️ あなたのターンです！");
+      render();
+    }
+  }
+
+  function processTurnStart(who) {
+    const p = state[who];
+    if (p.maxGiga < 10) p.maxGiga++;
+    p.giga = p.maxGiga;
+    drawCard(who);
+
+    p.field.forEach(m => {
+      m.isBuzz = false;
+      m.freshness--;
+      m.canAttack = true;
+    });
+    const expired = p.field.filter(m => m.freshness <= 0);
+    expired.forEach(m => log("⌛ 「" + m.name + "」は飽きられてオワコン化した..."));
+    p.field = p.field.filter(m => m.freshness > 0);
+  }
+
+  function cpuAI() {
+    const cpu = state.p2;
+    let actions = [];
+
+    for (let i = cpu.hand.length - 1; i >= 0; i--) {
+      const card = cpu.hand[i];
+      if (card.cost <= cpu.giga) {
+        if (card.type === "meme" && cpu.field.length < 3) {
+          cpu.giga -= card.cost;
+          cpu.hand.splice(i, 1);
+          card.isBuzz = true;
+          cpu.field.push(card);
+          actions.push("「" + card.name + "」を召喚");
+          log("👾 CPUが「" + card.name + "」を召喚！");
+          triggerSummonEffect('p2', card);
+        } else if (card.type === "spell") {
+          cpu.giga -= card.cost;
+          cpu.hand.splice(i, 1);
+          actions.push("「" + card.name + "」を発動");
+          log("👾 CPUが「" + card.name + "」を発動！");
+          executeSpell('p2', card);
+        }
+      }
+    }
+
+    cpu.field.forEach(m => {
+      const power = m.atk + (m.isBuzz ? 1 : 0);
+      if (state.p1.field.length > 0) {
+        const target = state.p1.field[0];
+        target.hp -= power;
+        m.hp -= (target.atk + (target.isBuzz ? 1 : 0));
+        actions.push("「" + m.name + "」で攻撃");
+        log("👾 CPUの「" + m.name + "」が「" + target.name + "」を攻撃！");
+        cleanupDeadMemes();
+      } else {
+        state.p1.hp -= power;
+        actions.push("「" + m.name + "」で直接攻撃");
+        log("👾 CPUの「" + m.name + "」が直接攻撃！メンタルに " + power + " ダメージ！");
+      }
+    });
+
+    if (checkGameOver()) return;
+
+    state.turn++;
+    state.activeSide = 'p1';
+    state.isInputLocked = false;
+    processTurnStart('p1');
+    const summary = actions.length > 0 ? "CPUは " + actions.join(" → ") + "！\n" : "CPUは何もしなかった。\n";
+    showCutin(summary + "🧑 あなたのターン（ターン " + state.turn + "）", 1400);
+    log("--- あなたのターン（ターン " + state.turn + "） ---");
+    render();
+  }
+
+  function checkGameOver() {
+    if (state.p2.hp <= 0) {
+      userData.points += 150;
+      saveUserData();
+      setTimeout(() => {
+        alert("🎉 " + state.p1.name + "の勝利！報酬として 150 バズP を獲得しました！");
+        showScreen("home-screen");
+      }, 200);
+      return true;
+    }
+    if (state.p1.hp <= 0) {
+      userData.points += 50;
+      saveUserData();
+      setTimeout(() => {
+        alert("💀 " + state.p2.name + "の勝利... 参加賞として 50 バズP を獲得しました。");
+        showScreen("home-screen");
+      }, 200);
+      return true;
+    }
+    return false;
+  }
+
+  function updateGuideBanner() {
+    const banner = document.getElementById("guide-banner");
+    const self = getViewSelf();
+    const opp = getViewOpp();
+
+    if (state.isInputLocked) {
+      banner.innerText = state.mode === 'online' ? "⏳ 相手プレイヤーのターンです..." : "⏳ CPUのターンです...";
+      banner.style.borderColor = "#ff6b6b";
+      return;
+    }
+    banner.style.borderColor = "#00d2ff";
+
+    if (state.selectedAttackerIndex !== null) {
+      const attacker = self.field[state.selectedAttackerIndex];
+      if (opp.field.length > 0) {
+        banner.innerText = "🎯 「" + attacker.name + "」で攻撃！赤く点滅している相手のミームをタップしよう";
+      } else {
+        banner.innerText = "🔥 相手の場が空です！「💥 相手本体に直接攻撃」ボタンを押そう！";
+      }
+      return;
+    }
+
+    const canPlayAny = self.hand.some(c => c.cost <= self.giga);
+    const canAttackAny = self.field.some(m => m.canAttack);
+
+    if (canPlayAny && canAttackAny) {
+      banner.innerText = "💡 あなたのターン：手札（緑枠）を出すか、場のミーム（緑枠）で攻撃しよう！";
+    } else if (canPlayAny) {
+      banner.innerText = "💡 あなたのターン：手札の緑枠カードをタップして投稿しよう！";
+    } else if (canAttackAny) {
+      banner.innerText = "⚔️ 場の緑枠ミームをタップして攻撃しよう！";
+    } else {
+      banner.innerText = "✅ できる行動がありません。「⏭️ ターン終了」を押そう！";
+    }
+  }
+
+  function render() {
+    const self = getViewSelf();
+    const opp = getViewOpp();
+
+    document.getElementById("opp-title").innerText = "👾 " + opp.name + "（" + opp.label + "）";
+    document.getElementById("opp-hp").innerText = opp.hp;
+    document.getElementById("opp-giga").innerText = opp.giga + "/" + opp.maxGiga;
+    document.getElementById("opp-deck-count").innerText = "(山札: " + opp.deck.length + "枚)";
+
+    document.getElementById("self-title").innerText = "🧑 " + self.name + "（" + self.label + "）";
+    document.getElementById("self-hp").innerText = self.hp;
+    document.getElementById("self-giga").innerText = self.giga + "/" + self.maxGiga;
+    document.getElementById("self-deck-count").innerText = "(山札: " + self.deck.length + "枚)";
+
+    updateGuideBanner();
+
+    const canDirect = !state.isInputLocked && state.selectedAttackerIndex !== null && opp.field.length === 0;
+    const directBtn = document.getElementById("direct-attack-btn");
+    directBtn.disabled = !canDirect;
+    if (canDirect) directBtn.classList.add("ready");
+    else directBtn.classList.remove("ready");
+
+    document.getElementById("end-turn-btn").disabled = state.isInputLocked;
+
+    const oppFieldEl = document.getElementById("opp-field");
+    oppFieldEl.innerHTML = opp.field.length === 0 ? '<span class="empty-msg">相手の場にミームはいません</span>' : "";
+    opp.field.forEach((c, idx) => {
+      const isTarget = !state.isInputLocked && state.selectedAttackerIndex !== null;
+      oppFieldEl.appendChild(createCardElement(c, () => attackMeme(idx), { isTarget }));
+    });
+
+    const selfFieldEl = document.getElementById("self-field");
+    selfFieldEl.innerHTML = self.field.length === 0 ? '<span class="empty-msg">自分の場にミームはいません</span>' : "";
+    self.field.forEach((c, idx) => {
+      const isSelected = state.selectedAttackerIndex === idx;
+      const canAttack = !state.isInputLocked && c.canAttack;
+      selfFieldEl.appendChild(createCardElement(c, () => selectAttacker(idx), { isSelected, canAttack }));
+    });
+
+    const handEl = document.getElementById("self-hand");
+    handEl.innerHTML = "";
+    self.hand.forEach((c, idx) => {
+      const playable = !state.isInputLocked && c.cost <= self.giga;
+      handEl.appendChild(createCardElement(c, () => playCard(idx), { playable, unplayable: !playable }));
+    });
+  }
+
+  function createCardElement(card, onClick, flags = {}) {
+    const div = document.createElement("div");
+    let classes = ["card", "rarity-" + (card.rarity || "N")];
+    if (card.type === 'spell') classes.push("spell");
+    if (flags.isSelected) classes.push("selected");
+    if (flags.canAttack) classes.push("can-attack");
+    if (flags.isTarget) classes.push("targetable");
+    if (flags.playable) classes.push("playable");
+    if (flags.unplayable) classes.push("unplayable");
+
+    div.className = classes.join(" ");
+    div.addEventListener("click", onClick);
+
+    const displayAtk = card.atk + (card.isBuzz ? 1 : 0);
+    const buzzBadge = card.isBuzz ? '<div class="buzz-badge">🔥バズ中(+1)</div>' : '';
+    const statsHtml = card.type === 'meme'
+      ? '<div class="card-stats"><span>⚔️' + displayAtk + '</span><span>⏳鮮度:' + card.freshness + '</span><span>❤️' + card.hp + '</span></div>'
+      : '<div class="card-stats" style="justify-content:center; color:#ffd32a;">【構文 / スペル】</div>';
+
+    div.innerHTML = buzzBadge +
+      '<div class="card-header">' +
+        '<span class="cost-badge">' + card.cost + '</span>' +
+        '<span class="rarity-tag">' + (card.rarity || 'N') + '</span>' +
+        '<span class="era-tag">' + card.era + '</span>' +
+      '</div>' +
+      '<div class="card-title">' + card.name + '</div>' +
+      '<div class="card-art">' + card.icon + '</div>' +
+      '<div class="card-desc">' + card.desc + '</div>' +
+      statsHtml;
     return div;
   }
 });
