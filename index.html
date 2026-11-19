@@ -2,169 +2,188 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <title>ネットミームTCG - 世代間レスバ大戦</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ネットミームTCG - レスバ大戦 -</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
 
-<header class="top-bar">
-  <h1>📱 ネットミームTCG</h1>
-  <div class="point-display">💎 <span id="user-points">1000</span> バズP</div>
-</header>
-
-<!-- ホームメニュー画面 -->
-<div id="home-screen" class="panel-box">
-  <h2>メインメニュー</h2>
-  <div class="menu-grid">
-    <button type="button" class="menu-btn battle-btn" id="nav-battle">
-      <strong>⚔️ 対戦する</strong><br>
-      <small>CPU戦・オンライン通信・2人対戦</small>
-    </button>
-    <button type="button" class="menu-btn pack-btn" id="nav-pack">
-      <strong>📦 パックを開封する</strong><br>
-      <small>1パック100P（全世代＆新ジャンル収録）</small>
-    </button>
-    <button type="button" class="menu-btn deck-btn-main" id="nav-deck">
-      <strong>🛠️ デッキ編成・カード一覧</strong><br>
-      <small>手持ちのカードで15枚デッキを構築</small>
-    </button>
-  </div>
-</div>
-
-<!-- パック開封画面 -->
-<div id="pack-screen" class="panel-box" style="display: none;">
-  <div class="screen-header">
-    <button type="button" class="back-btn" id="back-from-pack">◀ 戻る</button>
-    <h2>📦 カードパック開封</h2>
-  </div>
-  <p>1パック5枚入り（N / R / SR / UR）</p>
-  <div class="pack-box-visual">
-    <div class="pack-art">🃏<br><strong>世代混沌パック</strong><br><small>全38種収録</small></div>
-    <button type="button" id="btn-open-pack" class="primary-btn">1パック開封する（100P）</button>
-  </div>
-  <div id="pack-result-area" class="pack-result"></div>
-</div>
-
-<!-- デッキ編成画面 -->
-<div id="deck-screen" class="panel-box" style="display: none;">
-  <div class="screen-header">
-    <button type="button" class="back-btn" id="back-from-deck">◀ 戻る</button>
-    <h2>🛠️ マイデッキ編成（<span id="deck-count-label">0</span>/40枚）</h2>
-  </div>
-  
-  <div class="deck-controls">
-    <button type="button" id="btn-auto-deck" class="sub-btn">🎲 おまかせ自動編成</button>
-    <button type="button" id="btn-clear-deck" class="sub-btn danger-outline">🗑️ すべて外す</button>
-    <button type="button" id="btn-save-deck" class="primary-btn">💾 デッキを保存</button>
-  </div>
-
-  <div class="deck-section-title">▼ 現在のデッキ（タップで1枚外す / 同名3枚まで）</div>
-  <div id="current-deck-list" class="mini-card-grid"></div>
-
-  <div class="deck-section-title">▼ 所持カード一覧（タップでデッキに追加）</div>
-  <div id="collection-list" class="card-grid"></div>
-</div>
-
-<!-- 対戦準備セットアップ画面 -->
-<div id="setup-screen" class="panel-box" style="display: none;">
-  <div class="screen-header">
-    <button type="button" class="back-btn" id="back-from-setup">◀ 戻る</button>
-    <h2>⚔️ 対戦準備</h2>
-  </div>
-
-  <div id="step-mode">
-    <h3>1. 使用デッキを選択</h3>
-    <select id="battle-deck-select" class="deck-select-dropdown">
-      <option value="mydeck">🛠️ マイデッキ（40枚）</option>
-      <option value="rental_2ch">レンタル：① 2ch・Flash黎明期</option>
-      <option value="rental_yaju">レンタル：④ 野獣先輩（例のアレ）</option>
-    </select>
-
-    <h3>2. 対戦モードを選択</h3>
-    <div class="menu-grid">
-      <button type="button" class="menu-btn" id="btn-mode-cpu">
-        <strong>🤖 1人でCPUと対戦</strong><br>
-        <small>勝利で +150 バズP 獲得！</small>
-      </button>
-      <button type="button" class="menu-btn" id="btn-mode-online">
-        <strong>🌐 2台の端末で通信対戦</strong><br>
-        <small>4桁の部屋番号で友達と対戦</small>
-      </button>
-      <button type="button" class="menu-btn" id="btn-mode-local">
-        <strong>👥 1台の端末で交代対戦</strong><br>
-        <small>ターンごとにiPadを渡して対戦</small>
-      </button>
+  <!-- 1. ホーム画面（豪華版ロビー） -->
+  <div id="home-screen" class="screen">
+    <div class="top-bar">
+      <div class="logo-area">
+        <span class="logo-badge">VER 2.0</span>
+        <span class="game-logo">🌐 ネットミームTCG <small>- レスバ大戦 -</small></span>
+      </div>
+      <div class="currency-box">💎 <span id="user-points">1500</span> バズP</div>
     </div>
-  </div>
 
-  <!-- オンラインロビー -->
-  <div id="step-online" style="display: none;">
-    <h3>🌐 通信対戦ロビー</h3>
-    <div class="lobby-card">
-      <p><strong>【部屋を作る人】</strong></p>
-      <button type="button" id="btn-create-room" class="primary-btn">部屋番号を発行</button>
-      <div id="host-info" style="display: none; margin-top: 10px;">
-        <div>部屋番号：</div>
-        <div id="my-room-code" class="room-code-display">----</div>
-        <div style="color: #2ed573; font-size: 0.9rem;">相手の参加を待っています...</div>
+    <div class="home-lobby-grid">
+      <div class="lobby-showcase">
+        <div class="showcase-label">🔥 PICK UP ACE</div>
+        <div class="floating-ace-card">
+          <div class="ace-rarity">UR</div>
+          <div class="ace-icon">🗿</div>
+          <div class="ace-name">GigaChad</div>
+          <div class="ace-era">海外ミーム世代 / ATK 6 / HP 6</div>
+        </div>
+        <div class="lobby-ticker">
+          📢 <span>全8世代・40枚デッキ構築対応！パックを引いて最強のネタデッキを組め！</span>
+        </div>
+      </div>
+
+      <div class="lobby-actions">
+        <div class="promo-banner" onclick="document.getElementById('nav-pack').click()">
+          <div class="promo-tag">NEW PACK</div>
+          <div class="promo-title">⚡ 8世代ミーム大集結パック</div>
+          <div class="promo-sub">UR「野獣先輩」「KBC」「GigaChad」収録！1回 100 バズP</div>
+        </div>
+
+        <button id="nav-battle" class="hero-battle-btn">
+          <div class="btn-icon">⚔️</div>
+          <div class="btn-text-group">
+            <span class="btn-main-title">BATTLE START</span>
+            <span class="btn-sub-title">CPU戦・ローカル2P・オンライン通信対戦</span>
+          </div>
+          <div class="btn-arrow">▶</div>
+        </button>
+
+        <div class="sub-menu-grid">
+          <button id="nav-pack" class="tile-btn tile-pack">
+            <div class="tile-icon">📦</div>
+            <div class="tile-title">パック開封</div>
+            <div class="tile-sub">新カードを入手</div>
+          </button>
+          <button id="nav-deck" class="tile-btn tile-deck">
+            <div class="tile-icon">🗂️</div>
+            <div class="tile-title">デッキ編成</div>
+            <div class="tile-sub">40枚構築・所持一覧</div>
+          </button>
+        </div>
       </div>
     </div>
-    <div class="lobby-card">
-      <p><strong>【部屋に入る人】</strong></p>
-      <input type="tel" id="join-room-input" class="room-input" maxlength="4" placeholder="0000"><br>
-      <button type="button" id="btn-join-room" class="primary-btn" style="background:#2ed573;">参加する</button>
-      <div id="join-status" style="color: #ff6b6b; font-size: 0.9rem; margin-top: 8px;"></div>
+  </div>
+
+  <!-- 2. パック開封画面 -->
+  <div id="pack-screen" class="screen" style="display:none;">
+    <div class="sub-header">
+      <button id="back-from-pack" class="back-btn">◀ 戻る</button>
+      <h2>📦 ミームパック開封</h2>
+    </div>
+    <div class="pack-center">
+      <div class="pack-box-visual">
+        <div class="pack-title">MEME PACK</div>
+        <div class="pack-sub">5枚入り / R以上1枚確定</div>
+      </div>
+      <button id="btn-open-pack" class="primary-btn">💎 100 バズPで1パック開封</button>
+      <div id="pack-result-area" class="card-grid"></div>
     </div>
   </div>
-</div>
 
-<!-- ローカル交代用オーバーレイ -->
-<div id="pass-screen" class="pass-overlay" style="display: none;">
-  <div class="pass-box">
-    <h2 id="pass-title">📱 プレイヤー2のターンです</h2>
-    <p>手札が見えないように端末を渡してください</p>
-    <button type="button" id="btn-resume" class="primary-btn" style="margin-top: 15px;">準備OK（ターン開始）</button>
-  </div>
-</div>
-
-<!-- メインバトル画面 -->
-<div id="game-screen" class="game-container" style="display: none;">
-  <div class="status-bar cpu-bar">
-    <div><strong id="opp-title">相手</strong> <span id="opp-deck-count" class="deck-count"></span></div>
-    <div class="stat-box">メンタル: <span id="opp-hp" class="hp">20</span> | ギガ: <span id="opp-giga" class="giga">1/1</span></div>
-  </div>
-
-  <div id="opp-field" class="field-area"><span class="empty-msg">相手の場にミームはいません</span></div>
-  <div id="guide-banner" class="guide-banner">ターン 1：手札をタップして投稿しよう！</div>
-  <div id="self-field" class="field-area"><span class="empty-msg">自分の場にミームはいません</span></div>
-
-  <div class="status-bar player-bar">
-    <div><strong id="self-title">自分</strong> <span id="self-deck-count" class="deck-count"></span></div>
-    <div class="stat-box">メンタル: <span id="self-hp" class="hp">20</span> | ギガ: <span id="self-giga" class="giga">1/1</span></div>
+  <!-- 3. デッキ編成画面 -->
+  <div id="deck-screen" class="screen" style="display:none;">
+    <div class="sub-header">
+      <button id="back-from-deck" class="back-btn">◀ 戻る</button>
+      <h2>🗂️ デッキ編成（<span id="deck-count-label">0</span> / 40枚）</h2>
+    </div>
+    <div class="deck-controls">
+      <button id="btn-auto-deck" class="sub-btn">🎲 自動構築</button>
+      <button id="btn-clear-deck" class="sub-btn">🗑️ 全解除</button>
+      <button id="btn-save-deck" class="primary-btn">💾 デッキ保存</button>
+    </div>
+    <div class="deck-section">
+      <h3>現在のマイデッキ（タップで外す）</h3>
+      <div id="current-deck-list" class="mini-deck-list"></div>
+    </div>
+    <div class="deck-section">
+      <h3>所持カード一覧（タップで追加・同じカードは3枚まで）</h3>
+      <div id="collection-list" class="card-grid"></div>
+    </div>
   </div>
 
-  <div class="controls">
+  <!-- 4. 対戦準備画面 -->
+  <div id="setup-screen" class="screen" style="display:none;">
+    <div class="sub-header">
+      <button id="back-from-setup" class="back-btn">◀ 戻る</button>
+      <h2>⚔️ 対戦準備</h2>
+    </div>
+
+    <div class="setup-box">
+      <label>使用デッキ選択：</label>
+      <select id="battle-deck-select">
+        <option value="mydeck">マイデッキ（40枚）</option>
+        <option value="rental_2ch">レンタル：レトロ＆ネット黎明期（40枚）</option>
+        <option value="rental_yaju">レンタル：令和・配信・例のアレ連合（40枚）</option>
+      </select>
+    </div>
+
+    <div id="step-mode" class="setup-box">
+      <h3>対戦モードを選択</h3>
+      <button id="btn-mode-cpu" class="menu-btn">🤖 CPUと対戦（勝利で150バズP）</button>
+      <button id="btn-mode-local" class="menu-btn">📱 1台の端末で2人対戦</button>
+      <button id="btn-mode-online" class="menu-btn">🌐 友達とオンライン対戦</button>
+    </div>
+
+    <div id="step-online" class="setup-box" style="display:none;">
+      <h3>🌐 オンライン通信対戦</h3>
+      <button id="btn-create-room" class="primary-btn">部屋を作る（合言葉発行）</button>
+      <div id="host-info" style="display:none; margin-top:10px;">
+        <p>合言葉：<strong id="my-room-code" style="font-size:1.5rem; color:#ffd32a;">----</strong></p>
+        <p>相手の参加を待っています...</p>
+      </div>
+      <hr style="margin:15px 0; border-color:#444;">
+      <input type="text" id="join-room-input" placeholder="4桁の合言葉を入力" maxlength="4">
+      <button id="btn-join-room" class="sub-btn">部屋に入る</button>
+      <p id="join-status" style="color:#ff6b6b;"></p>
+    </div>
+  </div>
+
+  <!-- 5. バトル画面 -->
+  <div id="game-screen" class="screen" style="display:none;">
+    <div id="guide-banner" class="guide-banner">💡 あなたのターン：カードを出そう！</div>
+
+    <div class="player-bar opp-bar">
+      <span id="opp-title">👾 相手</span>
+      <span>❤️ メンタル: <strong id="opp-hp">20</strong></span>
+      <span>📶 ギガ: <strong id="opp-giga">1/1</strong></span>
+      <span id="opp-deck-count">(山札: 40枚)</span>
+    </div>
+
+    <div id="opp-field" class="field-area"></div>
+
+    <div class="center-actions">
+      <button id="direct-attack-btn" class="action-btn" disabled>💥 相手本体に直接攻撃</button>
+      <button id="end-turn-btn" class="action-btn">⏭️ ターン終了</button>
+    </div>
+
+    <div id="self-field" class="field-area"></div>
+
+    <div class="player-bar self-bar">
+      <span id="self-title">🧑 あなた</span>
+      <span>❤️ メンタル: <strong id="self-hp">20</strong></span>
+      <span>📶 ギガ: <strong id="self-giga">1/1</strong></span>
+      <span id="self-deck-count">(山札: 40枚)</span>
+    </div>
+
+    <div id="self-hand" class="hand-area"></div>
     <div id="log" class="log-box"></div>
-    <div class="btn-group">
-      <button type="button" id="direct-attack-btn" class="btn-danger" disabled>💥 相手本体に直接攻撃</button>
-      <button type="button" id="end-turn-btn">⏭️ ターン終了</button>
+  </div>
+
+  <!-- カットイン演出・端末交代画面 -->
+  <div id="cutin-overlay" class="overlay-screen" style="display:none;">
+    <div id="cutin-text" class="cutin-box"></div>
+  </div>
+
+  <div id="pass-screen" class="overlay-screen" style="display:none;">
+    <div class="pass-box">
+      <h2 id="pass-title">📱 次のプレイヤーのターンです</h2>
+      <p>端末を渡してからボタンを押してください</p>
+      <button id="btn-resume" class="primary-btn">準備完了（画面を表示）</button>
     </div>
   </div>
 
-  <div class="field-label">▼ あなたの手札（緑枠のカードをタップして使用）</div>
-  <div id="self-hand" class="hand-area"></div>
-</div>
-
-<div id="cutin-overlay" class="cutin-overlay" style="display: none;">
-  <div id="cutin-text" class="cutin-text"></div>
-</div>
-
-<script src="cards.js"></script>
-<script src="game.js"></script>
+  <script src="cards.js"></script>
+  <script src="game.js"></script>
 </body>
 </html>
