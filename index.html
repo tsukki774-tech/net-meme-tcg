@@ -9,58 +9,20 @@
 </head>
 <body>
 
-  <!-- 1. ホーム画面（豪華版ロビー） -->
+  <!-- 1. ホーム画面（元のシンプルUI） -->
   <div id="home-screen" class="screen">
     <div class="top-bar">
-      <div class="logo-area">
-        <span class="logo-badge">VER 2.0</span>
-        <span class="game-logo">🌐 ネットミームTCG <small>- レスバ大戦 -</small></span>
-      </div>
-      <div class="currency-box">💎 <span id="user-points">1500</span> バズP</div>
+      <span class="game-logo">🌐 ネットミームTCG</span>
+      <span class="currency-box">💎 <span id="user-points">1500</span> バズP</span>
     </div>
 
-    <div class="home-lobby-grid">
-      <div class="lobby-showcase">
-        <div class="showcase-label">🔥 PICK UP ACE</div>
-        <div class="floating-ace-card">
-          <div class="ace-rarity">UR</div>
-          <div class="ace-icon">🗿</div>
-          <div class="ace-name">GigaChad</div>
-          <div class="ace-era">海外ミーム世代 / ATK 6 / HP 6</div>
-        </div>
-        <div class="lobby-ticker">
-          📢 <span>全8世代・40枚デッキ構築対応！パックを引いて最強のネタデッキを組め！</span>
-        </div>
-      </div>
-
-      <div class="lobby-actions">
-        <div class="promo-banner" onclick="document.getElementById('nav-pack').click()">
-          <div class="promo-tag">NEW PACK</div>
-          <div class="promo-title">⚡ 8世代ミーム大集結パック</div>
-          <div class="promo-sub">UR「野獣先輩」「KBC」「GigaChad」収録！1回 100 バズP</div>
-        </div>
-
-        <button id="nav-battle" class="hero-battle-btn">
-          <div class="btn-icon">⚔️</div>
-          <div class="btn-text-group">
-            <span class="btn-main-title">BATTLE START</span>
-            <span class="btn-sub-title">CPU戦・ローカル2P・オンライン通信対戦</span>
-          </div>
-          <div class="btn-arrow">▶</div>
-        </button>
-
-        <div class="sub-menu-grid">
-          <button id="nav-pack" class="tile-btn tile-pack">
-            <div class="tile-icon">📦</div>
-            <div class="tile-title">パック開封</div>
-            <div class="tile-sub">新カードを入手</div>
-          </button>
-          <button id="nav-deck" class="tile-btn tile-deck">
-            <div class="tile-icon">🗂️</div>
-            <div class="tile-title">デッキ編成</div>
-            <div class="tile-sub">40枚構築・所持一覧</div>
-          </button>
-        </div>
+    <div class="home-center">
+      <h1>ネットミームTCG</h1>
+      <p class="subtitle">- レスバ大戦 -</p>
+      <div class="menu-buttons">
+        <button id="nav-battle" class="menu-btn primary-btn">⚔️ 対戦する</button>
+        <button id="nav-pack" class="menu-btn">📦 パック開封</button>
+        <button id="nav-deck" class="menu-btn">🗂️ デッキ編成（40枚）</button>
       </div>
     </div>
   </div>
