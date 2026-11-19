@@ -1,21 +1,92 @@
+// net-meme-tcg
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ネットミームTCG - レスバ大戦 -</title>
-  <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { background: #121212; color: #fff; min-height: 100vh; user-select: none; -webkit-user-select: none; }
+    .screen { padding: 15px; max-width: 900px; margin: 0 auto; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #1e1e1e; border-radius: 10px; margin-bottom: 20px; border: 1px solid #333; }
+    .game-logo { font-weight: bold; font-size: 1.1rem; color: #00d2ff; }
+    .currency-box { background: #2c2c2c; padding: 5px 12px; border-radius: 20px; font-weight: bold; color: #ffd32a; border: 1px solid #ffd32a; }
+    .home-center { text-align: center; padding: 40px 15px; }
+    .home-center h1 { font-size: 2.2rem; margin-bottom: 5px; color: #fff; }
+    .subtitle { color: #aaa; margin-bottom: 35px; font-size: 1.1rem; }
+    .menu-buttons { display: flex; flex-direction: column; gap: 15px; max-width: 340px; margin: 0 auto; }
+    .menu-btn { padding: 16px; font-size: 1.15rem; font-weight: bold; border: 1px solid #444; border-radius: 12px; background: #222; color: #fff; cursor: pointer; }
+    .menu-btn:active { transform: scale(0.97); }
+    .primary-btn { background: linear-gradient(135deg, #ff4757, #ff6b81); border: none; color: #fff; padding: 14px 20px; border-radius: 10px; font-weight: bold; font-size: 1.05rem; cursor: pointer; }
+    .primary-btn:disabled { opacity: 0.5; }
+    .sub-btn { background: #333; border: 1px solid #555; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .back-btn { background: #2c2c2c; border: 1px solid #555; color: #fff; padding: 8px 14px; border-radius: 8px; cursor: pointer; }
+    .sub-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+    .pack-center { text-align: center; }
+    .pack-box-visual { width: 180px; height: 240px; margin: 15px auto 20px; background: linear-gradient(135deg, #2b1055, #7597de); border: 3px solid #00d2ff; border-radius: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 0 20px rgba(0,210,255,0.4); }
+    .pack-title { font-size: 1.4rem; font-weight: 900; color: #ffd32a; }
+    .pack-sub { font-size: 0.8rem; color: #eee; margin-top: 8px; }
+    .deck-controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+    .deck-section { background: #1a1a1a; padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #333; }
+    .deck-section h3 { font-size: 0.95rem; color: #00d2ff; margin-bottom: 10px; }
+    .mini-deck-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px; }
+    .mini-chip { background: #2c2c2c; border: 1px solid #555; padding: 5px 10px; border-radius: 16px; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    .setup-box { background: #1e1e1e; padding: 18px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #333; display: flex; flex-direction: column; gap: 10px; }
+    .setup-box select, .setup-box input { padding: 12px; border-radius: 8px; border: 1px solid #555; background: #121212; color: #fff; font-size: 1rem; }
+    #game-screen { flex-direction: column; height: 100vh; padding: 8px; justify-content: space-between; }
+    .guide-banner { background: #1a2530; border: 1px solid #00d2ff; color: #fff; padding: 6px 10px; border-radius: 8px; font-size: 0.85rem; text-align: center; font-weight: bold; }
+    .player-bar { display: flex; justify-content: space-between; background: #1e1e1e; padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; border: 1px solid #333; }
+    .field-area { display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 155px; background: #181818; border: 1px dashed #333; border-radius: 10px; padding: 6px; overflow-x: auto; }
+    .empty-msg { color: #555; font-size: 0.85rem; }
+    .center-actions { display: flex; justify-content: center; gap: 12px; }
+    .action-btn { padding: 10px 16px; border-radius: 8px; border: none; font-weight: bold; font-size: 0.9rem; background: #333; color: #fff; cursor: pointer; }
+    .action-btn:disabled { opacity: 0.4; }
+    .action-btn.ready { background: #ff4757; box-shadow: 0 0 12px #ff4757; }
+    .hand-area { display: flex; gap: 8px; overflow-x: auto; padding: 6px; min-height: 165px; background: #161616; border-radius: 10px; }
+    .log-box { height: 65px; overflow-y: auto; background: #0d0d0d; border: 1px solid #333; padding: 6px; font-size: 0.75rem; color: #aaa; border-radius: 6px; }
+    .card-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 10px; }
+    .card { width: 128px; min-width: 128px; height: 175px; background: #242424; border: 2px solid #555; border-radius: 10px; padding: 6px; display: flex; flex-direction: column; justify-content: space-between; position: relative; cursor: pointer; flex-shrink: 0; }
+    .card.spell { background: #1f2833; border-color: #45a29e; }
+    .card.rarity-R { border-color: #00d2ff; }
+    .card.rarity-SR { border-color: #ffd32a; }
+    .card.rarity-UR { border-color: #ff4757; box-shadow: 0 0 10px rgba(255,71,87,0.5); }
+    .card.playable { border-color: #2ed573; box-shadow: 0 0 8px rgba(46,213,115,0.6); }
+    .card.unplayable { opacity: 0.55; }
+    .card.can-attack { border-color: #2ed573; box-shadow: 0 0 10px #2ed573; }
+    .card.selected { border-color: #ffd32a; transform: translateY(-6px); box-shadow: 0 0 14px #ffd32a; }
+    .card.targetable { border-color: #ff4757; box-shadow: 0 0 12px #ff4757; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; }
+    .cost-badge { background: #0097e6; color: #fff; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; }
+    .rarity-tag { font-weight: bold; color: #ffd32a; }
+    .era-tag { background: #333; padding: 1px 4px; border-radius: 4px; font-size: 0.6rem; color: #ccc; }
+    .card-title { font-size: 0.78rem; font-weight: bold; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-art { font-size: 2.2rem; text-align: center; }
+    .card-desc { font-size: 0.62rem; color: #ccc; line-height: 1.2; height: 36px; overflow: hidden; }
+    .card-stats { display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: bold; background: #141414; padding: 3px 5px; border-radius: 5px; }
+    .buzz-badge { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); background: #ff4757; color: #fff; font-size: 0.6rem; font-weight: bold; padding: 1px 6px; border-radius: 8px; white-space: nowrap; }
+    .owned-badge { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); background: #000; border: 1px solid #ffd32a; color: #ffd32a; font-size: 0.62rem; padding: 1px 6px; border-radius: 8px; white-space: nowrap; }
+    .overlay-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+    .cutin-box { background: linear-gradient(135deg, #ff4757, #1e272e); border: 2px solid #ffd32a; padding: 25px 35px; border-radius: 14px; font-size: 1.3rem; font-weight: bold; text-align: center; white-space: pre-line; }
+    .pass-box { background: #1e1e1e; border: 2px solid #00d2ff; padding: 30px; border-radius: 14px; text-align: center; display: flex; flex-direction: column; gap: 15px; }
+    @keyframes pack-shake { 0%, 100% { transform: rotate(0deg) scale(1); } 25% { transform: rotate(-5deg) scale(1.05); } 75% { transform: rotate(5deg) scale(1.05); } }
+    @keyframes card-reveal { 0% { transform: scale(0.4) rotateY(90deg); opacity: 0; } 100% { transform: scale(1) rotateY(0deg); opacity: 1; } }
+    .pack-opening-anim { animation: pack-shake 0.9s ease-in-out; }
+    .pack-glow-SR { border-color: #ffd32a !important; box-shadow: 0 0 25px #ffd32a !important; }
+    .pack-glow-UR { border-color: #ff4757 !important; box-shadow: 0 0 30px #ff4757 !important; }
+    .screen-flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); pointer-events: none; z-index: 2000; opacity: 0; }
+    .card-back-mystery { width: 128px; height: 175px; background: #222; border: 2px solid #555; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 2rem; color: #ffd32a; }
+    .card-revealed { animation: card-reveal 0.4s ease-out forwards; }
+  </style>
 </head>
 <body>
 
-  <!-- 1. ホーム画面（元のシンプルUI） -->
   <div id="home-screen" class="screen">
     <div class="top-bar">
       <span class="game-logo">🌐 ネットミームTCG</span>
       <span class="currency-box">💎 <span id="user-points">1500</span> バズP</span>
     </div>
-
     <div class="home-center">
       <h1>ネットミームTCG</h1>
       <p class="subtitle">- レスバ大戦 -</p>
@@ -27,7 +98,6 @@
     </div>
   </div>
 
-  <!-- 2. パック開封画面 -->
   <div id="pack-screen" class="screen" style="display:none;">
     <div class="sub-header">
       <button id="back-from-pack" class="back-btn">◀ 戻る</button>
@@ -43,7 +113,6 @@
     </div>
   </div>
 
-  <!-- 3. デッキ編成画面 -->
   <div id="deck-screen" class="screen" style="display:none;">
     <div class="sub-header">
       <button id="back-from-deck" class="back-btn">◀ 戻る</button>
@@ -64,13 +133,11 @@
     </div>
   </div>
 
-  <!-- 4. 対戦準備画面 -->
   <div id="setup-screen" class="screen" style="display:none;">
     <div class="sub-header">
       <button id="back-from-setup" class="back-btn">◀ 戻る</button>
       <h2>⚔️ 対戦準備</h2>
     </div>
-
     <div class="setup-box">
       <label>使用デッキ選択：</label>
       <select id="battle-deck-select">
@@ -79,14 +146,12 @@
         <option value="rental_yaju">レンタル：令和・配信・例のアレ連合（40枚）</option>
       </select>
     </div>
-
     <div id="step-mode" class="setup-box">
       <h3>対戦モードを選択</h3>
       <button id="btn-mode-cpu" class="menu-btn">🤖 CPUと対戦（勝利で150バズP）</button>
       <button id="btn-mode-local" class="menu-btn">📱 1台の端末で2人対戦</button>
       <button id="btn-mode-online" class="menu-btn">🌐 友達とオンライン対戦</button>
     </div>
-
     <div id="step-online" class="setup-box" style="display:none;">
       <h3>🌐 オンライン通信対戦</h3>
       <button id="btn-create-room" class="primary-btn">部屋を作る（合言葉発行）</button>
@@ -101,38 +166,30 @@
     </div>
   </div>
 
-  <!-- 5. バトル画面 -->
   <div id="game-screen" class="screen" style="display:none;">
     <div id="guide-banner" class="guide-banner">💡 あなたのターン：カードを出そう！</div>
-
     <div class="player-bar opp-bar">
       <span id="opp-title">👾 相手</span>
       <span>❤️ メンタル: <strong id="opp-hp">20</strong></span>
       <span>📶 ギガ: <strong id="opp-giga">1/1</strong></span>
       <span id="opp-deck-count">(山札: 40枚)</span>
     </div>
-
     <div id="opp-field" class="field-area"></div>
-
     <div class="center-actions">
       <button id="direct-attack-btn" class="action-btn" disabled>💥 相手本体に直接攻撃</button>
       <button id="end-turn-btn" class="action-btn">⏭️ ターン終了</button>
     </div>
-
     <div id="self-field" class="field-area"></div>
-
     <div class="player-bar self-bar">
       <span id="self-title">🧑 あなた</span>
       <span>❤️ メンタル: <strong id="self-hp">20</strong></span>
       <span>📶 ギガ: <strong id="self-giga">1/1</strong></span>
       <span id="self-deck-count">(山札: 40枚)</span>
     </div>
-
     <div id="self-hand" class="hand-area"></div>
     <div id="log" class="log-box"></div>
   </div>
 
-  <!-- カットイン演出・端末交代画面 -->
   <div id="cutin-overlay" class="overlay-screen" style="display:none;">
     <div id="cutin-text" class="cutin-box"></div>
   </div>
@@ -145,7 +202,603 @@
     </div>
   </div>
 
-  <script src="cards.js"></script>
-  <script src="game.js"></script>
+  <script>
+  const ALL_CARDS = [
+    { id: "mona", name: "モナー", type: "meme", era: "2ch", rarity: "N", cost: 1, atk: 1, hp: 2, freshness: 4, icon: "🐱‍👤", desc: "オマエモナー。鮮度が落ちにくい（4ターン持続）。" },
+    { id: "giko", name: "ギコ猫", type: "meme", era: "2ch", rarity: "N", cost: 2, atk: 3, hp: 2, freshness: 4, icon: "😼", desc: "「逝ってよし」攻撃的なAAキャラ。" },
+    { id: "yaruo", name: "やる夫", type: "meme", era: "2ch", rarity: "R", cost: 2, atk: 2, hp: 4, freshness: 4, icon: "🍙", desc: "高い体力を誇る頼れる壁役。" },
+    { id: "numai", name: "ぬるぽ", type: "spell", era: "2ch", rarity: "N", cost: 1, icon: "🔨", desc: "【ガッ】相手ミーム1体に2ダメージを与える。" },
+    { id: "kusa", name: "ｗｗｗ（大草原）", type: "spell", era: "2ch", rarity: "R", cost: 2, icon: "🌱", desc: "自分の場のミーム全ての攻撃力を+1する。" },
+    { id: "kaiko", name: "懐古厨の説教", type: "spell", era: "2ch", rarity: "SR", cost: 2, icon: "📺", desc: "【メタ】相手本体に1ダメ。相手の場に「令和・配信者・X炎上」がいれば4ダメに強化！" },
+    { id: "donald", name: "ドナルド", type: "meme", era: "ニコニコ", rarity: "R", cost: 2, atk: 2, hp: 2, freshness: 3, icon: "🤡", desc: "召喚時：相手のメンタルに2ダメージを与える。" },
+    { id: "kbc", name: "キーボードクラッシャー", type: "meme", era: "ニコニコ", rarity: "UR", cost: 4, atk: 5, hp: 4, freshness: 3, icon: "⌨️", desc: "圧倒的破壊力を持つニコニコの伝説。" },
+    { id: "shuzo", name: "松岡修造", type: "meme", era: "ニコニコ", rarity: "SR", cost: 3, atk: 3, hp: 3, freshness: 3, icon: "🔥", desc: "熱血応援！召喚時、他の味方全体の攻撃力+1。" },
+    { id: "danmaku", name: "弾幕コメント", type: "spell", era: "ニコニコ", rarity: "R", cost: 2, icon: "💬", desc: "自分の場のミーム全ての攻撃力を+1し、1枚ドロー。" },
+    { id: "neko", name: "猫ミーム", type: "meme", era: "令和", rarity: "N", cost: 1, atk: 2, hp: 1, freshness: 3, icon: "🐱", desc: "召喚時：手札を1枚引く。軽くて使いやすい。" },
+    { id: "genba", name: "現場猫（ヨシ！）", type: "meme", era: "令和", rarity: "R", cost: 2, atk: 3, hp: 2, freshness: 3, icon: "👷", desc: "召喚時：50%で攻撃力+2、50%で労災（自爆）。" },
+    { id: "chiikawa", name: "ちいかわ構文", type: "meme", era: "令和", rarity: "N", cost: 2, atk: 2, hp: 3, freshness: 3, icon: "🐹", desc: "「〇〇ってコト！？」場持ちが良い癒やし枠。" },
+    { id: "ronpa", name: "それってあなたの感想ですよね？", type: "spell", era: "令和", rarity: "R", cost: 2, icon: "🤔", desc: "【論破】相手の場のミーム1体に3ダメージ。" },
+    { id: "ojisan", name: "おじさん構文", type: "spell", era: "令和", rarity: "R", cost: 2, icon: "👴", desc: "【デバフ】相手のミーム全ての攻撃力を-2する。" },
+    { id: "owakon", name: "時代遅れ（オワコン認定）", type: "spell", era: "令和", rarity: "SR", cost: 3, icon: "📉", desc: "【メタ】相手の「2ch・ニコニコ・例のアレ・VIP/なんJ」ミーム1体を即消滅させる。" },
+    { id: "kmr", name: "KMR", type: "meme", era: "例のアレ", rarity: "N", cost: 1, atk: 1, hp: 2, freshness: 3, icon: "👀", desc: "「まずいですよ！」軽くて出しやすい壁役。" },
+    { id: "mur", name: "MUR", type: "meme", era: "例のアレ", rarity: "N", cost: 2, atk: 3, hp: 2, freshness: 3, icon: "😼", desc: "「そうだよ（便乗）」序盤の速攻アタッカー。" },
+    { id: "tono", name: "遠野", type: "meme", era: "例のアレ", rarity: "R", cost: 2, atk: 2, hp: 3, freshness: 4, icon: "🍵", desc: "召喚時：アイスティーを差し入れ（1枚ドロー）。" },
+    { id: "yaju", name: "野獣先輩", type: "meme", era: "例のアレ", rarity: "UR", cost: 4, atk: 4, hp: 4, freshness: 4, icon: "🦁", desc: "召喚時：圧倒的プレッシャーで自身の攻撃力+1。" },
+    { id: "jaken", name: "邪剣「夜」", type: "spell", era: "例のアレ", rarity: "SR", cost: 3, icon: "🗡️", desc: "【闇の力】相手ミーム1体に4ダメージ＆相手本体に2ダメージ。" },
+    { id: "karate", name: "迫真空手部", type: "spell", era: "例のアレ", rarity: "R", cost: 2, icon: "🥋", desc: "厳しい特訓により、味方全員の攻撃力を+2する。" },
+    { id: "chigyu", name: "チー牛", type: "meme", era: "VIP/なんJ", rarity: "N", cost: 1, atk: 1, hp: 3, freshness: 3, icon: "👓", desc: "「すいません、三色チーズ牛丼の特盛りに温玉付きで」" },
+    { id: "savanna", name: "サバンナ男", type: "meme", era: "VIP/なんJ", rarity: "R", cost: 3, atk: 3, hp: 3, freshness: 3, icon: "🦁", desc: "召喚時：相手ミーム1体の攻撃力を1にする。" },
+    { id: "seiron", name: "正論パンチ", type: "spell", era: "VIP/なんJ", rarity: "SR", cost: 2, icon: "🥊", desc: "相手ミーム1体に4ダメージを与える。" },
+    { id: "tokutei", name: "特定班の特定作業", type: "spell", era: "VIP/なんJ", rarity: "SR", cost: 2, icon: "🔍", desc: "【メタ】相手の「配信者・X炎上」ミーム1体の攻撃力を0、鮮度を1にする。" },
+    { id: "doge", name: "Doge（柴犬）", type: "meme", era: "海外", rarity: "R", cost: 2, atk: 2, hp: 3, freshness: 4, icon: "🐕", desc: "Such wow. バランスの良い海外の顔。" },
+    { id: "nyan", name: "Nyan Cat", type: "meme", era: "海外", rarity: "SR", cost: 3, atk: 3, hp: 2, freshness: 3, icon: "🌈", desc: "召喚時：1枚ドローし、自身の攻撃力+1。" },
+    { id: "gigachad", name: "GigaChad", type: "meme", era: "海外", rarity: "UR", cost: 5, atk: 6, hp: 6, freshness: 4, icon: "🗿", desc: "圧倒的フィジカルを誇る完璧超人。" },
+    { id: "rickroll", name: "Rickroll（釣り動画）", type: "spell", era: "海外", rarity: "SR", cost: 2, icon: "🕺", desc: "相手の手札を1枚ランダムに捨てさせる。" },
+    { id: "honyaku", name: "翻訳ニキの解説", type: "spell", era: "海外", rarity: "R", cost: 2, icon: "🌐", desc: "1枚ドロー。自分の場に「海外」ミームがいればさらに1枚ドロー。" },
+    { id: "kirinuki", name: "切り抜き職人", type: "meme", era: "配信者", rarity: "N", cost: 1, atk: 1, hp: 1, freshness: 3, icon: "✂️", desc: "召喚時：カードを1枚ドローする。" },
+    { id: "streamer", name: "大手配信者", type: "meme", era: "配信者", rarity: "SR", cost: 3, atk: 3, hp: 4, freshness: 3, icon: "🎙️", desc: "召喚時：自分のギガを1回復する。" },
+    { id: "supacha", name: "赤スパチャ", type: "spell", era: "配信者", rarity: "R", cost: 1, icon: "💸", desc: "自分のギガを+2回復する（最大値は超えない）。" },
+    { id: "shazai", name: "炎上謝罪会見", type: "spell", era: "配信者", rarity: "UR", cost: 4, icon: "🙇", desc: "お互いの場のミームを全て消滅させる。" },
+    { id: "copyright", name: "著作権侵害の申し立て", type: "spell", era: "配信者", rarity: "SR", cost: 2, icon: "⚠️", desc: "【メタ】相手の「ニコニコ・海外」ミーム1体を即消滅させ、1枚ドロー。" },
+    { id: "zombie", name: "インプレゾンビ", type: "meme", era: "X炎上", rarity: "N", cost: 0, atk: 1, hp: 1, freshness: 1, icon: "🧟", desc: "コスト0で出せるが1ターンで消える。数を並べる用。" },
+    { id: "kagiaka", name: "鍵垢の監視者", type: "meme", era: "X炎上", rarity: "N", cost: 1, atk: 0, hp: 4, freshness: 4, icon: "🔒", desc: "攻撃力は0だが非常に硬い壁役。" },
+    { id: "comnote", name: "コミュニティノート", type: "spell", era: "X炎上", rarity: "SR", cost: 2, icon: "📝", desc: "相手ミーム1体に3ダメージ＆自分のメンタルを2回復。" },
+    { id: "gakkyukai", name: "Xの学級会", type: "spell", era: "X炎上", rarity: "R", cost: 2, icon: "🔥", desc: "お互いの場のミーム全てに2ダメージを与える。" },
+    { id: "ban", name: "アカウント凍結", type: "spell", era: "X炎上", rarity: "UR", cost: 4, icon: "❄️", desc: "相手ミーム1体を消滅させ、相手本体に2ダメージ。" }
+  ];
+
+  const RENTAL_DECKS = {
+    rental_2ch: {
+      label: "レンタル：レトロ＆ネット黎明期（40枚）",
+      ids: ["mona","mona","mona","giko","giko","giko","yaruo","yaruo","yaruo","numai","numai","numai","kusa","kusa","kusa","kaiko","kaiko","kaiko","donald","donald","donald","kbc","kbc","shuzo","shuzo","shuzo","danmaku","danmaku","danmaku","chigyu","chigyu","chigyu","savanna","savanna","seiron","seiron","tokutei","tokutei","doge","doge"]
+    },
+    rental_yaju: {
+      label: "レンタル：令和・配信・例のアレ連合（40枚）",
+      ids: ["kmr","kmr","kmr","mur","mur","mur","tono","tono","tono","yaju","yaju","jaken","jaken","jaken","karate","karate","karate","neko","neko","neko","genba","genba","chiikawa","chiikawa","ronpa","ronpa","ojisan","ojisan","owakon","owakon","kirinuki","kirinuki","streamer","streamer","supacha","supacha","copyright","copyright","zombie","zombie"]
+    }
+  };
+
+  (function() {
+    var SAVE_KEY = "netmeme_tcg_save_v2";
+    var DECK_SIZE = 40;
+    var userData = loadUserData();
+
+    function loadUserData() {
+      var raw = localStorage.getItem(SAVE_KEY);
+      if (raw) { try { return JSON.parse(raw); } catch (e) {} }
+      var defaultDeck = ["mona","mona","mona","giko","giko","giko","yaruo","yaruo","yaruo","numai","numai","numai","kusa","kusa","kusa","neko","neko","neko","chiikawa","chiikawa","chiikawa","ronpa","ronpa","ojisan","ojisan","kmr","kmr","kmr","mur","mur","mur","tono","tono","kirinuki","kirinuki","kirinuki","zombie","zombie","zombie","kagiaka"];
+      return {
+        points: 1500,
+        collection: { mona: 3, giko: 3, yaruo: 3, numai: 3, kusa: 3, neko: 3, chiikawa: 3, ronpa: 2, ojisan: 2, kmr: 3, mur: 3, tono: 2, kirinuki: 3, zombie: 3, kagiaka: 2 },
+        myDeck: defaultDeck
+      };
+    }
+
+    function saveUserData() {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(userData));
+      updatePointsUI();
+    }
+
+    function updatePointsUI() {
+      document.getElementById("user-points").innerText = userData.points;
+    }
+    updatePointsUI();
+
+    var screens = ["home-screen", "pack-screen", "deck-screen", "setup-screen", "game-screen"];
+    function showScreen(id) {
+      for (var i = 0; i < screens.length; i++) {
+        var s = screens[i];
+        document.getElementById(s).style.display = (s === id) ? (id === "game-screen" ? "flex" : "block") : "none";
+      }
+    }
+
+    document.getElementById("nav-battle").addEventListener("click", function() {
+      document.getElementById("step-mode").style.display = "block";
+      document.getElementById("step-online").style.display = "none";
+      showScreen("setup-screen");
+    });
+    document.getElementById("nav-pack").addEventListener("click", function() {
+      document.getElementById("pack-result-area").innerHTML = "";
+      showScreen("pack-screen");
+    });
+    document.getElementById("nav-deck").addEventListener("click", function() {
+      renderDeckBuilder();
+      showScreen("deck-screen");
+    });
+
+    document.getElementById("back-from-pack").addEventListener("click", function() { showScreen("home-screen"); });
+    document.getElementById("back-from-deck").addEventListener("click", function() { showScreen("home-screen"); });
+    document.getElementById("back-from-setup").addEventListener("click", function() { showScreen("home-screen"); });
+    document.getElementById("btn-open-pack").addEventListener("click", openPack);
+
+    function openPack() {
+      if (userData.points < 100) { alert("バズPが足りません！CPU戦に勝利してポイントを貯めよう！"); return; }
+      var btn = document.getElementById("btn-open-pack");
+      btn.disabled = true;
+      userData.points -= 100;
+      var resultArea = document.getElementById("pack-result-area");
+      resultArea.innerHTML = "";
+
+      var poolN = ALL_CARDS.filter(function(c) { return c.rarity === "N"; });
+      var poolR = ALL_CARDS.filter(function(c) { return c.rarity === "R"; });
+      var poolSR = ALL_CARDS.filter(function(c) { return c.rarity === "SR"; });
+      var poolUR = ALL_CARDS.filter(function(c) { return c.rarity === "UR"; });
+
+      var pulled = [], hasSR = false, hasUR = false;
+      for (var i = 0; i < 5; i++) {
+        var rand = Math.random() * 100, pool = poolN;
+        if (i === 4) { if (rand < 8) pool = poolUR; else if (rand < 35) pool = poolSR; else pool = poolR; }
+        else { if (rand < 3) pool = poolUR; else if (rand < 15) pool = poolSR; else if (rand < 45) pool = poolR; }
+        var card = pool[Math.floor(Math.random() * pool.length)];
+        if (card.rarity === "SR") hasSR = true;
+        if (card.rarity === "UR") hasUR = true;
+        pulled.push(card);
+        userData.collection[card.id] = (userData.collection[card.id] || 0) + 1;
+      }
+      saveUserData();
+
+      var packBox = document.querySelector(".pack-box-visual");
+      packBox.classList.remove("pack-opening-anim", "pack-glow-SR", "pack-glow-UR");
+      void packBox.offsetWidth;
+      packBox.classList.add("pack-opening-anim");
+      if (hasUR) packBox.classList.add("pack-glow-UR");
+      else if (hasSR) packBox.classList.add("pack-glow-SR");
+
+      setTimeout(function() {
+        packBox.classList.remove("pack-opening-anim", "pack-glow-SR", "pack-glow-UR");
+        var flash = document.createElement("div");
+        flash.className = "screen-flash";
+        document.body.appendChild(flash);
+        setTimeout(function() { flash.remove(); }, 650);
+
+        for (var j = 0; j < 5; j++) {
+          var back = document.createElement("div");
+          back.className = "card-back-mystery";
+          back.innerHTML = "❓<br><span style='font-size:0.75rem; color:#aaa;'>MEME</span>";
+          resultArea.appendChild(back);
+        }
+        pulled.forEach(function(c, idx) {
+          setTimeout(function() {
+            var el = createCardElement(c, function() {}, {});
+            el.classList.add("card-revealed");
+            resultArea.replaceChild(el, resultArea.children[idx]);
+            if (idx === pulled.length - 1) btn.disabled = false;
+          }, 300 + idx * 350);
+        });
+      }, 900);
+    }
+
+    function renderDeckBuilder() {
+      document.getElementById("deck-count-label").innerText = userData.myDeck.length;
+      var deckListEl = document.getElementById("current-deck-list");
+      deckListEl.innerHTML = "";
+      userData.myDeck.forEach(function(cardId, index) {
+        var card = ALL_CARDS.find(function(c) { return c.id === cardId; });
+        if (!card) return;
+        var chip = document.createElement("div");
+        chip.className = "mini-chip";
+        chip.innerHTML = '<span class="cost-badge" style="width:16px;height:16px;font-size:0.7rem;">' + card.cost + '</span> ' + card.icon + ' ' + card.name + ' ✕';
+        chip.addEventListener("click", function() { userData.myDeck.splice(index, 1); renderDeckBuilder(); });
+        deckListEl.appendChild(chip);
+      });
+
+      var colListEl = document.getElementById("collection-list");
+      colListEl.innerHTML = "";
+      ALL_CARDS.forEach(function(card) {
+        var owned = userData.collection[card.id] || 0;
+        if (owned <= 0) return;
+        var inDeckCount = userData.myDeck.filter(function(id) { return id === card.id; }).length;
+        var el = createCardElement(card, function() {
+          if (userData.myDeck.length >= DECK_SIZE) { alert("デッキは" + DECK_SIZE + "枚までです！"); return; }
+          if (inDeckCount >= 3 || inDeckCount >= owned) { alert("これ以上同じカードを入れられません（所持数または上限3枚）"); return; }
+          userData.myDeck.push(card.id);
+          renderDeckBuilder();
+        }, {});
+        var badge = document.createElement("div");
+        badge.className = "owned-badge";
+        badge.innerText = "デッキ:" + inDeckCount + " / 所持:" + owned;
+        el.appendChild(badge);
+        colListEl.appendChild(el);
+      });
+    }
+
+    document.getElementById("btn-auto-deck").addEventListener("click", function() {
+      var available = [];
+      Object.keys(userData.collection).forEach(function(id) {
+        var count = Math.min(3, userData.collection[id]);
+        for (var i = 0; i < count; i++) available.push(id);
+      });
+      available.sort(function() { return Math.random() - 0.5; });
+      userData.myDeck = available.slice(0, DECK_SIZE);
+      renderDeckBuilder();
+    });
+    document.getElementById("btn-clear-deck").addEventListener("click", function() { userData.myDeck = []; renderDeckBuilder(); });
+    document.getElementById("btn-save-deck").addEventListener("click", function() {
+      if (userData.myDeck.length !== DECK_SIZE) { alert("デッキはちょうど" + DECK_SIZE + "枚にしてください！（現在 " + userData.myDeck.length + " 枚）"); return; }
+      saveUserData();
+      alert("✅ マイデッキ（" + DECK_SIZE + "枚）を保存しました！");
+    });
+
+    var state = {
+      mode: "cpu", myRole: "p1", turn: 1, activeSide: "p1", isInputLocked: false,
+      p1: { name: "プレイヤー1", label: "マイデッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
+      p2: { name: "CPU", label: "相手デッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
+      selectedAttackerIndex: null
+    };
+    var peer = null, conn = null, p1OnlineDeck = null, p2OnlineDeck = null, ROOM_PREFIX = "netmeme-tcg-v2-";
+
+    function getSelectedDeckCards() {
+      var choice = document.getElementById("battle-deck-select").value, ids = [], label = "";
+      if (choice === "mydeck") {
+        if (userData.myDeck.length !== DECK_SIZE) { alert("マイデッキが" + DECK_SIZE + "枚になっていません！デッキ編成で" + DECK_SIZE + "枚揃えるか、レンタルデッキを選んでください。"); return null; }
+        ids = userData.myDeck.slice(); label = "マイデッキ";
+      } else { ids = RENTAL_DECKS[choice].ids.slice(); label = RENTAL_DECKS[choice].label; }
+      var cards = ids.map(function(id) { return JSON.parse(JSON.stringify(ALL_CARDS.find(function(c) { return c.id === id; }))); }).sort(function() { return Math.random() - 0.5; });
+      return { label: label, cards: cards };
+    }
+
+    document.getElementById("btn-mode-cpu").addEventListener("click", function() {
+      var p1Deck = getSelectedDeckCards(); if (!p1Deck) return;
+      state.mode = "cpu";
+      var pool = []; ALL_CARDS.forEach(function(c) { pool.push(c.id, c.id); }); pool.sort(function() { return Math.random() - 0.5; });
+      var cpuCards = pool.slice(0, DECK_SIZE).map(function(id) { return JSON.parse(JSON.stringify(ALL_CARDS.find(function(c) { return c.id === id; }))); });
+      startMatch(p1Deck, { label: "CPU混成デッキ", cards: cpuCards }, "CPU");
+    });
+
+    document.getElementById("btn-mode-local").addEventListener("click", function() {
+      var p1Deck = getSelectedDeckCards(); if (!p1Deck) return;
+      state.mode = "local";
+      var p2Cards = RENTAL_DECKS.rental_yaju.ids.map(function(id) { return JSON.parse(JSON.stringify(ALL_CARDS.find(function(c) { return c.id === id; }))); }).sort(function() { return Math.random() - 0.5; });
+      startMatch(p1Deck, { label: "プレイヤー2デッキ", cards: p2Cards }, "プレイヤー2");
+    });
+
+    document.getElementById("btn-mode-online").addEventListener("click", function() {
+      var myDeck = getSelectedDeckCards(); if (!myDeck) return;
+      state.mode = "online"; p1OnlineDeck = myDeck;
+      document.getElementById("step-mode").style.display = "none";
+      document.getElementById("step-online").style.display = "block";
+    });
+
+    document.getElementById("btn-create-room").addEventListener("click", function() {
+      var code = Math.floor(1000 + Math.random() * 9000).toString();
+      document.getElementById("btn-create-room").disabled = true;
+      document.getElementById("host-info").style.display = "block";
+      document.getElementById("my-room-code").innerText = code;
+      peer = new Peer(ROOM_PREFIX + code);
+      peer.on("connection", function(connection) { conn = connection; state.myRole = "p1"; setupConnectionHandlers(); });
+      peer.on("error", function() { alert("通信エラーが発生しました。再読み込みしてください。"); });
+    });
+
+    document.getElementById("btn-join-room").addEventListener("click", function() {
+      var code = document.getElementById("join-room-input").value.trim();
+      if (code.length !== 4) { document.getElementById("join-status").innerText = "4桁の番号を入力してください"; return; }
+      document.getElementById("join-status").innerText = "接続中...";
+      peer = new Peer();
+      peer.on("open", function() {
+        conn = peer.connect(ROOM_PREFIX + code);
+        conn.on("open", function() { state.myRole = "p2"; setupConnectionHandlers(); conn.send({ type: "SEND_DECK", deck: p1OnlineDeck }); });
+      });
+      peer.on("error", function() { document.getElementById("join-status").innerText = "部屋が見つかりません。"; });
+    });
+
+    function setupConnectionHandlers() {
+      conn.on("data", function(data) {
+        if (data.type === "SEND_DECK" && state.myRole === "p1") {
+          p2OnlineDeck = data.deck; startMatch(p1OnlineDeck, p2OnlineDeck, "プレイヤー2");
+          conn.send({ type: "START_MATCH", p1: state.p1, p2: state.p2 });
+        } else if (data.type === "START_MATCH") {
+          state.p1 = data.p1; state.p2 = data.p2; state.turn = 1; state.activeSide = "p1";
+          state.isInputLocked = (state.myRole !== "p1");
+          showScreen("game-screen"); log("対戦開始！"); showCutin("⚔️ 対戦開始！\n先攻（プレイヤー1）のターン"); render();
+        } else if (data.type === "SYNC_STATE") {
+          state.p1 = data.p1; state.p2 = data.p2; state.turn = data.turn; state.activeSide = data.activeSide;
+          state.isInputLocked = (state.activeSide !== state.myRole);
+          if (data.logMsg) log(data.logMsg);
+          if (data.cutinMsg) showCutin(data.cutinMsg);
+          checkGameOver(); render();
+        }
+      });
+    }
+
+    function sendSync(logMsg, cutinMsg) {
+      if (state.mode === "online" && conn && conn.open) {
+        conn.send({ type: "SYNC_STATE", p1: state.p1, p2: state.p2, turn: state.turn, activeSide: state.activeSide, logMsg: logMsg || null, cutinMsg: cutinMsg || null });
+      }
+    }
+
+    function startMatch(p1Deck, p2Deck, p2Name) {
+      state.turn = 1; state.activeSide = "p1";
+      state.p1 = { name: "プレイヤー1", label: p1Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p1Deck.cards, hand: [], field: [] };
+      state.p2 = { name: p2Name, label: p2Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p2Deck.cards, hand: [], field: [] };
+      showScreen("game-screen"); document.getElementById("log").innerHTML = "";
+      for (var i = 0; i < 4; i++) { drawCard("p1"); drawCard("p2"); }
+      state.isInputLocked = (state.mode === "online" && state.myRole !== "p1");
+      log("対戦開始！"); showCutin("⚔️ 対戦開始！\n" + state.p1.name + "のターン"); render();
+    }
+
+    function getViewSelf() { return state.mode === "online" ? state[state.myRole] : state[state.activeSide]; }
+    function getViewOpp() { return state.mode === "online" ? state[state.myRole === "p1" ? "p2" : "p1"] : state[state.activeSide === "p1" ? "p2" : "p1"]; }
+
+    function drawCard(who) {
+      var p = state[who];
+      if (p.deck.length === 0) { p.hp -= 2; log(p.name + "はネタ切れでメンタルに2ダメージ！"); return; }
+      if (p.hand.length < 7) p.hand.push(p.deck.pop());
+    }
+    function log(msg) { var logBox = document.getElementById("log"); logBox.innerHTML = "<p>> " + msg + "</p>" + logBox.innerHTML; }
+    function showCutin(text, duration) {
+      var overlay = document.getElementById("cutin-overlay"); document.getElementById("cutin-text").innerText = text;
+      overlay.style.display = "flex"; setTimeout(function() { overlay.style.display = "none"; }, duration || 1100);
+    }
+
+    document.getElementById("btn-resume").addEventListener("click", function() {
+      document.getElementById("pass-screen").style.display = "none";
+      log("--- " + getViewSelf().name + "のターン（ターン " + state.turn + "） ---"); render();
+    });
+    document.getElementById("direct-attack-btn").addEventListener("click", directAttack);
+    document.getElementById("end-turn-btn").addEventListener("click", endTurn);
+
+    function playCard(handIndex) {
+      if (state.isInputLocked) return;
+      var self = getViewSelf(), card = self.hand[handIndex];
+      if (self.giga < card.cost) { log("⚠️ ギガ（コスト）が足りません！"); return; }
+      var actionLog = "";
+      if (card.type === "meme") {
+        if (self.field.length >= 3) { log("⚠️ タイムラインがいっぱいです（最大3体）。"); return; }
+        self.giga -= card.cost; self.hand.splice(handIndex, 1); card.canAttack = true; card.isBuzz = true; self.field.push(card);
+        actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！"; log(actionLog);
+        triggerSummonEffect(state.activeSide, card);
+      } else if (card.type === "spell") {
+        self.giga -= card.cost; self.hand.splice(handIndex, 1);
+        actionLog = "⚡ " + self.name + "が構文「" + card.name + "」を発動！"; log(actionLog);
+        executeSpell(state.activeSide, card);
+      }
+      state.selectedAttackerIndex = null; sendSync(actionLog); checkGameOver(); render();
+    }
+
+    function triggerSummonEffect(who, card) {
+      var self = state[who], opp = state[who === "p1" ? "p2" : "p1"];
+      if (card.id === "neko" || card.id === "tono" || card.id === "kirinuki") { drawCard(who); log("✨ 「" + card.name + "」効果：1枚ドロー！"); }
+      else if (card.id === "genba") {
+        if (Math.random() < 0.5) { card.atk += 2; log("👷 ヨシ！安全確認完了（攻撃力+2）！"); }
+        else { log("💥 労災発生！現場猫は自爆した！"); self.field.pop(); }
+      } else if (card.id === "donald") { opp.hp -= 2; log("🤡 ランランルー！メンタルに2ダメージ！"); }
+      else if (card.id === "shuzo") { self.field.forEach(function(m) { if (m !== card) m.atk += 1; }); log("🔥 修造の熱血応援！他の味方全員の攻撃力+1！"); }
+      else if (card.id === "yaju") { card.atk += 1; log("🦁 野獣先輩のプレッシャー！自身の攻撃力+1！"); }
+      else if (card.id === "savanna") { if (opp.field.length > 0) { opp.field[0].atk = 1; log("🦁 サバンナ男効果！相手ミームの攻撃力が1になった！"); } }
+      else if (card.id === "nyan") { drawCard(who); card.atk += 1; log("🌈 Nyan Cat効果：1枚ドロー＆攻撃力+1！"); }
+      else if (card.id === "streamer") { self.giga = Math.min(self.maxGiga, self.giga + 1); log("🎙️ 大手配信者効果：ギガを1回復！"); }
+    }
+
+    function executeSpell(who, card) {
+      var self = state[who], opp = state[who === "p1" ? "p2" : "p1"];
+      if (card.id === "ronpa" && opp.field.length > 0) { opp.field[0].hp -= 3; log("🤔 論破！相手ミームに3ダメージ！"); }
+      else if (card.id === "numai" && opp.field.length > 0) { opp.field[0].hp -= 2; log("🔨 ガッ！相手ミームに2ダメージ！"); }
+      else if (card.id === "seiron" && opp.field.length > 0) { opp.field[0].hp -= 4; log("🥊 正論パンチ！相手ミームに4ダメージ！"); }
+      else if (card.id === "ojisan") { opp.field.forEach(function(m) { m.atk = Math.max(0, m.atk - 2); }); log("👴 おじさん構文で相手ミーム全員の攻撃力が-2！"); }
+      else if (card.id === "owakon") {
+        var oldEras = ["2ch", "ニコニコ", "例のアレ", "VIP/なんJ"];
+        var idx = opp.field.findIndex(function(m) { return oldEras.indexOf(m.era) !== -1; });
+        if (idx !== -1) { log("📉 「" + opp.field[idx].name + "」はオワコン認定され消滅した！"); opp.field.splice(idx, 1); }
+        else { log("📉 対象となる古い世代のミームがいなかった..."); }
+      } else if (card.id === "kusa") { self.field.forEach(function(m) { m.atk += 1; }); log("🌱 大草原！味方全員の攻撃力+1！"); }
+      else if (card.id === "danmaku") { self.field.forEach(function(m) { m.atk += 1; }); drawCard(who); log("💬 弾幕展開！味方全員の攻撃力+1＆1枚ドロー！"); }
+      else if (card.id === "kaiko") {
+        var newEras = ["令和", "配信者", "X炎上"];
+        if (opp.field.some(function(m) { return newEras.indexOf(m.era) !== -1; })) { opp.hp -= 4; log("📺 懐古厨の説教が刺さり、相手メンタルに4ダメージ！"); }
+        else { opp.hp -= 1; log("📺 懐古厨のぼやきで相手メンタルに1ダメージ。"); }
+      } else if (card.id === "copyright") {
+        var cIdx = opp.field.findIndex(function(m) { return m.era === "ニコニコ" || m.era === "海外"; });
+        if (cIdx !== -1) { log("⚠️ 著作権侵害により「" + opp.field[cIdx].name + "」は削除された！"); opp.field.splice(cIdx, 1); drawCard(who); }
+        else { log("⚠️ 削除対象のミームがいなかった..."); }
+      } else if (card.id === "tokutei") {
+        var tIdx = opp.field.findIndex(function(m) { return m.era === "配信者" || m.era === "X炎上"; });
+        if (tIdx !== -1) { opp.field[tIdx].atk = 0; opp.field[tIdx].freshness = 1; log("🔍 特定班により「" + opp.field[tIdx].name + "」は炎上し無力化（攻撃0・鮮度1）！"); }
+        else { log("🔍 特定対象のミームがいなかった..."); }
+      } else if (card.id === "honyaku") {
+        drawCard(who);
+        if (self.field.some(function(m) { return m.era === "海外"; })) { drawCard(who); log("🌐 翻訳ニキの解説で海外ミームの理解が深まり2枚ドロー！"); }
+        else { log("🌐 翻訳ニキの解説で1枚ドロー！"); }
+      } else if (card.id === "jaken") { if (opp.field.length > 0) opp.field[0].hp -= 4; opp.hp -= 2; log("🗡️ 邪剣「夜」発動！相手場と本体に大ダメージ！"); }
+      else if (card.id === "karate") { self.field.forEach(function(m) { m.atk += 2; }); log("🥋 迫真空手部の特訓！味方全員の攻撃力+2！"); }
+      else if (card.id === "rickroll" && opp.hand.length > 0) { opp.hand.splice(Math.floor(Math.random() * opp.hand.length), 1); log("🕺 Rickroll！相手の手札を1枚捨てさせた！"); }
+      else if (card.id === "supacha") { self.giga = Math.min(self.maxGiga, self.giga + 2); log("💸 ナイスパ！ギガが2回復した！"); }
+      else if (card.id === "shazai") { self.field = []; opp.field = []; log("🙇 炎上謝罪会見！場のミームが全て消滅した！"); }
+      else if (card.id === "comnote") { if (opp.field.length > 0) opp.field[0].hp -= 3; self.hp = Math.min(20, self.hp + 2); log("📝 コミュニティノート！相手に3ダメージ＆自分のメンタル2回復！"); }
+      else if (card.id === "gakkyukai") { self.field.forEach(function(m) { m.hp -= 2; }); opp.field.forEach(function(m) { m.hp -= 2; }); log("🔥 Xの学級会！お互いの場のミーム全てに2ダメージ！"); }
+      else if (card.id === "ban") { if (opp.field.length > 0) opp.field.splice(0, 1); opp.hp -= 2; log("❄️ アカウント凍結！相手ミーム消滅＆本体に2ダメージ！"); }
+      cleanupDeadMemes();
+    }
+
+    function selectAttacker(index) {
+      if (state.isInputLocked) return;
+      var meme = getViewSelf().field[index];
+      if (!meme.canAttack) { log("⚠️ このミームは既に行動済みです。"); return; }
+      state.selectedAttackerIndex = (state.selectedAttackerIndex === index) ? null : index;
+      render();
+    }
+
+    function attackMeme(targetIndex) {
+      if (state.isInputLocked || state.selectedAttackerIndex === null) return;
+      var self = getViewSelf(), opp = getViewOpp();
+      var attacker = self.field[state.selectedAttackerIndex], target = opp.field[targetIndex];
+      target.hp -= (attacker.atk + (attacker.isBuzz ? 1 : 0));
+      attacker.hp -= (target.atk + (target.isBuzz ? 1 : 0));
+      attacker.canAttack = false;
+      var actionLog = "⚔️ 「" + attacker.name + "」が「" + target.name + "」とレスバ！";
+      log(actionLog); state.selectedAttackerIndex = null; cleanupDeadMemes(); sendSync(actionLog); checkGameOver(); render();
+    }
+
+    function directAttack() {
+      if (state.isInputLocked || state.selectedAttackerIndex === null) return;
+      var self = getViewSelf(), opp = getViewOpp(), attacker = self.field[state.selectedAttackerIndex];
+      var atkPower = attacker.atk + (attacker.isBuzz ? 1 : 0);
+      opp.hp -= atkPower; attacker.canAttack = false;
+      var actionLog = "🔥 「" + attacker.name + "」の直接攻撃！メンタルに " + atkPower + " ダメージ！";
+      log(actionLog); state.selectedAttackerIndex = null; sendSync(actionLog); checkGameOver(); render();
+    }
+
+    function cleanupDeadMemes() {
+      state.p1.field = state.p1.field.filter(function(m) { return m.hp > 0; });
+      state.p2.field = state.p2.field.filter(function(m) { return m.hp > 0; });
+    }
+
+    function endTurn() {
+      if (state.isInputLocked) return;
+      state.selectedAttackerIndex = null;
+      if (state.mode === "cpu") {
+        state.activeSide = "p2"; state.isInputLocked = true; processTurnStart("p2");
+        showCutin("👾 CPUのターン（思考中...）", 1100); render(); setTimeout(cpuAI, 1200);
+      } else if (state.mode === "local") {
+        state.activeSide = state.activeSide === "p1" ? "p2" : "p1";
+        if (state.activeSide === "p1") state.turn++;
+        processTurnStart(state.activeSide);
+        document.getElementById("pass-title").innerText = "📱 " + getViewSelf().name + "のターンです";
+        document.getElementById("pass-screen").style.display = "flex";
+      } else if (state.mode === "online") {
+        state.activeSide = state.activeSide === "p1" ? "p2" : "p1";
+        if (state.activeSide === "p1") state.turn++;
+        state.isInputLocked = true; processTurnStart(state.activeSide);
+        var nextName = state[state.activeSide].name;
+        log("--- " + nextName + "のターン（ターン " + state.turn + "） ---");
+        sendSync("--- " + nextName + "のターン ---", "⚔️ あなたのターンです！"); render();
+      }
+    }
+
+    function processTurnStart(who) {
+      var p = state[who];
+      if (p.maxGiga < 10) p.maxGiga++;
+      p.giga = p.maxGiga; drawCard(who);
+      p.field.forEach(function(m) { m.isBuzz = false; m.freshness--; m.canAttack = true; });
+      p.field.filter(function(m) { return m.freshness <= 0; }).forEach(function(m) { log("⌛ 「" + m.name + "」は飽きられてオワコン化した..."); });
+      p.field = p.field.filter(function(m) { return m.freshness > 0; });
+    }
+
+    function cpuAI() {
+      var cpu = state.p2, actions = [];
+      for (var i = cpu.hand.length - 1; i >= 0; i--) {
+        var card = cpu.hand[i];
+        if (card.cost <= cpu.giga) {
+          if (card.type === "meme" && cpu.field.length < 3) {
+            cpu.giga -= card.cost; cpu.hand.splice(i, 1); card.isBuzz = true; cpu.field.push(card);
+            actions.push("「" + card.name + "」を召喚"); log("👾 CPUが「" + card.name + "」を召喚！"); triggerSummonEffect("p2", card);
+          } else if (card.type === "spell") {
+            cpu.giga -= card.cost; cpu.hand.splice(i, 1);
+            actions.push("「" + card.name + "」を発動"); log("👾 CPUが「" + card.name + "」を発動！"); executeSpell("p2", card);
+          }
+        }
+      }
+      cpu.field.forEach(function(m) {
+        var power = m.atk + (m.isBuzz ? 1 : 0);
+        if (state.p1.field.length > 0) {
+          var target = state.p1.field[0];
+          target.hp -= power; m.hp -= (target.atk + (target.isBuzz ? 1 : 0));
+          actions.push("「" + m.name + "」で攻撃"); log("👾 CPUの「" + m.name + "」が「" + target.name + "」を攻撃！"); cleanupDeadMemes();
+        } else {
+          state.p1.hp -= power; actions.push("「" + m.name + "」で直接攻撃"); log("👾 CPUの「" + m.name + "」が直接攻撃！メンタルに " + power + " ダメージ！");
+        }
+      });
+      if (checkGameOver()) return;
+      state.turn++; state.activeSide = "p1"; state.isInputLocked = false; processTurnStart("p1");
+      var summary = actions.length > 0 ? "CPUは " + actions.join(" → ") + "！\n" : "CPUは何もしなかった。\n";
+      showCutin(summary + "🧑 あなたのターン（ターン " + state.turn + "）", 1400);
+      log("--- あなたのターン（ターン " + state.turn + "） ---"); render();
+    }
+
+    function checkGameOver() {
+      if (state.p2.hp <= 0) {
+        userData.points += 150; saveUserData();
+        setTimeout(function() { alert("🎉 " + state.p1.name + "の勝利！報酬として 150 バズP を獲得しました！"); showScreen("home-screen"); }, 200);
+        return true;
+      }
+      if (state.p1.hp <= 0) {
+        userData.points += 50; saveUserData();
+        setTimeout(function() { alert("💀 " + state.p2.name + "の勝利... 参加賞として 50 バズP を獲得しました。"); showScreen("home-screen"); }, 200);
+        return true;
+      }
+      return false;
+    }
+
+    function updateGuideBanner() {
+      var banner = document.getElementById("guide-banner"), self = getViewSelf(), opp = getViewOpp();
+      if (state.isInputLocked) { banner.innerText = state.mode === "online" ? "⏳ 相手プレイヤーのターンです..." : "⏳ CPUのターンです..."; banner.style.borderColor = "#ff6b6b"; return; }
+      banner.style.borderColor = "#00d2ff";
+      if (state.selectedAttackerIndex !== null) {
+        var attacker = self.field[state.selectedAttackerIndex];
+        banner.innerText = opp.field.length > 0 ? "🎯 「" + attacker.name + "」で攻撃！赤く点滅している相手のミームをタップしよう" : "🔥 相手の場が空です！「💥 相手本体に直接攻撃」ボタンを押そう！";
+        return;
+      }
+      var canPlayAny = self.hand.some(function(c) { return c.cost <= self.giga; }), canAttackAny = self.field.some(function(m) { return m.canAttack; });
+      if (canPlayAny && canAttackAny) banner.innerText = "💡 あなたのターン：手札（緑枠）を出すか、場のミーム（緑枠）で攻撃しよう！";
+      else if (canPlayAny) banner.innerText = "💡 あなたのターン：手札の緑枠カードをタップして投稿しよう！";
+      else if (canAttackAny) banner.innerText = "⚔️ 場の緑枠ミームをタップして攻撃しよう！";
+      else banner.innerText = "✅ できる行動がありません。「⏭️ ターン終了」を押そう！";
+    }
+
+    function render() {
+      var self = getViewSelf(), opp = getViewOpp();
+      document.getElementById("opp-title").innerText = "👾 " + opp.name + "（" + opp.label + "）";
+      document.getElementById("opp-hp").innerText = opp.hp;
+      document.getElementById("opp-giga").innerText = opp.giga + "/" + opp.maxGiga;
+      document.getElementById("opp-deck-count").innerText = "(山札: " + opp.deck.length + "枚)";
+      document.getElementById("self-title").innerText = "🧑 " + self.name + "（" + self.label + "）";
+      document.getElementById("self-hp").innerText = self.hp;
+      document.getElementById("self-giga").innerText = self.giga + "/" + self.maxGiga;
+      document.getElementById("self-deck-count").innerText = "(山札: " + self.deck.length + "枚)";
+      updateGuideBanner();
+
+      var canDirect = !state.isInputLocked && state.selectedAttackerIndex !== null && opp.field.length === 0;
+      var directBtn = document.getElementById("direct-attack-btn");
+      directBtn.disabled = !canDirect;
+      if (canDirect) directBtn.classList.add("ready"); else directBtn.classList.remove("ready");
+      document.getElementById("end-turn-btn").disabled = state.isInputLocked;
+
+      var oppFieldEl = document.getElementById("opp-field");
+      oppFieldEl.innerHTML = opp.field.length === 0 ? '<span class="empty-msg">相手の場にミームはいません</span>' : "";
+      opp.field.forEach(function(c, idx) {
+        oppFieldEl.appendChild(createCardElement(c, function() { attackMeme(idx); }, { isTarget: !state.isInputLocked && state.selectedAttackerIndex !== null }));
+      });
+
+      var selfFieldEl = document.getElementById("self-field");
+      selfFieldEl.innerHTML = self.field.length === 0 ? '<span class="empty-msg">自分の場にミームはいません</span>' : "";
+      self.field.forEach(function(c, idx) {
+        selfFieldEl.appendChild(createCardElement(c, function() { selectAttacker(idx); }, { isSelected: state.selectedAttackerIndex === idx, canAttack: !state.isInputLocked && c.canAttack }));
+      });
+
+      var handEl = document.getElementById("self-hand");
+      handEl.innerHTML = "";
+      self.hand.forEach(function(c, idx) {
+        var playable = !state.isInputLocked && c.cost <= self.giga;
+        handEl.appendChild(createCardElement(c, function() { playCard(idx); }, { playable: playable, unplayable: !playable }));
+      });
+    }
+
+    function createCardElement(card, onClick, flags) {
+      flags = flags || {};
+      var div = document.createElement("div");
+      var classes = ["card", "rarity-" + (card.rarity || "N")];
+      if (card.type === "spell") classes.push("spell");
+      if (flags.isSelected) classes.push("selected");
+      if (flags.canAttack) classes.push("can-attack");
+      if (flags.isTarget) classes.push("targetable");
+      if (flags.playable) classes.push("playable");
+      if (flags.unplayable) classes.push("unplayable");
+      div.className = classes.join(" ");
+      div.addEventListener("click", onClick);
+
+      var displayAtk = card.atk + (card.isBuzz ? 1 : 0);
+      var buzzBadge = card.isBuzz ? '<div class="buzz-badge">🔥バズ中(+1)</div>' : "";
+      var statsHtml = card.type === "meme"
+        ? '<div class="card-stats"><span>⚔️' + displayAtk + '</span><span>⏳鮮度:' + card.freshness + '</span><span>❤️' + card.hp + '</span></div>'
+        : '<div class="card-stats" style="justify-content:center; color:#ffd32a;">【構文 / スペル】</div>';
+
+      div.innerHTML = buzzBadge +
+        '<div class="card-header"><span class="cost-badge">' + card.cost + '</span><span class="rarity-tag">' + (card.rarity || "N") + '</span><span class="era-tag">' + card.era + '</span></div>' +
+        '<div class="card-title">' + card.name + '</div>' +
+        '<div class="card-art">' + card.icon + '</div>' +
+        '<div class="card-desc">' + card.desc + '</div>' + statsHtml;
+      return div;
+    }
+  })();
+  </script>
 </body>
 </html>
