@@ -1,4 +1,4 @@
-// net-meme-tcg
+// net-meme-tcg-v3
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -24,10 +24,25 @@
     .sub-btn { background: #333; border: 1px solid #555; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
     .back-btn { background: #2c2c2c; border: 1px solid #555; color: #fff; padding: 8px 14px; border-radius: 8px; cursor: pointer; }
     .sub-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+
+    /* パック画面＆タブ */
+    .pack-tabs { display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; }
+    .pack-tab { padding: 10px 16px; border-radius: 10px; border: 2px solid #444; background: #1e1e1e; color: #aaa; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
+    .pack-tab.active { border-color: #00d2ff; color: #fff; background: #1a2a3a; box-shadow: 0 0 10px rgba(0,210,255,0.4); }
+    .pack-tab.active.vol2 { border-color: #ff4757; background: #3a1a24; box-shadow: 0 0 10px rgba(255,71,87,0.4); }
     .pack-center { text-align: center; }
-    .pack-box-visual { width: 180px; height: 240px; margin: 15px auto 20px; background: linear-gradient(135deg, #2b1055, #7597de); border: 3px solid #00d2ff; border-radius: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 0 20px rgba(0,210,255,0.4); }
-    .pack-title { font-size: 1.4rem; font-weight: 900; color: #ffd32a; }
-    .pack-sub { font-size: 0.8rem; color: #eee; margin-top: 8px; }
+    .pack-box-visual { width: 190px; height: 245px; margin: 10px auto 18px; background: linear-gradient(135deg, #2b1055, #7597de); border: 3px solid #00d2ff; border-radius: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 0 20px rgba(0,210,255,0.4); padding: 10px; }
+    .pack-box-visual.vol2 { background: linear-gradient(135deg, #4a001f, #ff4757); border-color: #ffd32a; box-shadow: 0 0 20px rgba(255,71,87,0.5); }
+    .pack-title { font-size: 1.3rem; font-weight: 900; color: #ffd32a; }
+    .pack-sub { font-size: 0.78rem; color: #eee; margin-top: 8px; line-height: 1.3; }
+    .pack-btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
+
+    /* パック内容モーダル */
+    .modal-box { background: #1a1a1a; border: 2px solid #00d2ff; border-radius: 14px; width: 92%; max-width: 820px; max-height: 85vh; display: flex; flex-direction: column; padding: 15px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 10px; }
+    .modal-scroll { overflow-y: auto; padding-bottom: 15px; }
+
+    /* デッキ編成・対戦準備・バトル画面 */
     .deck-controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
     .deck-section { background: #1a1a1a; padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #333; }
     .deck-section h3 { font-size: 0.95rem; color: #00d2ff; margin-bottom: 10px; }
@@ -46,6 +61,8 @@
     .action-btn.ready { background: #ff4757; box-shadow: 0 0 12px #ff4757; }
     .hand-area { display: flex; gap: 8px; overflow-x: auto; padding: 6px; min-height: 165px; background: #161616; border-radius: 10px; }
     .log-box { height: 65px; overflow-y: auto; background: #0d0d0d; border: 1px solid #333; padding: 6px; font-size: 0.75rem; color: #aaa; border-radius: 6px; }
+
+    /* カードデザイン */
     .card-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 10px; }
     .card { width: 128px; min-width: 128px; height: 175px; background: #242424; border: 2px solid #555; border-radius: 10px; padding: 6px; display: flex; flex-direction: column; justify-content: space-between; position: relative; cursor: pointer; flex-shrink: 0; }
     .card.spell { background: #1f2833; border-color: #45a29e; }
@@ -62,11 +79,16 @@
     .rarity-tag { font-weight: bold; color: #ffd32a; }
     .era-tag { background: #333; padding: 1px 4px; border-radius: 4px; font-size: 0.6rem; color: #ccc; }
     .card-title { font-size: 0.78rem; font-weight: bold; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .card-art { font-size: 2.2rem; text-align: center; }
+    .card-art { font-size: 2.2rem; text-align: center; height: 52px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .card-art img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; }
     .card-desc { font-size: 0.62rem; color: #ccc; line-height: 1.2; height: 36px; overflow: hidden; }
     .card-stats { display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: bold; background: #141414; padding: 3px 5px; border-radius: 5px; }
     .buzz-badge { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); background: #ff4757; color: #fff; font-size: 0.6rem; font-weight: bold; padding: 1px 6px; border-radius: 8px; white-space: nowrap; }
+    .shield-badge { position: absolute; top: 20px; right: 4px; background: #00d2ff; color: #000; font-size: 0.65rem; font-weight: bold; padding: 1px 4px; border-radius: 6px; }
     .owned-badge { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); background: #000; border: 1px solid #ffd32a; color: #ffd32a; font-size: 0.62rem; padding: 1px 6px; border-radius: 8px; white-space: nowrap; }
+    .owned-badge.unowned { border-color: #666; color: #888; }
+
+    /* オーバーレイ・アニメーション */
     .overlay-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; }
     .cutin-box { background: linear-gradient(135deg, #ff4757, #1e272e); border: 2px solid #ffd32a; padding: 25px 35px; border-radius: 14px; font-size: 1.3rem; font-weight: bold; text-align: center; white-space: pre-line; }
     .pass-box { background: #1e1e1e; border: 2px solid #00d2ff; padding: 30px; border-radius: 14px; text-align: center; display: flex; flex-direction: column; gap: 15px; }
@@ -82,6 +104,7 @@
 </head>
 <body>
 
+  <!-- 1. ホーム画面 -->
   <div id="home-screen" class="screen">
     <div class="top-bar">
       <span class="game-logo">🌐 ネットミームTCG</span>
@@ -92,27 +115,56 @@
       <p class="subtitle">- レスバ大戦 -</p>
       <div class="menu-buttons">
         <button id="nav-battle" class="menu-btn primary-btn">⚔️ 対戦する</button>
-        <button id="nav-pack" class="menu-btn">📦 パック開封</button>
+        <button id="nav-pack" class="menu-btn">📦 パック開封・カードリスト</button>
         <button id="nav-deck" class="menu-btn">🗂️ デッキ編成（40枚）</button>
       </div>
     </div>
   </div>
 
+  <!-- 2. パック開封画面 -->
   <div id="pack-screen" class="screen" style="display:none;">
     <div class="sub-header">
       <button id="back-from-pack" class="back-btn">◀ 戻る</button>
       <h2>📦 ミームパック開封</h2>
     </div>
+
+    <div class="pack-tabs">
+      <button id="tab-pack-1" class="pack-tab active">第1弾：基本ミームパック</button>
+      <button id="tab-pack-2" class="pack-tab">🔥 第2弾：カオス＆深淵編</button>
+    </div>
+
     <div class="pack-center">
-      <div class="pack-box-visual">
-        <div class="pack-title">MEME PACK</div>
-        <div class="pack-sub">5枚入り / R以上1枚確定</div>
+      <div id="pack-visual" class="pack-box-visual">
+        <div id="pack-visual-title" class="pack-title">VOL.1 BASIC</div>
+        <div id="pack-visual-sub" class="pack-sub">基本ミームパック（全41種）<br>5枚入り / R以上1枚確定</div>
       </div>
-      <button id="btn-open-pack" class="primary-btn">💎 100 バズPで1パック開封</button>
+
+      <div class="pack-btn-row">
+        <button id="btn-open-pack" class="primary-btn">💎 100 バズPで1パック開封</button>
+        <button id="btn-view-pack-list" class="sub-btn">📋 収録カード一覧を見る</button>
+      </div>
+
       <div id="pack-result-area" class="card-grid"></div>
     </div>
   </div>
 
+  <!-- パック収録カード一覧モーダル -->
+  <div id="pack-list-modal" class="overlay-screen" style="display:none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-pack-title">📋 収録カード一覧</h3>
+        <button id="btn-close-pack-list" class="back-btn">✕ 閉じる</button>
+      </div>
+      <div class="modal-scroll">
+        <p style="font-size:0.8rem; color:#aaa; text-align:center; margin-bottom:8px;">
+          排出率：UR 3%（確定枠8%） / SR 12%（確定枠27%） / R 30%（確定枠65%） / N 55%
+        </p>
+        <div id="modal-card-grid" class="card-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. デッキ編成画面 -->
   <div id="deck-screen" class="screen" style="display:none;">
     <div class="sub-header">
       <button id="back-from-deck" class="back-btn">◀ 戻る</button>
@@ -133,6 +185,7 @@
     </div>
   </div>
 
+  <!-- 4. 対戦準備画面 -->
   <div id="setup-screen" class="screen" style="display:none;">
     <div class="sub-header">
       <button id="back-from-setup" class="back-btn">◀ 戻る</button>
@@ -166,6 +219,7 @@
     </div>
   </div>
 
+  <!-- 5. バトル画面 -->
   <div id="game-screen" class="screen" style="display:none;">
     <div id="guide-banner" class="guide-banner">💡 あなたのターン：カードを出そう！</div>
     <div class="player-bar opp-bar">
@@ -190,6 +244,7 @@
     <div id="log" class="log-box"></div>
   </div>
 
+  <!-- カットイン演出・端末交代画面 -->
   <div id="cutin-overlay" class="overlay-screen" style="display:none;">
     <div id="cutin-text" class="cutin-box"></div>
   </div>
@@ -204,47 +259,88 @@
 
   <script>
   const ALL_CARDS = [
-    { id: "mona", name: "モナー", type: "meme", era: "2ch", rarity: "N", cost: 1, atk: 1, hp: 2, freshness: 4, icon: "🐱‍👤", desc: "オマエモナー。鮮度が落ちにくい（4ターン持続）。" },
-    { id: "giko", name: "ギコ猫", type: "meme", era: "2ch", rarity: "N", cost: 2, atk: 3, hp: 2, freshness: 4, icon: "😼", desc: "「逝ってよし」攻撃的なAAキャラ。" },
-    { id: "yaruo", name: "やる夫", type: "meme", era: "2ch", rarity: "R", cost: 2, atk: 2, hp: 4, freshness: 4, icon: "🍙", desc: "高い体力を誇る頼れる壁役。" },
-    { id: "numai", name: "ぬるぽ", type: "spell", era: "2ch", rarity: "N", cost: 1, icon: "🔨", desc: "【ガッ】相手ミーム1体に2ダメージを与える。" },
-    { id: "kusa", name: "ｗｗｗ（大草原）", type: "spell", era: "2ch", rarity: "R", cost: 2, icon: "🌱", desc: "自分の場のミーム全ての攻撃力を+1する。" },
-    { id: "kaiko", name: "懐古厨の説教", type: "spell", era: "2ch", rarity: "SR", cost: 2, icon: "📺", desc: "【メタ】相手本体に1ダメ。相手の場に「令和・配信者・X炎上」がいれば4ダメに強化！" },
-    { id: "donald", name: "ドナルド", type: "meme", era: "ニコニコ", rarity: "R", cost: 2, atk: 2, hp: 2, freshness: 3, icon: "🤡", desc: "召喚時：相手のメンタルに2ダメージを与える。" },
-    { id: "kbc", name: "キーボードクラッシャー", type: "meme", era: "ニコニコ", rarity: "UR", cost: 4, atk: 5, hp: 4, freshness: 3, icon: "⌨️", desc: "圧倒的破壊力を持つニコニコの伝説。" },
-    { id: "shuzo", name: "松岡修造", type: "meme", era: "ニコニコ", rarity: "SR", cost: 3, atk: 3, hp: 3, freshness: 3, icon: "🔥", desc: "熱血応援！召喚時、他の味方全体の攻撃力+1。" },
-    { id: "danmaku", name: "弾幕コメント", type: "spell", era: "ニコニコ", rarity: "R", cost: 2, icon: "💬", desc: "自分の場のミーム全ての攻撃力を+1し、1枚ドロー。" },
-    { id: "neko", name: "猫ミーム", type: "meme", era: "令和", rarity: "N", cost: 1, atk: 2, hp: 1, freshness: 3, icon: "🐱", desc: "召喚時：手札を1枚引く。軽くて使いやすい。" },
-    { id: "genba", name: "現場猫（ヨシ！）", type: "meme", era: "令和", rarity: "R", cost: 2, atk: 3, hp: 2, freshness: 3, icon: "👷", desc: "召喚時：50%で攻撃力+2、50%で労災（自爆）。" },
-    { id: "chiikawa", name: "ちいかわ構文", type: "meme", era: "令和", rarity: "N", cost: 2, atk: 2, hp: 3, freshness: 3, icon: "🐹", desc: "「〇〇ってコト！？」場持ちが良い癒やし枠。" },
-    { id: "ronpa", name: "それってあなたの感想ですよね？", type: "spell", era: "令和", rarity: "R", cost: 2, icon: "🤔", desc: "【論破】相手の場のミーム1体に3ダメージ。" },
-    { id: "ojisan", name: "おじさん構文", type: "spell", era: "令和", rarity: "R", cost: 2, icon: "👴", desc: "【デバフ】相手のミーム全ての攻撃力を-2する。" },
-    { id: "owakon", name: "時代遅れ（オワコン認定）", type: "spell", era: "令和", rarity: "SR", cost: 3, icon: "📉", desc: "【メタ】相手の「2ch・ニコニコ・例のアレ・VIP/なんJ」ミーム1体を即消滅させる。" },
-    { id: "kmr", name: "KMR", type: "meme", era: "例のアレ", rarity: "N", cost: 1, atk: 1, hp: 2, freshness: 3, icon: "👀", desc: "「まずいですよ！」軽くて出しやすい壁役。" },
-    { id: "mur", name: "MUR", type: "meme", era: "例のアレ", rarity: "N", cost: 2, atk: 3, hp: 2, freshness: 3, icon: "😼", desc: "「そうだよ（便乗）」序盤の速攻アタッカー。" },
-    { id: "tono", name: "遠野", type: "meme", era: "例のアレ", rarity: "R", cost: 2, atk: 2, hp: 3, freshness: 4, icon: "🍵", desc: "召喚時：アイスティーを差し入れ（1枚ドロー）。" },
-    { id: "yaju", name: "野獣先輩", type: "meme", era: "例のアレ", rarity: "UR", cost: 4, atk: 4, hp: 4, freshness: 4, icon: "🦁", desc: "召喚時：圧倒的プレッシャーで自身の攻撃力+1。" },
-    { id: "jaken", name: "邪剣「夜」", type: "spell", era: "例のアレ", rarity: "SR", cost: 3, icon: "🗡️", desc: "【闇の力】相手ミーム1体に4ダメージ＆相手本体に2ダメージ。" },
-    { id: "karate", name: "迫真空手部", type: "spell", era: "例のアレ", rarity: "R", cost: 2, icon: "🥋", desc: "厳しい特訓により、味方全員の攻撃力を+2する。" },
-    { id: "chigyu", name: "チー牛", type: "meme", era: "VIP/なんJ", rarity: "N", cost: 1, atk: 1, hp: 3, freshness: 3, icon: "👓", desc: "「すいません、三色チーズ牛丼の特盛りに温玉付きで」" },
-    { id: "savanna", name: "サバンナ男", type: "meme", era: "VIP/なんJ", rarity: "R", cost: 3, atk: 3, hp: 3, freshness: 3, icon: "🦁", desc: "召喚時：相手ミーム1体の攻撃力を1にする。" },
-    { id: "seiron", name: "正論パンチ", type: "spell", era: "VIP/なんJ", rarity: "SR", cost: 2, icon: "🥊", desc: "相手ミーム1体に4ダメージを与える。" },
-    { id: "tokutei", name: "特定班の特定作業", type: "spell", era: "VIP/なんJ", rarity: "SR", cost: 2, icon: "🔍", desc: "【メタ】相手の「配信者・X炎上」ミーム1体の攻撃力を0、鮮度を1にする。" },
-    { id: "doge", name: "Doge（柴犬）", type: "meme", era: "海外", rarity: "R", cost: 2, atk: 2, hp: 3, freshness: 4, icon: "🐕", desc: "Such wow. バランスの良い海外の顔。" },
-    { id: "nyan", name: "Nyan Cat", type: "meme", era: "海外", rarity: "SR", cost: 3, atk: 3, hp: 2, freshness: 3, icon: "🌈", desc: "召喚時：1枚ドローし、自身の攻撃力+1。" },
-    { id: "gigachad", name: "GigaChad", type: "meme", era: "海外", rarity: "UR", cost: 5, atk: 6, hp: 6, freshness: 4, icon: "🗿", desc: "圧倒的フィジカルを誇る完璧超人。" },
-    { id: "rickroll", name: "Rickroll（釣り動画）", type: "spell", era: "海外", rarity: "SR", cost: 2, icon: "🕺", desc: "相手の手札を1枚ランダムに捨てさせる。" },
-    { id: "honyaku", name: "翻訳ニキの解説", type: "spell", era: "海外", rarity: "R", cost: 2, icon: "🌐", desc: "1枚ドロー。自分の場に「海外」ミームがいればさらに1枚ドロー。" },
-    { id: "kirinuki", name: "切り抜き職人", type: "meme", era: "配信者", rarity: "N", cost: 1, atk: 1, hp: 1, freshness: 3, icon: "✂️", desc: "召喚時：カードを1枚ドローする。" },
-    { id: "streamer", name: "大手配信者", type: "meme", era: "配信者", rarity: "SR", cost: 3, atk: 3, hp: 4, freshness: 3, icon: "🎙️", desc: "召喚時：自分のギガを1回復する。" },
-    { id: "supacha", name: "赤スパチャ", type: "spell", era: "配信者", rarity: "R", cost: 1, icon: "💸", desc: "自分のギガを+2回復する（最大値は超えない）。" },
-    { id: "shazai", name: "炎上謝罪会見", type: "spell", era: "配信者", rarity: "UR", cost: 4, icon: "🙇", desc: "お互いの場のミームを全て消滅させる。" },
-    { id: "copyright", name: "著作権侵害の申し立て", type: "spell", era: "配信者", rarity: "SR", cost: 2, icon: "⚠️", desc: "【メタ】相手の「ニコニコ・海外」ミーム1体を即消滅させ、1枚ドロー。" },
-    { id: "zombie", name: "インプレゾンビ", type: "meme", era: "X炎上", rarity: "N", cost: 0, atk: 1, hp: 1, freshness: 1, icon: "🧟", desc: "コスト0で出せるが1ターンで消える。数を並べる用。" },
-    { id: "kagiaka", name: "鍵垢の監視者", type: "meme", era: "X炎上", rarity: "N", cost: 1, atk: 0, hp: 4, freshness: 4, icon: "🔒", desc: "攻撃力は0だが非常に硬い壁役。" },
-    { id: "comnote", name: "コミュニティノート", type: "spell", era: "X炎上", rarity: "SR", cost: 2, icon: "📝", desc: "相手ミーム1体に3ダメージ＆自分のメンタルを2回復。" },
-    { id: "gakkyukai", name: "Xの学級会", type: "spell", era: "X炎上", rarity: "R", cost: 2, icon: "🔥", desc: "お互いの場のミーム全てに2ダメージを与える。" },
-    { id: "ban", name: "アカウント凍結", type: "spell", era: "X炎上", rarity: "UR", cost: 4, icon: "❄️", desc: "相手ミーム1体を消滅させ、相手本体に2ダメージ。" }
+    // ================= 第1弾（pack: 1） =================
+    { id: "mona", pack: 1, name: "モナー", type: "meme", era: "2ch", rarity: "N", cost: 1, atk: 1, hp: 2, freshness: 4, icon: "🐱‍👤", desc: "オマエモナー。鮮度が落ちにくい（4ターン持続）。" },
+    { id: "giko", pack: 1, name: "ギコ猫", type: "meme", era: "2ch", rarity: "N", cost: 2, atk: 3, hp: 2, freshness: 4, icon: "😼", desc: "「逝ってよし」攻撃的なAAキャラ。" },
+    { id: "yaruo", pack: 1, name: "やる夫", type: "meme", era: "2ch", rarity: "R", cost: 2, atk: 2, hp: 4, freshness: 4, icon: "🍙", desc: "高い体力を誇る頼れる壁役。" },
+    { id: "numai", pack: 1, name: "ぬるぽ", type: "spell", era: "2ch", rarity: "N", cost: 1, icon: "🔨", desc: "【ガッ】相手ミーム1体に2ダメージを与える。" },
+    { id: "kusa", pack: 1, name: "ｗｗｗ（大草原）", type: "spell", era: "2ch", rarity: "R", cost: 2, icon: "🌱", desc: "自分の場のミーム全ての攻撃力を+1する。" },
+    { id: "kaiko", pack: 1, name: "懐古厨の説教", type: "spell", era: "2ch", rarity: "SR", cost: 2, icon: "📺", desc: "【メタ】相手本体に1ダメ。相手の場に「令和・配信者・X炎上」がいれば4ダメに強化！" },
+
+    { id: "donald", pack: 1, name: "ドナルド", type: "meme", era: "ニコニコ", rarity: "R", cost: 2, atk: 2, hp: 2, freshness: 3, icon: "🤡", desc: "召喚時：相手のメンタルに2ダメージを与える。" },
+    { id: "kbc", pack: 1, name: "キーボードクラッシャー", type: "meme", era: "ニコニコ", rarity: "UR", cost: 4, atk: 5, hp: 4, freshness: 3, icon: "⌨️", desc: "圧倒的破壊力を持つニコニコの伝説。" },
+    { id: "shuzo", pack: 1, name: "松岡修造", type: "meme", era: "ニコニコ", rarity: "SR", cost: 3, atk: 3, hp: 3, freshness: 3, icon: "🔥", desc: "熱血応援！召喚時、他の味方全体の攻撃力+1。" },
+    { id: "danmaku", pack: 1, name: "弾幕コメント", type: "spell", era: "ニコニコ", rarity: "R", cost: 2, icon: "💬", desc: "自分の場のミーム全ての攻撃力を+1し、1枚ドロー。" },
+
+    { id: "neko", pack: 1, name: "猫ミーム", type: "meme", era: "令和", rarity: "N", cost: 1, atk: 2, hp: 1, freshness: 3, icon: "🐱", desc: "召喚時：手札を1枚引く。軽くて使いやすい。" },
+    { id: "genba", pack: 1, name: "現場猫（ヨシ！）", type: "meme", era: "令和", rarity: "R", cost: 2, atk: 3, hp: 2, freshness: 3, icon: "👷", desc: "召喚時：50%で攻撃力+2、50%で労災（自爆）。" },
+    { id: "chiikawa", pack: 1, name: "ちいかわ構文", type: "meme", era: "令和", rarity: "N", cost: 2, atk: 2, hp: 3, freshness: 3, icon: "🐹", desc: "「〇〇ってコト！？」場持ちが良い癒やし枠。" },
+    { id: "ronpa", pack: 1, name: "それってあなたの感想ですよね？", type: "spell", era: "令和", rarity: "R", cost: 2, icon: "🤔", desc: "【論破】相手の場のミーム1体に3ダメージ。" },
+    { id: "ojisan", pack: 1, name: "おじさん構文", type: "spell", era: "令和", rarity: "R", cost: 2, icon: "👴", desc: "【デバフ】相手のミーム全ての攻撃力を-2する。" },
+    { id: "owakon", pack: 1, name: "時代遅れ（オワコン認定）", type: "spell", era: "令和", rarity: "SR", cost: 3, icon: "📉", desc: "【メタ】相手の「2ch・ニコニコ・例のアレ・VIP/なんJ」ミーム1体を即消滅させる。" },
+
+    { id: "kmr", pack: 1, name: "KMR", type: "meme", era: "例のアレ", rarity: "N", cost: 1, atk: 1, hp: 2, freshness: 3, icon: "👀", desc: "「まずいですよ！」軽くて出しやすい壁役。" },
+    { id: "mur", pack: 1, name: "MUR", type: "meme", era: "例のアレ", rarity: "N", cost: 2, atk: 3, hp: 2, freshness: 3, icon: "😼", desc: "「そうだよ（便乗）」序盤の速攻アタッカー。" },
+    { id: "tono", pack: 1, name: "遠野", type: "meme", era: "例のアレ", rarity: "R", cost: 2, atk: 2, hp: 3, freshness: 4, icon: "🍵", desc: "召喚時：アイスティーを差し入れ（1枚ドロー）。" },
+    { id: "yaju", pack: 1, name: "野獣先輩", type: "meme", era: "例のアレ", rarity: "UR", cost: 4, atk: 4, hp: 4, freshness: 4, icon: "🦁", desc: "召喚時：圧倒的プレッシャーで自身の攻撃力+1。" },
+    { id: "jaken", pack: 1, name: "邪剣「夜」", type: "spell", era: "例のアレ", rarity: "SR", cost: 3, icon: "🗡️", desc: "【闇の力】相手ミーム1体に4ダメージ＆相手本体に2ダメージ。" },
+    { id: "karate", pack: 1, name: "迫真空手部", type: "spell", era: "例のアレ", rarity: "R", cost: 2, icon: "🥋", desc: "厳しい特訓により、味方全員の攻撃力を+2する。" },
+
+    { id: "chigyu", pack: 1, name: "チー牛", type: "meme", era: "VIP/なんJ", rarity: "N", cost: 1, atk: 1, hp: 3, freshness: 3, icon: "👓", desc: "「すいません、三色チーズ牛丼の特盛りに温玉付きで」" },
+    { id: "savanna", pack: 1, name: "サバンナ男", type: "meme", era: "VIP/なんJ", rarity: "R", cost: 3, atk: 3, hp: 3, freshness: 3, icon: "🦁", desc: "召喚時：相手ミーム1体の攻撃力を1にする。" },
+    { id: "seiron", pack: 1, name: "正論パンチ", type: "spell", era: "VIP/なんJ", rarity: "SR", cost: 2, icon: "🥊", desc: "相手ミーム1体に4ダメージを与える。" },
+    { id: "tokutei", pack: 1, name: "特定班の特定作業", type: "spell", era: "VIP/なんJ", rarity: "SR", cost: 2, icon: "🔍", desc: "【メタ】相手の「配信者・X炎上」ミーム1体の攻撃力を0、鮮度を1にする。" },
+
+    { id: "doge", pack: 1, name: "Doge（柴犬）", type: "meme", era: "海外", rarity: "R", cost: 2, atk: 2, hp: 3, freshness: 4, icon: "🐕", desc: "Such wow. バランスの良い海外の顔。" },
+    { id: "nyan", pack: 1, name: "Nyan Cat", type: "meme", era: "海外", rarity: "SR", cost: 3, atk: 3, hp: 2, freshness: 3, icon: "🌈", desc: "召喚時：1枚ドローし、自身の攻撃力+1。" },
+    { id: "gigachad", pack: 1, name: "GigaChad", type: "meme", era: "海外", rarity: "UR", cost: 5, atk: 6, hp: 6, freshness: 4, icon: "🗿", desc: "圧倒的フィジカルを誇る完璧超人。" },
+    { id: "rickroll", pack: 1, name: "Rickroll（釣り動画）", type: "spell", era: "海外", rarity: "SR", cost: 2, icon: "🕺", desc: "相手の手札を1枚ランダムに捨てさせる。" },
+    { id: "honyaku", pack: 1, name: "翻訳ニキの解説", type: "spell", era: "海外", rarity: "R", cost: 2, icon: "🌐", desc: "1枚ドロー。自分の場に「海外」ミームがいればさらに1枚ドロー。" },
+
+    { id: "kirinuki", pack: 1, name: "切り抜き職人", type: "meme", era: "配信者", rarity: "N", cost: 1, atk: 1, hp: 1, freshness: 3, icon: "✂️", desc: "召喚時：カードを1枚ドローする。" },
+    { id: "streamer", pack: 1, name: "大手配信者", type: "meme", era: "配信者", rarity: "SR", cost: 3, atk: 3, hp: 4, freshness: 3, icon: "🎙️", desc: "召喚時：自分のギガを1回復する。" },
+    { id: "supacha", pack: 1, name: "赤スパチャ", type: "spell", era: "配信者", rarity: "R", cost: 1, icon: "💸", desc: "自分のギガを+2回復する（最大値は超えない）。" },
+    { id: "shazai", pack: 1, name: "炎上謝罪会見", type: "spell", era: "配信者", rarity: "UR", cost: 4, icon: "🙇", desc: "お互いの場のミームを全て消滅させる。" },
+    { id: "copyright", pack: 1, name: "著作権侵害の申し立て", type: "spell", era: "配信者", rarity: "SR", cost: 2, icon: "⚠️", desc: "【メタ】相手の「ニコニコ・海外」ミーム1体を即消滅させ、1枚ドロー。" },
+
+    { id: "zombie", pack: 1, name: "インプレゾンビ", type: "meme", era: "X炎上", rarity: "N", cost: 0, atk: 1, hp: 1, freshness: 1, icon: "🧟", desc: "コスト0で出せるが1ターンで消える。数を並べる用。" },
+    { id: "kagiaka", pack: 1, name: "鍵垢の監視者", type: "meme", era: "X炎上", rarity: "N", cost: 1, atk: 0, hp: 4, freshness: 4, icon: "🔒", desc: "攻撃力は0だが非常に硬い壁役。" },
+    { id: "comnote", pack: 1, name: "コミュニティノート", type: "spell", era: "X炎上", rarity: "SR", cost: 2, icon: "📝", desc: "相手ミーム1体に3ダメージ＆自分のメンタルを2回復。" },
+    { id: "gakkyukai", pack: 1, name: "Xの学級会", type: "spell", era: "X炎上", rarity: "R", cost: 2, icon: "🔥", desc: "お互いの場のミーム全てに2ダメージを与える。" },
+    { id: "ban", pack: 1, name: "アカウント凍結", type: "spell", era: "X炎上", rarity: "UR", cost: 4, icon: "❄️", desc: "相手ミーム1体を消滅させ、相手本体に2ダメージ。" },
+
+    // ================= 第2弾：カオス＆深淵インターネット編（pack: 2） =================
+    { id: "vipper", pack: 2, name: "VIPPER（住民）", type: "meme", era: "2ch", rarity: "N", cost: 1, atk: 1, hp: 1, freshness: 3, icon: "🧑‍💻", desc: "召喚時：自分の場の「2ch」ミーム1体につき攻撃力+1。" },
+    { id: "yaranaio", pack: 2, name: "やらない夫", type: "meme", era: "2ch", rarity: "R", cost: 3, atk: 3, hp: 4, freshness: 4, icon: "🍺", desc: "やる夫の相棒。攻守に優れた安定したアタッカー。" },
+    { id: "matsuri", pack: 2, name: "祭りだワッショイ！", type: "spell", era: "2ch", rarity: "SR", cost: 2, icon: "🏮", desc: "自分の場のミーム全ての鮮度を+2し、攻撃力を+1する。" },
+
+    { id: "elshaddai", pack: 2, name: "エルシャダイ", type: "meme", era: "ニコニコ", rarity: "UR", cost: 3, atk: 3, hp: 3, freshness: 4, icon: "👖", desc: "「大丈夫だ、問題ない」召喚時、味方1体に無敵バリア（🛡️）を付与。" },
+    { id: "billy", pack: 2, name: "ビリー・ヘリントン", type: "meme", era: "ニコニコ", rarity: "UR", cost: 5, atk: 5, hp: 5, freshness: 4, icon: "💪", desc: "召喚時：味方全員の攻撃力+1＆自分のメンタルを3回復。" },
+    { id: "onmyoji", pack: 2, name: "陰陽師（レッツゴー！）", type: "spell", era: "ニコニコ", rarity: "R", cost: 2, icon: "☯️", desc: "相手ミーム1体に2ダメージ＆自分のメンタルを2回復。" },
+
+    { id: "nekokoubun", pack: 2, name: "猫構文（ハァ？チピチャパ）", type: "meme", era: "令和", rarity: "N", cost: 1, atk: 2, hp: 1, freshness: 2, icon: "🎶", desc: "中毒性の高いリズムで相手を翻弄する速攻ミーム。" },
+    { id: "ai_art", pack: 2, name: "生成AIの指6本", type: "meme", era: "令和", rarity: "SR", cost: 3, atk: 4, hp: 2, freshness: 2, icon: "🖐️", desc: "圧倒的物量と違和感で殴る高火力アタッカー。" },
+    { id: "short_video", pack: 2, name: "ショート動画の沼", type: "spell", era: "令和", rarity: "R", cost: 1, icon: "📱", desc: "手札を1枚引き、自分の場のミーム1体の鮮度を+1する。" },
+
+    { id: "kuuhaku", pack: 2, name: "迫真空手部・裏", type: "meme", era: "例のアレ", rarity: "R", cost: 2, atk: 3, hp: 2, freshness: 3, icon: "🥋", desc: "召喚時：自分の場に「例のアレ」がいれば1枚ドロー。" },
+    { id: "icetea", pack: 2, name: "おまたせ！アイスティー", type: "spell", era: "例のアレ", rarity: "N", cost: 1, icon: "🧊", desc: "味方ミーム1体のHPを3回復し、鮮度を+1する。" },
+    { id: "yaju_king", pack: 2, name: "王道を征く先輩", type: "meme", era: "例のアレ", rarity: "SR", cost: 3, atk: 3, hp: 4, freshness: 4, icon: "👑", desc: "安定したステータスで盤面を制圧する中堅エース。" },
+
+    { id: "j_min", pack: 2, name: "なんJ民", type: "meme", era: "VIP/なんJ", rarity: "N", cost: 1, atk: 2, hp: 1, freshness: 2, icon: "⚾", desc: "「サンキューガッツ」勢いだけで突っ込む特攻隊。" },
+    { id: "resuba_king", pack: 2, name: "レスバ最強の男", type: "meme", era: "VIP/なんJ", rarity: "SR", cost: 3, atk: 4, hp: 3, freshness: 3, icon: "💬", desc: "召喚時：相手ミーム1体に2ダメージを与える。" },
+    { id: "grass_hayasu", pack: 2, name: "草生える", type: "spell", era: "VIP/なんJ", rarity: "N", cost: 1, icon: "🌿", desc: "味方ミーム1体の攻撃力を+2する。" },
+
+    { id: "pepe", pack: 2, name: "Pepe the Frog", type: "meme", era: "海外", rarity: "UR", cost: 3, atk: 2, hp: 4, freshness: 4, icon: "🐸", desc: "召喚時：自分のメンタルが相手より少なければカードを2枚ドロー！" },
+    { id: "stonks", pack: 2, name: "Stonks（爆益マン）", type: "spell", era: "海外", rarity: "R", cost: 1, icon: "📈", desc: "次のターンまで最大ギガ+1＆1枚ドロー。" },
+    { id: "cheems", pack: 2, name: "Cheems（泣き柴）", type: "meme", era: "海外", rarity: "N", cost: 1, atk: 1, hp: 3, freshness: 4, icon: "🐶", desc: "打たれ強い海外ミームの癒やし枠。" },
+
+    { id: "meiwaku", pack: 2, name: "迷惑系配信者", type: "meme", era: "配信者", rarity: "UR", cost: 4, atk: 5, hp: 3, freshness: 2, icon: "🚨", desc: "召喚時：お互いの手札を1枚ランダムに捨てさせ、相手本体に2ダメージ！" },
+    { id: "dou接", pack: 2, name: "同接工作員", type: "meme", era: "配信者", rarity: "N", cost: 1, atk: 1, hp: 2, freshness: 3, icon: "🤖", desc: "場の数を水増しする軽量ユニット。" },
+    { id: "enjo_nenryo", pack: 2, name: "炎上燃料投下", type: "spell", era: "配信者", rarity: "SR", cost: 2, icon: "⛽", desc: "相手ミーム1体に3ダメージ。それで倒せたら1枚ドロー！" },
+
+    { id: "x_spec", pack: 2, name: "仕様変更（インプレ制限）", type: "spell", era: "X炎上", rarity: "SR", cost: 2, icon: "🔧", desc: "相手ミーム全ての鮮度を-1する（0になったミームは即消滅）。" },
+    { id: "bazu_tweet", pack: 2, name: "万バズ構文", type: "spell", era: "X炎上", rarity: "R", cost: 2, icon: "🚀", desc: "自分の場のミーム1体に「バズ中（攻撃+1）」と無敵バリア（🛡️）を付与。" },
+    { id: "kusoripu", pack: 2, name: "クソリプ製造機", type: "meme", era: "X炎上", rarity: "N", cost: 1, atk: 2, hp: 1, freshness: 2, icon: "📩", desc: "相手をイラつかせる軽量アタッカー。" }
   ];
 
   const RENTAL_DECKS = {
@@ -261,6 +357,7 @@
   (function() {
     var SAVE_KEY = "netmeme_tcg_save_v2";
     var DECK_SIZE = 40;
+    var selectedPackNo = 1;
     var userData = loadUserData();
 
     function loadUserData() {
@@ -292,13 +389,69 @@
       }
     }
 
+    // パック切り替え処理
+    function selectPackTab(packNo) {
+      selectedPackNo = packNo;
+      document.getElementById("pack-result-area").innerHTML = "";
+      var tab1 = document.getElementById("tab-pack-1");
+      var tab2 = document.getElementById("tab-pack-2");
+      var visual = document.getElementById("pack-visual");
+      var vTitle = document.getElementById("pack-visual-title");
+      var vSub = document.getElementById("pack-visual-sub");
+
+      if (packNo === 1) {
+        tab1.classList.add("active");
+        tab2.classList.remove("active", "vol2");
+        visual.classList.remove("vol2");
+        vTitle.innerText = "VOL.1 BASIC";
+        vSub.innerHTML = "基本ミームパック（全41種）<br>5枚入り / R以上1枚確定";
+      } else {
+        tab1.classList.remove("active");
+        tab2.classList.add("active", "vol2");
+        visual.classList.add("vol2");
+        vTitle.innerText = "VOL.2 CHAOS";
+        vSub.innerHTML = "第2弾：カオス＆深淵編（全24種）<br>無敵バリア＆新エース収録！";
+      }
+    }
+
+    document.getElementById("tab-pack-1").addEventListener("click", function() { selectPackTab(1); });
+    document.getElementById("tab-pack-2").addEventListener("click", function() { selectPackTab(2); });
+
+    // パック収録カード一覧モーダル
+    document.getElementById("btn-view-pack-list").addEventListener("click", function() {
+      var packCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
+      var rarityOrder = { UR: 1, SR: 2, R: 3, N: 4 };
+      packCards.sort(function(a, b) { return rarityOrder[a.rarity] - rarityOrder[b.rarity]; });
+
+      document.getElementById("modal-pack-title").innerText =
+        (selectedPackNo === 1 ? "📋 第1弾：基本ミームパック" : "📋 第2弾：カオス＆深淵編") + "（全" + packCards.length + "種）";
+
+      var grid = document.getElementById("modal-card-grid");
+      grid.innerHTML = "";
+      packCards.forEach(function(card) {
+        var owned = userData.collection[card.id] || 0;
+        var el = createCardElement(card, function() {}, {});
+        var badge = document.createElement("div");
+        badge.className = owned > 0 ? "owned-badge" : "owned-badge unowned";
+        badge.innerText = owned > 0 ? "所持: " + owned + "枚" : "未所持";
+        el.appendChild(badge);
+        grid.appendChild(el);
+      });
+
+      document.getElementById("pack-list-modal").style.display = "flex";
+    });
+
+    document.getElementById("btn-close-pack-list").addEventListener("click", function() {
+      document.getElementById("pack-list-modal").style.display = "none";
+    });
+
     document.getElementById("nav-battle").addEventListener("click", function() {
       document.getElementById("step-mode").style.display = "block";
       document.getElementById("step-online").style.display = "none";
       showScreen("setup-screen");
     });
     document.getElementById("nav-pack").addEventListener("click", function() {
-      document.getElementById("pack-result-area").innerHTML = "";
+      selectPackTab(selectedPackNo);
       showScreen("pack-screen");
     });
     document.getElementById("nav-deck").addEventListener("click", function() {
@@ -319,10 +472,11 @@
       var resultArea = document.getElementById("pack-result-area");
       resultArea.innerHTML = "";
 
-      var poolN = ALL_CARDS.filter(function(c) { return c.rarity === "N"; });
-      var poolR = ALL_CARDS.filter(function(c) { return c.rarity === "R"; });
-      var poolSR = ALL_CARDS.filter(function(c) { return c.rarity === "SR"; });
-      var poolUR = ALL_CARDS.filter(function(c) { return c.rarity === "UR"; });
+      var targetCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
+      var poolN = targetCards.filter(function(c) { return c.rarity === "N"; });
+      var poolR = targetCards.filter(function(c) { return c.rarity === "R"; });
+      var poolSR = targetCards.filter(function(c) { return c.rarity === "SR"; });
+      var poolUR = targetCards.filter(function(c) { return c.rarity === "UR"; });
 
       var pulled = [], hasSR = false, hasUR = false;
       for (var i = 0; i < 5; i++) {
@@ -419,13 +573,14 @@
       alert("✅ マイデッキ（" + DECK_SIZE + "枚）を保存しました！");
     });
 
+    // ================= バトルシステム =================
     var state = {
       mode: "cpu", myRole: "p1", turn: 1, activeSide: "p1", isInputLocked: false,
       p1: { name: "プレイヤー1", label: "マイデッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
       p2: { name: "CPU", label: "相手デッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
       selectedAttackerIndex: null
     };
-    var peer = null, conn = null, p1OnlineDeck = null, p2OnlineDeck = null, ROOM_PREFIX = "netmeme-tcg-v2-";
+    var peer = null, conn = null, p1OnlineDeck = null, p2OnlineDeck = null, ROOM_PREFIX = "netmeme-tcg-v3-";
 
     function getSelectedDeckCards() {
       var choice = document.getElementById("battle-deck-select").value, ids = [], label = "";
@@ -530,6 +685,16 @@
       overlay.style.display = "flex"; setTimeout(function() { overlay.style.display = "none"; }, duration || 1100);
     }
 
+    function dealDamageToMeme(meme, amount) {
+      if (amount <= 0) return;
+      if (meme.shield) {
+        meme.shield = false;
+        log("🛡️ 「" + meme.name + "」の無敵バリアがダメージを無効化した！");
+        return;
+      }
+      meme.hp -= amount;
+    }
+
     document.getElementById("btn-resume").addEventListener("click", function() {
       document.getElementById("pass-screen").style.display = "none";
       log("--- " + getViewSelf().name + "のターン（ターン " + state.turn + "） ---"); render();
@@ -558,7 +723,25 @@
     function triggerSummonEffect(who, card) {
       var self = state[who], opp = state[who === "p1" ? "p2" : "p1"];
       if (card.id === "neko" || card.id === "tono" || card.id === "kirinuki") { drawCard(who); log("✨ 「" + card.name + "」効果：1枚ドロー！"); }
-      else if (card.id === "genba") {
+      else if (card.id === "vipper") {
+        var c2ch = self.field.filter(function(m) { return m.era === "2ch"; }).length;
+        card.atk += c2ch; log("🧑‍💻 VIPPER効果！場の2ch勢の数だけ攻撃力+" + c2ch + "！");
+      } else if (card.id === "elshaddai") {
+        if (self.field.length > 0) { self.field[0].shield = true; log("👖 エルシャダイ「大丈夫だ、問題ない」→「" + self.field[0].name + "」に無敵バリア付与！"); }
+      } else if (card.id === "billy") {
+        self.field.forEach(function(m) { m.atk += 1; }); self.hp = Math.min(20, self.hp + 3);
+        log("💪 歪みねぇな！味方全員攻撃力+1＆メンタル3回復！");
+      } else if (card.id === "kuuhaku") {
+        if (self.field.some(function(m) { return m !== card && m.era === "例のアレ"; })) { drawCard(who); log("🥋 迫真空手部・裏効果：1枚ドロー！"); }
+      } else if (card.id === "resuba_king") {
+        if (opp.field.length > 0) { dealDamageToMeme(opp.field[0], 2); cleanupDeadMemes(); log("💬 レスバ最強の男：相手ミームに2ダメージ！"); }
+      } else if (card.id === "pepe") {
+        if (self.hp < opp.hp) { drawCard(who); drawCard(who); log("🐸 Pepe逆転効果！2枚ドロー！"); }
+      } else if (card.id === "meiwaku") {
+        if (self.hand.length > 0) self.hand.splice(Math.floor(Math.random() * self.hand.length), 1);
+        if (opp.hand.length > 0) opp.hand.splice(Math.floor(Math.random() * opp.hand.length), 1);
+        opp.hp -= 2; log("🚨 迷惑系配信者！お互いの手札1枚破壊＆相手メンタル2ダメージ！");
+      } else if (card.id === "genba") {
         if (Math.random() < 0.5) { card.atk += 2; log("👷 ヨシ！安全確認完了（攻撃力+2）！"); }
         else { log("💥 労災発生！現場猫は自爆した！"); self.field.pop(); }
       } else if (card.id === "donald") { opp.hp -= 2; log("🤡 ランランルー！メンタルに2ダメージ！"); }
@@ -571,9 +754,9 @@
 
     function executeSpell(who, card) {
       var self = state[who], opp = state[who === "p1" ? "p2" : "p1"];
-      if (card.id === "ronpa" && opp.field.length > 0) { opp.field[0].hp -= 3; log("🤔 論破！相手ミームに3ダメージ！"); }
-      else if (card.id === "numai" && opp.field.length > 0) { opp.field[0].hp -= 2; log("🔨 ガッ！相手ミームに2ダメージ！"); }
-      else if (card.id === "seiron" && opp.field.length > 0) { opp.field[0].hp -= 4; log("🥊 正論パンチ！相手ミームに4ダメージ！"); }
+      if (card.id === "ronpa" && opp.field.length > 0) { dealDamageToMeme(opp.field[0], 3); log("🤔 論破！相手ミームに3ダメージ！"); }
+      else if (card.id === "numai" && opp.field.length > 0) { dealDamageToMeme(opp.field[0], 2); log("🔨 ガッ！相手ミームに2ダメージ！"); }
+      else if (card.id === "seiron" && opp.field.length > 0) { dealDamageToMeme(opp.field[0], 4); log("🥊 正論パンチ！相手ミームに4ダメージ！"); }
       else if (card.id === "ojisan") { opp.field.forEach(function(m) { m.atk = Math.max(0, m.atk - 2); }); log("👴 おじさん構文で相手ミーム全員の攻撃力が-2！"); }
       else if (card.id === "owakon") {
         var oldEras = ["2ch", "ニコニコ", "例のアレ", "VIP/なんJ"];
@@ -581,7 +764,24 @@
         if (idx !== -1) { log("📉 「" + opp.field[idx].name + "」はオワコン認定され消滅した！"); opp.field.splice(idx, 1); }
         else { log("📉 対象となる古い世代のミームがいなかった..."); }
       } else if (card.id === "kusa") { self.field.forEach(function(m) { m.atk += 1; }); log("🌱 大草原！味方全員の攻撃力+1！"); }
-      else if (card.id === "danmaku") { self.field.forEach(function(m) { m.atk += 1; }); drawCard(who); log("💬 弾幕展開！味方全員の攻撃力+1＆1枚ドロー！"); }
+      else if (card.id === "matsuri") { self.field.forEach(function(m) { m.freshness += 2; m.atk += 1; }); log("🏮 祭りだワッショイ！味方全員の鮮度+2＆攻撃力+1！"); }
+      else if (card.id === "onmyoji") { if (opp.field.length > 0) dealDamageToMeme(opp.field[0], 2); self.hp = Math.min(20, self.hp + 2); log("☯️ レッツゴー陰陽師！2ダメージ＆メンタル2回復！"); }
+      else if (card.id === "short_video") { drawCard(who); if (self.field.length > 0) self.field[0].freshness += 1; log("📱 ショート動画の沼！1枚ドロー＆鮮度+1！"); }
+      else if (card.id === "icetea" && self.field.length > 0) { self.field[0].hp += 3; self.field[0].freshness += 1; log("🧊 アイスティー差し入れ！HP+3＆鮮度+1！"); }
+      else if (card.id === "grass_hayasu" && self.field.length > 0) { self.field[0].atk += 2; log("🌿 草生える！味方1体の攻撃力+2！"); }
+      else if (card.id === "stonks") { if (self.maxGiga < 10) self.maxGiga++; drawCard(who); log("📈 Stonks！最大ギガ+1＆1枚ドロー！"); }
+      else if (card.id === "enjo_nenryo" && opp.field.length > 0) {
+        dealDamageToMeme(opp.field[0], 3);
+        if (opp.field[0].hp <= 0) { drawCard(who); log("⛽ 炎上燃料投下！撃破ボーナスで1枚ドロー！"); }
+        else { log("⛽ 炎上燃料投下！3ダメージ！"); }
+      } else if (card.id === "x_spec") {
+        opp.field.forEach(function(m) { m.freshness -= 1; });
+        opp.field = opp.field.filter(function(m) { return m.freshness > 0; });
+        log("🔧 仕様変更！相手ミーム全ての鮮度が-1された！");
+      } else if (card.id === "bazu_tweet" && self.field.length > 0) {
+        self.field[0].isBuzz = true; self.field[0].shield = true;
+        log("🚀 万バズ構文！「" + self.field[0].name + "」にバズ＆無敵バリア付与！");
+      } else if (card.id === "danmaku") { self.field.forEach(function(m) { m.atk += 1; }); drawCard(who); log("💬 弾幕展開！味方全員の攻撃力+1＆1枚ドロー！"); }
       else if (card.id === "kaiko") {
         var newEras = ["令和", "配信者", "X炎上"];
         if (opp.field.some(function(m) { return newEras.indexOf(m.era) !== -1; })) { opp.hp -= 4; log("📺 懐古厨の説教が刺さり、相手メンタルに4ダメージ！"); }
@@ -598,13 +798,13 @@
         drawCard(who);
         if (self.field.some(function(m) { return m.era === "海外"; })) { drawCard(who); log("🌐 翻訳ニキの解説で海外ミームの理解が深まり2枚ドロー！"); }
         else { log("🌐 翻訳ニキの解説で1枚ドロー！"); }
-      } else if (card.id === "jaken") { if (opp.field.length > 0) opp.field[0].hp -= 4; opp.hp -= 2; log("🗡️ 邪剣「夜」発動！相手場と本体に大ダメージ！"); }
+      } else if (card.id === "jaken") { if (opp.field.length > 0) dealDamageToMeme(opp.field[0], 4); opp.hp -= 2; log("🗡️ 邪剣「夜」発動！相手場と本体に大ダメージ！"); }
       else if (card.id === "karate") { self.field.forEach(function(m) { m.atk += 2; }); log("🥋 迫真空手部の特訓！味方全員の攻撃力+2！"); }
       else if (card.id === "rickroll" && opp.hand.length > 0) { opp.hand.splice(Math.floor(Math.random() * opp.hand.length), 1); log("🕺 Rickroll！相手の手札を1枚捨てさせた！"); }
       else if (card.id === "supacha") { self.giga = Math.min(self.maxGiga, self.giga + 2); log("💸 ナイスパ！ギガが2回復した！"); }
       else if (card.id === "shazai") { self.field = []; opp.field = []; log("🙇 炎上謝罪会見！場のミームが全て消滅した！"); }
-      else if (card.id === "comnote") { if (opp.field.length > 0) opp.field[0].hp -= 3; self.hp = Math.min(20, self.hp + 2); log("📝 コミュニティノート！相手に3ダメージ＆自分のメンタル2回復！"); }
-      else if (card.id === "gakkyukai") { self.field.forEach(function(m) { m.hp -= 2; }); opp.field.forEach(function(m) { m.hp -= 2; }); log("🔥 Xの学級会！お互いの場のミーム全てに2ダメージ！"); }
+      else if (card.id === "comnote") { if (opp.field.length > 0) dealDamageToMeme(opp.field[0], 3); self.hp = Math.min(20, self.hp + 2); log("📝 コミュニティノート！相手に3ダメージ＆自分のメンタル2回復！"); }
+      else if (card.id === "gakkyukai") { self.field.forEach(function(m) { dealDamageToMeme(m, 2); }); opp.field.forEach(function(m) { dealDamageToMeme(m, 2); }); log("🔥 Xの学級会！お互いの場のミーム全てに2ダメージ！"); }
       else if (card.id === "ban") { if (opp.field.length > 0) opp.field.splice(0, 1); opp.hp -= 2; log("❄️ アカウント凍結！相手ミーム消滅＆本体に2ダメージ！"); }
       cleanupDeadMemes();
     }
@@ -621,8 +821,8 @@
       if (state.isInputLocked || state.selectedAttackerIndex === null) return;
       var self = getViewSelf(), opp = getViewOpp();
       var attacker = self.field[state.selectedAttackerIndex], target = opp.field[targetIndex];
-      target.hp -= (attacker.atk + (attacker.isBuzz ? 1 : 0));
-      attacker.hp -= (target.atk + (target.isBuzz ? 1 : 0));
+      dealDamageToMeme(target, attacker.atk + (attacker.isBuzz ? 1 : 0));
+      dealDamageToMeme(attacker, target.atk + (target.isBuzz ? 1 : 0));
       attacker.canAttack = false;
       var actionLog = "⚔️ 「" + attacker.name + "」が「" + target.name + "」とレスバ！";
       log(actionLog); state.selectedAttackerIndex = null; cleanupDeadMemes(); sendSync(actionLog); checkGameOver(); render();
@@ -691,7 +891,8 @@
         var power = m.atk + (m.isBuzz ? 1 : 0);
         if (state.p1.field.length > 0) {
           var target = state.p1.field[0];
-          target.hp -= power; m.hp -= (target.atk + (target.isBuzz ? 1 : 0));
+          dealDamageToMeme(target, power);
+          dealDamageToMeme(m, target.atk + (target.isBuzz ? 1 : 0));
           actions.push("「" + m.name + "」で攻撃"); log("👾 CPUの「" + m.name + "」が「" + target.name + "」を攻撃！"); cleanupDeadMemes();
         } else {
           state.p1.hp -= power; actions.push("「" + m.name + "」で直接攻撃"); log("👾 CPUの「" + m.name + "」が直接攻撃！メンタルに " + power + " ダメージ！");
@@ -787,14 +988,16 @@
 
       var displayAtk = card.atk + (card.isBuzz ? 1 : 0);
       var buzzBadge = card.isBuzz ? '<div class="buzz-badge">🔥バズ中(+1)</div>' : "";
+      var shieldBadge = card.shield ? '<div class="shield-badge">🛡️無敵</div>' : "";
+      var artHtml = card.img ? '<img src="' + card.img + '" alt="' + card.name + '">' : card.icon;
       var statsHtml = card.type === "meme"
         ? '<div class="card-stats"><span>⚔️' + displayAtk + '</span><span>⏳鮮度:' + card.freshness + '</span><span>❤️' + card.hp + '</span></div>'
         : '<div class="card-stats" style="justify-content:center; color:#ffd32a;">【構文 / スペル】</div>';
 
-      div.innerHTML = buzzBadge +
+      div.innerHTML = buzzBadge + shieldBadge +
         '<div class="card-header"><span class="cost-badge">' + card.cost + '</span><span class="rarity-tag">' + (card.rarity || "N") + '</span><span class="era-tag">' + card.era + '</span></div>' +
         '<div class="card-title">' + card.name + '</div>' +
-        '<div class="card-art">' + card.icon + '</div>' +
+        '<div class="card-art">' + artHtml + '</div>' +
         '<div class="card-desc">' + card.desc + '</div>' + statsHtml;
       return div;
     }
