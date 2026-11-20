@@ -1,8 +1,11 @@
 // game.js - メインゲームループ・UI・ミッション・セーブデータ・通信処理
 
 (function() {
-  // Firebase Realtime Database URL
+  // Firebase Realtime Database 初期化
   var FIREBASE_DB_URL = "https://tcgnet-bf199-default-rtdb.firebaseio.com";
+  if (typeof firebase !== "undefined" && !firebase.apps.length) {
+    firebase.initializeApp({ databaseURL: FIREBASE_DB_URL });
+  }
 
   var SAVE_KEY = "netmeme_tcg_save_v2";
   var DECK_SIZE = 40;
@@ -797,7 +800,7 @@
     selectedAttackerIndex: null
   };
   var peer = null, conn = null, p1OnlineDeck = null, p2OnlineDeck = null, ROOM_PREFIX = "netmeme-tcg-v10-";
-  var myQueueKey = null, randomPollTimer = null;
+  var myQueueRef = null, randomHeartbeatTimer = null;
 
   var effectCtx = {
     state: state,
@@ -872,120 +875,129 @@
     state.mode = "online"; p1OnlineDeck = myDeck;
     document.getElementById("step-mode").style.display = "none";
     document.getElementById("step-online").style.display = "block";
-    document.getElementById("random-waiting-box").style.display = "none";
+    document.getElementById("random-matching-box").style.display = "none";
     document.getElementById("btn-random-match").disabled = false;
   });
 
-  // ================= Firebase連携・ランダムマッチ処理 =================
+  // ================= Firebase SDK連携・ランダムマッチ処理 =================
   function cancelRandomMatch() {
-    clearInterval(randomPollTimer);
-    randomPollTimer = null;
-    if (myQueueKey) {
-      fetch(FIREBASE_DB_URL + "/match_queue/" + myQueueKey + ".json", { method: "DELETE" }).catch(function() {});
-      myQueueKey = null;
+    clearInterval(randomHeartbeatTimer);
+    randomHeartbeatTimer = null;
+    if (myQueueRef) {
+      myQueueRef.remove().catch(function() {});
+      myQueueRef = null;
     }
     if (peer) {
       peer.destroy();
       peer = null;
     }
-    document.getElementById("random-waiting-box").style.display = "none";
+    document.getElementById("random-matching-box").style.display = "none";
     document.getElementById("btn-random-match").disabled = false;
   }
 
   document.getElementById("btn-cancel-random").addEventListener("click", cancelRandomMatch);
 
-  document.getElementById("btn-random-match").addEventListener("click", async function() {
+  document.getElementById("btn-random-match").addEventListener("click", function() {
+    if (typeof firebase === "undefined") {
+      alert("Firebase SDKの読み込みに失敗しています。ネットワーク接続を確認してください。");
+      return;
+    }
+
     document.getElementById("btn-random-match").disabled = true;
-    document.getElementById("random-waiting-box").style.display = "block";
-    document.getElementById("random-status-text").innerText = "ロビーを検索中...";
+    document.getElementById("random-matching-box").style.display = "flex";
+    document.getElementById("random-status-text").innerText = "🔍 ロビーを検索しています...";
 
     var myPeerId = ROOM_PREFIX + "rnd-" + Math.random().toString(36).substring(2, 10);
     peer = new Peer(myPeerId);
 
     peer.on("error", function(err) {
-      document.getElementById("random-status-text").innerText = "通信エラー: " + err.type;
+      document.getElementById("random-status-text").innerText = "⚠️ 通信エラー: " + err.type;
     });
 
-    peer.on("open", async function() {
-      try {
-        var res = await fetch(FIREBASE_DB_URL + "/match_queue.json");
-        var queue = await res.json();
+    peer.on("open", function() {
+      var db = firebase.database();
+      var queueRef = db.ref("match_queue");
+
+      queueRef.once("value").then(function(snapshot) {
         var now = Date.now();
         var targetKey = null;
         var targetPeerId = null;
 
-        if (queue) {
-          var keys = Object.keys(queue);
-          for (var i = 0; i < keys.length; i++) {
-            var k = keys[i];
-            var entry = queue[k];
-            // 60秒以上前の古いデータは削除してスキップ
-            if (!entry || !entry.peerId || (now - entry.timestamp > 60000)) {
-              fetch(FIREBASE_DB_URL + "/match_queue/" + k + ".json", { method: "DELETE" }).catch(function() {});
-              continue;
-            }
-            if (entry.peerId !== myPeerId) {
-              targetKey = k;
-              targetPeerId = entry.peerId;
-              break;
-            }
+        snapshot.forEach(function(child) {
+          var val = child.val();
+          if (!val || !val.peerId || (now - val.timestamp > 60000)) {
+            // 60秒以上経過した古い待機データは掃除する
+            child.ref.remove().catch(function() {});
+            return false;
           }
-        }
+          if (!targetKey && val.peerId !== myPeerId) {
+            targetKey = child.key;
+            targetPeerId = val.peerId;
+          }
+        });
 
         if (targetKey && targetPeerId) {
-          // 待機中の相手を発見！キューから削除して接続する（自分がp2側）
-          document.getElementById("random-status-text").innerText = "対戦相手を発見！接続中...";
-          await fetch(FIREBASE_DB_URL + "/match_queue/" + targetKey + ".json", { method: "DELETE" });
-
-          conn = peer.connect(targetPeerId);
-          conn.on("open", function() {
-            state.myRole = "p2";
-            setupConnectionHandlers();
-            conn.send({ type: "SEND_DECK", deck: p1OnlineDeck, playerName: userData.playerName || DEFAULT_PLAYER_NAME });
+          // 待機中の相手を発見！トランザクションで重複取得を防ぎつつ接続する
+          var candidateRef = queueRef.child(targetKey);
+          candidateRef.transaction(function(currentData) {
+            if (currentData && currentData.peerId === targetPeerId) {
+              return null; // キューから削除して権利を獲得
+            }
+            return; // 他人に先に取られた場合は中止
+          }, function(error, committed) {
+            if (committed) {
+              document.getElementById("random-status-text").innerText = "⚡ 対戦相手を発見！接続中...";
+              conn = peer.connect(targetPeerId);
+              conn.on("open", function() {
+                state.myRole = "p2";
+                setupConnectionHandlers();
+                conn.send({ type: "SEND_DECK", deck: p1OnlineDeck, playerName: userData.playerName || DEFAULT_PLAYER_NAME });
+              });
+            } else {
+              // タッチの差で別の人がマッチングした場合は自分が待機側に回る
+              registerAsWaitingHost(queueRef, myPeerId);
+            }
           });
         } else {
-          // 誰もいないので自分が待機リストに登録して待つ（自分がp1ホスト側）
-          document.getElementById("random-status-text").innerText = "対戦相手を待っています...";
-          var postRes = await fetch(FIREBASE_DB_URL + "/match_queue.json", {
-            method: "POST",
-            body: JSON.stringify({ peerId: myPeerId, timestamp: Date.now() })
-          });
-          var postData = await postRes.json();
-          myQueueKey = postData.name;
-
-          // 待機中であることを維持するため15秒ごとにタイムスタンプ更新
-          randomPollTimer = setInterval(function() {
-            if (myQueueKey) {
-              fetch(FIREBASE_DB_URL + "/match_queue/" + myQueueKey + "/timestamp.json", {
-                method: "PUT",
-                body: JSON.stringify(Date.now())
-              }).catch(function() {});
-            }
-          }, 15000);
-
-          peer.on("connection", function(connection) {
-            clearInterval(randomPollTimer);
-            if (myQueueKey) {
-              fetch(FIREBASE_DB_URL + "/match_queue/" + myQueueKey + ".json", { method: "DELETE" }).catch(function() {});
-              myQueueKey = null;
-            }
-            conn = connection;
-            state.myRole = "p1";
-            setupConnectionHandlers();
-          });
+          // 誰もいなければ自分が待機リストに登録して待つ
+          registerAsWaitingHost(queueRef, myPeerId);
         }
-      } catch (e) {
-        document.getElementById("random-status-text").innerText = "サーバー接続に失敗しました（Firebaseのルール設定を確認してください）";
-      }
+      }).catch(function(err) {
+        document.getElementById("random-status-text").innerText = "⚠️ サーバー接続エラー: " + err.message;
+      });
     });
   });
 
-  // ページを閉じた時に待機リストが残っていたら消す
-  window.addEventListener("beforeunload", function() {
-    if (myQueueKey) {
-      navigator.sendBeacon(FIREBASE_DB_URL + "/match_queue/" + myQueueKey + ".json", "");
-    }
-  });
+  function registerAsWaitingHost(queueRef, myPeerId) {
+    document.getElementById("random-status-text").innerText = "🔍 対戦相手を探しています...";
+    myQueueRef = queueRef.push();
+    // ブラウザを閉じたり通信が切れたらFirebase側で自動削除させる
+    myQueueRef.onDisconnect().remove();
+    myQueueRef.set({
+      peerId: myPeerId,
+      timestamp: Date.now()
+    });
+
+    // 待機中は15秒ごとに生存タイムスタンプを更新
+    randomHeartbeatTimer = setInterval(function() {
+      if (myQueueRef) {
+        myQueueRef.update({ timestamp: Date.now() }).catch(function() {});
+      }
+    }, 15000);
+
+    peer.on("connection", function(connection) {
+      clearInterval(randomHeartbeatTimer);
+      randomHeartbeatTimer = null;
+      if (myQueueRef) {
+        myQueueRef.onDisconnect().cancel();
+        myQueueRef.remove().catch(function() {});
+        myQueueRef = null;
+      }
+      conn = connection;
+      state.myRole = "p1";
+      setupConnectionHandlers();
+    });
+  }
 
   // ================= 従来の合言葉対戦処理 =================
   document.getElementById("btn-create-room").addEventListener("click", function() {
