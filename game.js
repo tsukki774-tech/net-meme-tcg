@@ -670,22 +670,54 @@
     var hint = document.getElementById("tear-hint");
 
     document.getElementById("tear-progress-bar").style.width = "100%";
-    hint.innerText = "✨ OPEN!! ✨";
     visual.classList.remove("ready-to-tear");
     visual.classList.add("pack-tearing-anim");
-    slit.classList.add("rarity-" + data.maxRarity);
 
-    setTimeout(function() {
-      visual.classList.remove("pack-tearing-anim");
+    // UR または GOD のとき、約65%で「最初は黄色（SR）に光って赤/虹へ昇格する」フェイク演出！
+    var doYellowUpgrade = (data.maxRarity === "UR" || data.maxRarity === "GOD") && (Math.random() < 0.65);
 
-      if (data.maxRarity === "UR" || data.maxRarity === "GOD") {
+    if (doYellowUpgrade) {
+      // ① まず黄色に光る！
+      hint.innerText = "✨ SR光…!? ✨";
+      slit.className = "pack-slit-glow rarity-SR";
+
+      // ② 0.65秒後に雷撃とともに赤（または虹）へ昇格！！
+      setTimeout(function() {
+        hint.innerText = data.maxRarity === "GOD" ? "🌈 限界突破昇格!! 🌈" : "⚡ 赤昇格!! ⚡";
+        slit.className = "pack-slit-glow rarity-" + data.maxRarity;
+
+        // 昇格の瞬間にミニフラッシュを入れる
+        var miniFlash = document.createElement("div");
+        miniFlash.className = "screen-flash rarity-" + data.maxRarity;
+        document.body.appendChild(miniFlash);
+        setTimeout(function() { miniFlash.remove(); }, 600);
+      }, 650);
+
+      // ③ そこから激アツカットインへ突入！
+      setTimeout(function() {
+        visual.classList.remove("pack-tearing-anim");
         triggerSpecialCutin(data.maxRarity, function() {
           revealCardsSequence(data);
         });
-      } else {
-        revealCardsSequence(data);
-      }
-    }, 650);
+      }, 1350);
+
+    } else {
+      // 通常発光パターン
+      hint.innerText = "✨ OPEN!! ✨";
+      slit.className = "pack-slit-glow rarity-" + data.maxRarity;
+
+      setTimeout(function() {
+        visual.classList.remove("pack-tearing-anim");
+
+        if (data.maxRarity === "UR" || data.maxRarity === "GOD") {
+          triggerSpecialCutin(data.maxRarity, function() {
+            revealCardsSequence(data);
+          });
+        } else {
+          revealCardsSequence(data);
+        }
+      }, 650);
+    }
   }
 
   // =========================================================================
