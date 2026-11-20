@@ -60,6 +60,95 @@ window.CardEffects = {
     else if (card.id === "savanna") { if (opp.field.length > 0) { opp.field[0].atk = 1; ctx.log("🦁 サバンナ男効果！相手ミームの攻撃力が1になった！"); } }
     else if (card.id === "nyan") { ctx.drawCard(who); card.atk += 1; ctx.log("🌈 Nyan Cat効果：1枚ドロー＆攻撃力+1！"); }
     else if (card.id === "streamer") { self.giga = Math.min(self.maxGiga, self.giga + 1); ctx.log("🎙️ 大手配信者効果：ギガを1回復！"); }
+    } else if (card.id === "god_flag_master") {
+      self.hp = Math.min(20, self.hp + 5);
+      ctx.drawCard(who); ctx.drawCard(who);
+      self.field.forEach(function(m) { m.atk += 2; m.freshness += 1; });
+      ctx.log("🚩 【GOD降臨】『勝ったな、ガハハ！』メンタル+5＆2枚ドロー＆味方全体攻撃+2・鮮度+1！");
+    } else if (card.id === "god_tomarunja") {
+      var defeated = 0;
+      opp.field.forEach(function(m) {
+        var before = m.hp;
+        ctx.dealDamageToMeme(m, 4);
+        if (before > 0 && m.hp <= 0) defeated++;
+      });
+      ctx.cleanupDeadMemes();
+      if (defeated > 0) {
+        self.maxGiga = Math.min(10, self.maxGiga + defeated);
+        opp.hp -= defeated * 2;
+      }
+      ctx.log("🕺 【GOD降臨】止まるんじゃねぇぞ…！相手全体に4ダメ（撃破" + defeated + "体：最大ギガ+" + defeated + "＆本体" + (defeated * 2) + "ダメ）！");
+    } else if (card.id === "nigecha_dame") {
+      if (self.hp <= 10) {
+        card.atk += 4; card.hp += 4;
+        ctx.log("🤖 暴走覚醒！！「逃げちゃダメだ…」メンタル10以下のため攻撃力+4＆HP+4！");
+      } else {
+        ctx.log("🤖 「逃げちゃダメだ、逃げちゃダメだ…」");
+      }
+    } else if (card.id === "hito_no_yume") {
+      self.field.forEach(function(m) { m.freshness += 2; });
+      ctx.drawCard(who);
+      ctx.log("🏴‍☠️ 「人の夢は！！！終わらねェ！！！！」味方全体の鮮度+2＆1枚ドロー！");
+    } else if (card.id === "tsumaranu_mono") {
+      var beforeLen = opp.field.length;
+      opp.field = opp.field.filter(function(m) { return m.cost > 3; });
+      var cutCount = beforeLen - opp.field.length;
+      ctx.log("⚔️ 「またつまらぬものを斬ってしまった…」相手のコスト3以下を" + cutCount + "体一刀両断！");
+    } else if (card.id === "poptepipic") {
+      if (Math.random() < 0.5) {
+        opp.hp -= 3;
+        ctx.log("🖕 クソアニメ精神（表）：相手メンタルに3ダメージ！");
+      } else {
+        self.hp -= 2; ctx.drawCard(who); ctx.drawCard(who);
+        ctx.log("🖕 クソアニメ精神（裏）：自分メンタルに2ダメージ＆2枚ドロー！");
+      }
+    } else if (card.id === "uchujin_iru") {
+      if (self.field.some(function(m) { return m !== card && m.era !== "アニメ"; })) {
+        card.atk += 2; ctx.drawCard(who);
+        ctx.log("👽 「この中に一人、宇宙人がいる！」異世代コラボで攻撃力+2＆1枚ドロー！");
+      }
+    } else if (card.id === "aibou_kaerou") {
+      if (opp.hand.length > 0) opp.hand.splice(Math.floor(Math.random() * opp.hand.length), 1);
+      opp.hp -= 2;
+      ctx.log("👁️ 闇のゲーム開始！相手の手札1枚破壊＆本体に2ダメージ！");
+    } else if (card.id === "zetsubou_sensei") {
+      opp.field.forEach(function(m) { m.atk = Math.max(0, m.atk - 1); });
+      self.hp = Math.min(20, self.hp + 3);
+      ctx.log("👘 「絶望した！」相手全体の攻撃力-1＆自分メンタル3回復！");
+    } else if (card.id === "yamucha") {
+      opp.field.forEach(function(m) { ctx.dealDamageToMeme(m, 2); });
+      ctx.cleanupDeadMemes();
+      ctx.drawCard(who);
+      var yIdx = self.field.indexOf(card);
+      if (yIdx !== -1) self.field.splice(yIdx, 1);
+      ctx.log("💥 「ヤムチャしやがって…」自爆して相手全体に2ダメージ＆1枚ドロー！");
+    } else if (card.id === "kurorekishi_note") {
+      if (self.usedSpellThisTurn) {
+        card.atk += 2;
+        ctx.log("🩹 邪王真眼覚醒！攻撃力+2！");
+      }
+    } else if (card.id === "nikkori_smile") {
+      self.field.forEach(function(m) { m.hp += 2; });
+      self.hp = Math.min(20, self.hp + 2);
+      ctx.log("🤟 にっこにっこにー♪味方全体のHP+2＆メンタル2回復！");
+    } else if (card.id === "speedwagon") {
+      ctx.drawCard(who);
+      if (self.field.length > 0) self.field[0].atk += 1;
+      ctx.log("🎩 スピードワゴンの解説！1枚ドロー＆味方1体の攻撃力+1！");
+    } else if (card.id === "mob_chara") {
+      if (opp.field.length > 0) { ctx.dealDamageToMeme(opp.field[0], 1); ctx.cleanupDeadMemes(); }
+      ctx.log("🚚 異世界転生トラック突撃！1ダメージ！");
+    } else if (card.id === "osananajimi") {
+      if (self.hp < opp.hp) { card.hp += 2; ctx.log("🎀 幼馴染の意地！HP+2！"); }
+    } else if (card.id === "nyanpasu") {
+      self.hp = Math.min(20, self.hp + 2);
+      ctx.log("🪈 にゃんぱすー！メンタルが2回復した！");
+    } else if (card.id === "haraguro_megane") {
+      if (self.hand.length <= 3) { ctx.drawCard(who); ctx.log("👓 メガネクイッ…1枚ドロー！"); }
+    } else if (card.id === "kininarimasu") {
+      ctx.drawCard(who);
+      if (self.hand.length > 0) self.hand.splice(Math.floor(Math.random() * self.hand.length), 1);
+      ctx.log("🧐 「私、気になります！」1枚ドロー＆1枚ランダム破棄！");
   },
 
   executeSpell: function(ctx, who, card) {
@@ -177,6 +266,116 @@ window.CardEffects = {
       } else {
         ctx.log("🔌 鯖落ちを発動したが、相手の場に「GOD」レアがいなかったため不発に終わった...");
       }
+    }
+
+    // ================= 第3弾：アニメミーム構文効果 =================
+    else if (card.id === "daga_kotowaru") {
+      if (self.field.length > 0) self.field[0].shield = true;
+      if (opp.field.length > 0) {
+        var maxTarget = opp.field.reduce(function(a, b) { return a.atk >= b.atk ? a : b; });
+        maxTarget.atk = 0;
+      }
+      ctx.log("🙅 「だが断る」味方に無敵バリア付与＆相手最強ミームの攻撃力を0にした！");
+    } else if (card.id === "omae_shindeiru") {
+      if (opp.field.length > 0) opp.field[0].freshness = 1;
+      opp.hp -= 3;
+      ctx.log("👉 「お前はもう死んでいる」相手ミームの鮮度を1にし、本体に3ダメージ！");
+    } else if (card.id === "keikaku_dori") {
+      ctx.drawCard(who); ctx.drawCard(who); ctx.drawCard(who);
+      self.hand.forEach(function(h) { if (h.type === "spell") h.cost = Math.max(0, h.cost - 1); });
+      ctx.log("📓 「計画通り」3枚ドロー＆手札の構文カード全てのコスト-1！");
+    } else if (card.id === "douiukoto_nano" && opp.field.length > 0) {
+      opp.field[0].shield = false;
+      opp.field[0].atk = Math.max(0, opp.field[0].atk - 2);
+      opp.field[0].freshness = Math.max(1, opp.field[0].freshness - 1);
+      ctx.log("😨 「どういうことなの…」相手ミームのバリア解除＆攻撃-2・鮮度-1！");
+    } else if (card.id === "oni_ni_naranai") {
+      var lowIdx = opp.field.findIndex(function(m) { return m.cost <= 2; });
+      if (lowIdx !== -1 && self.field.length < 3) {
+        var stolen = opp.field.splice(lowIdx, 1)[0];
+        stolen.canAttack = true;
+        self.field.push(stolen);
+        ctx.log("👹 「お前も鬼にならないか？」相手の「" + stolen.name + "」を寝返らせた！");
+      } else {
+        ctx.log("👹 対象がいなかったか、自分の場がいっぱいで不発に終わった...");
+      }
+    } else if (card.id === "oi_duel_shiroyo") {
+      ctx.drawCard(who); ctx.drawCard(who);
+      var oppKey = (who === "p1" ? "p2" : "p1");
+      ctx.drawCard(oppKey); ctx.drawCard(oppKey);
+      self.giga = Math.min(self.maxGiga, self.giga + 2);
+      ctx.log("🃏 「おい、デュエルしろよ」お互い2枚ドロー＆自分のギガ2回復！");
+    } else if (card.id === "nanimo_kowakunai" && self.field.length > 0) {
+      self.field[0].hp += 4; self.field[0].atk += 2; self.field[0].freshness = 1;
+      ctx.log("🎀 「もう何も恐くない」HP+4＆攻撃+2の全力解放（鮮度1）！");
+    } else if (card.id === "kamikai_sakuga") {
+      self.field.forEach(function(m) { m.atk += 2; m.hp += 2; });
+      ctx.log("✨ 神回覚醒！味方全員の攻撃力+2＆HP+2！");
+    } else if (card.id === "kono_subarashii") {
+      opp.field.forEach(function(m) { ctx.dealDamageToMeme(m, 4); });
+      self.maxGiga = Math.max(1, self.maxGiga - 1);
+      ctx.log("💥 エクスプロージョン！！相手全体に4ダメージ（代償で最大ギガ-1）！");
+    } else if (card.id === "kisama_miteiruna") {
+      if (opp.hand.length > 0) {
+        var peek = opp.hand[Math.floor(Math.random() * opp.hand.length)];
+        ctx.log("👀 「貴様…見ているなッ！」相手の手札に「" + peek.name + "」を確認！");
+      }
+      ctx.drawCard(who);
+    } else if (card.id === "anta_bakaa" && self.field.length > 0) {
+      self.field[0].atk += 3;
+      self.field[0].freshness = Math.max(1, self.field[0].freshness - 1);
+      ctx.log("💢 「あんたバカァ！？」攻撃力+3＆鮮度-1！");
+    } else if (card.id === "sakuga_houkai") {
+      opp.field.forEach(function(m) { m.atk = Math.max(0, m.atk - 2); });
+      ctx.log("🥬 作画崩壊！相手ミーム全ての攻撃力が-2された！");
+    } else if (card.id === "soushuuhen") {
+      self.field.forEach(function(m) { m.freshness += 1; });
+      opp.field.forEach(function(m) { m.freshness += 1; });
+      ctx.drawCard(who);
+      ctx.log("📼 総集編！お互いの場の鮮度+1＆1枚ドロー！");
+    } else if (card.id === "ore_no_turn") {
+      self.giga = Math.min(self.maxGiga, self.giga + 1);
+      ctx.drawCard(who);
+      ctx.log("⏭️ 「ずっと俺のターン！」ギガ1回復＆1枚ドロー！");
+    } else if (card.id === "uso_da") {
+      if (opp.field.length > 0) ctx.dealDamageToMeme(opp.field[0], 3);
+      opp.hp -= 1;
+      ctx.log("🔪 「嘘だッ！！！」相手ミームに3ダメ＆本体に1ダメ！");
+    } else if (card.id === "jikai_yokoku" && opp.field.length > 0) {
+      opp.field[0].freshness -= 2;
+      opp.field = opp.field.filter(function(m) { return m.freshness > 0; });
+      ctx.log("📢 次回予告！相手ミームの鮮度が-2された！");
+    } else if (card.id === "sekai_he_habatake") {
+      self.hp -= 3;
+      ctx.drawCard(who); ctx.drawCard(who);
+      ctx.log("⚖️ 等価交換！メンタルを3削り2枚ドロー！");
+    } else if (card.id === "shujinkou_hosei" && self.field.length > 0) {
+      self.field[0].atk += 1; self.field[0].hp += 2;
+      ctx.log("🌟 主人公補正！攻撃力+1＆HP+2！");
+    } else if (card.id === "gomen_yui" && self.field.length > 0) {
+      var sac = self.field.shift();
+      self.giga = Math.min(self.maxGiga, self.giga + 2);
+      ctx.drawCard(who);
+      ctx.log("💔 「ごめん、ユイ…」" + sac.name + "を犠牲にギガ2回復＆1枚ドロー！");
+    } else if (card.id === "tsundere" && self.field.length > 0) {
+      self.field[0].atk += 2;
+      ctx.log("😤 ツンデレ応援！攻撃力+2！");
+    } else if (card.id === "to_be_continued" && self.field.length > 0) {
+      self.field[0].freshness += 2; self.field[0].hp += 2;
+      ctx.log("🎸 To Be Continued... 鮮度+2＆HP+2！");
+    } else if (card.id === "yamete_raifu") {
+      if (self.hp <= 8) {
+        self.hp = Math.min(20, self.hp + 5);
+        ctx.log("😱 「もうやめて！ライフはとっくにゼロよ！」メンタル5回復！");
+      } else {
+        ctx.log("😱 まだライフが残っていたため不発に終わった...");
+      }
+    } else if (card.id === "ikari_no_super" && self.field.length > 0) {
+      self.field[0].atk += 3;
+      ctx.log("⚡ 「クリリンのことかーーーっ！！」攻撃力+3！");
+    } else if (card.id === "op_skip" && opp.field.length > 0) {
+      ctx.dealDamageToMeme(opp.field[0], 2);
+      ctx.log("⏩ OPスキップ！相手ミームに2ダメージ！");
     }
 
     ctx.cleanupDeadMemes();

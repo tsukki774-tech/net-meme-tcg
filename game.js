@@ -526,39 +526,54 @@
     selectedPackNo = packNo;
     var tab1 = document.getElementById("tab-pack-1");
     var tab2 = document.getElementById("tab-pack-2");
+    var tab3 = document.getElementById("tab-pack-3");
     var pVisual = document.getElementById("preview-pack-visual");
     var pEmblem = document.getElementById("preview-pack-emblem");
     var pTitle = document.getElementById("preview-pack-title");
     var pSub = document.getElementById("preview-pack-sub");
     var count = ALL_CARDS.filter(function(c) { return c.pack === packNo; }).length;
 
+    tab1.classList.remove("active");
+    tab2.classList.remove("active", "vol2");
+    if (tab3) tab3.classList.remove("active", "vol3");
+    pVisual.classList.remove("vol2", "vol3");
+
     if (packNo === 1) {
       tab1.classList.add("active");
-      tab2.classList.remove("active", "vol2");
-      pVisual.classList.remove("vol2");
       pEmblem.innerText = "🌐";
       pTitle.innerText = "VOL.1 BASIC";
       pSub.innerHTML = "基本ミームパック（全" + count + "種）<br>超低確率 GODレア収録！";
-    } else {
-      tab1.classList.remove("active");
+    } else if (packNo === 2) {
       tab2.classList.add("active", "vol2");
       pVisual.classList.add("vol2");
       pEmblem.innerText = "🔥";
       pTitle.innerText = "VOL.2 CHAOS";
       pSub.innerHTML = "第2弾：カオス＆深淵編（全" + count + "種）<br>GODレア2種＆メタ・GODキラー収録！";
+    } else {
+      if (tab3) tab3.classList.add("active", "vol3");
+      pVisual.classList.add("vol3");
+      pEmblem.innerText = "🎬";
+      pTitle.innerText = "VOL.3 ANIME";
+      pSub.innerHTML = "第3弾：アニメミーム＆名言編（全" + count + "種）<br>伝説の名セリフ＆フラグGOD2種収録！";
     }
   }
 
   document.getElementById("tab-pack-1").addEventListener("click", function() { selectPackTab(1); });
   document.getElementById("tab-pack-2").addEventListener("click", function() { selectPackTab(2); });
+  document.getElementById("tab-pack-3").addEventListener("click", function() { selectPackTab(3); });
 
   document.getElementById("btn-view-pack-list").addEventListener("click", function() {
     var packCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
     var rarityOrder = { GOD: 0, UR: 1, SR: 2, R: 3, N: 4 };
     packCards.sort(function(a, b) { return rarityOrder[a.rarity] - rarityOrder[b.rarity]; });
 
+    var packTitles = {
+      1: "📋 第1弾：基本ミームパック",
+      2: "📋 第2弾：カオス＆深淵編",
+      3: "📋 第3弾：アニメミーム＆名言編"
+    };
     document.getElementById("modal-pack-title").innerText =
-      (selectedPackNo === 1 ? "📋 第1弾：基本ミームパック" : "📋 第2弾：カオス＆深淵編") + "（全" + packCards.length + "種）";
+      (packTitles[selectedPackNo] || "📋 パック一覧") + "（全" + packCards.length + "種）";
 
     var grid = document.getElementById("modal-card-grid");
     grid.innerHTML = "";
@@ -887,9 +902,9 @@
     document.getElementById("pack-result-area").innerHTML = "";
     document.getElementById("stage-after-buttons").style.display = "none";
 
-    visual.className = "real-pack ready-to-tear" + (selectedPackNo === 2 ? " vol2" : "");
-    emblem.innerText = selectedPackNo === 1 ? "🌐" : "🔥";
-    title.innerText = selectedPackNo === 1 ? "VOL.1 BASIC" : "VOL.2 CHAOS";
+    visual.className = "real-pack ready-to-tear" + (selectedPackNo === 2 ? " vol2" : (selectedPackNo === 3 ? " vol3" : ""));
+    emblem.innerText = selectedPackNo === 1 ? "🌐" : (selectedPackNo === 2 ? "🔥" : "🎬");
+    title.innerText = selectedPackNo === 1 ? "VOL.1 BASIC" : (selectedPackNo === 2 ? "VOL.2 CHAOS" : "VOL.3 ANIME");
     sub.innerText = "5枚入り / R以上1枚確定";
     bar.style.width = "0%";
     hint.innerText = "✂️ ここを右へスワイプ！";
@@ -1767,6 +1782,14 @@
       god_deepweb: {
         bg: "radial-gradient(circle at center, #2d004d 0%, #020005 100%)",
         quote: "「検索してはいけない領域の扉を、" + summonerName + "が開いてしまった――！」"
+      },
+      god_flag_master: {
+        bg: "radial-gradient(circle at center, #6b3e00 0%, #120900 100%)",
+        quote: "「勝ったな、ガハハ！――" + summonerName + "の完全勝利フラグが天高く立ち上がった！」"
+      },
+      god_tomarunja: {
+        bg: "radial-gradient(circle at center, #4a0e17 0%, #0a0204 100%)",
+        quote: "「" + summonerName + "、お前が止まらない限り…オレたちの道は続くんだからよ…止まるんじゃねぇぞ…！」"
       }
     };
 

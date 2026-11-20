@@ -76,6 +76,7 @@
     .pack-tab { padding: 10px 16px; border-radius: 10px; border: 2px solid #444; background: #1e1e1e; color: #aaa; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
     .pack-tab.active { border-color: #00d2ff; color: #fff; background: #1a2a3a; box-shadow: 0 0 10px rgba(0,210,255,0.4); }
     .pack-tab.active.vol2 { border-color: #ff4757; background: #3a1a24; box-shadow: 0 0 10px rgba(255,71,87,0.4); }
+    .pack-tab.active.vol3 { border-color: #a55eea; background: #2d1846; box-shadow: 0 0 12px rgba(165,94,234,0.5); }
     .pack-center { text-align: center; }
     .pack-btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
 
@@ -104,6 +105,11 @@
     }
     .real-pack.vol2 {
       background: linear-gradient(135deg, #3b0014 0%, #7a0026 35%, #ff4757 50%, #7a0026 65%, #3b0014 100%);
+    }
+    .real-pack.vol3 {
+      background: linear-gradient(135deg, #2b1055 0%, #753a88 45%, #ff007f 100%);
+      border-color: #e056fd;
+      box-shadow: 0 10px 28px rgba(165, 94, 234, 0.55), inset 0 0 22px rgba(255, 255, 255, 0.25);
     }
     .pack-crimp-top, .pack-crimp-bottom {
       height: 22px; width: 100%;
@@ -855,6 +861,7 @@
     <div class="pack-tabs">
       <button id="tab-pack-1" class="pack-tab active">第1弾：基本ミームパック</button>
       <button id="tab-pack-2" class="pack-tab">🔥 第2弾：カオス＆深淵編</button>
+      <button id="tab-pack-3" class="pack-tab">🎬 第3弾：アニメミーム＆名言編</button>
     </div>
 
     <div class="pack-center">
