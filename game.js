@@ -1089,14 +1089,18 @@
 
     if (state.p2.hp <= 0) {
       if (didPlayerWin) addMissionStat("wins", 1);
-      userData.points += 150; saveUserData();
-      setTimeout(function() { alert("🎉 " + state.p1.name + "の勝利！報酬として 150 バズP を獲得しました！"); showScreen("home-screen"); }, 200);
+      userData.points += 300; saveUserData();
+      setTimeout(function() { alert("🎉 " + state.p1.name + "の勝利！報酬として 300 バズP を獲得しました！"); showScreen("home-screen"); }, 200);
       return true;
     }
     if (state.p1.hp <= 0) {
       if (didPlayerWin) addMissionStat("wins", 1);
-      userData.points += (didPlayerLose ? 50 : 150); saveUserData();
-      setTimeout(function() { alert("💀 " + state.p2.name + "の勝利... 参加賞として 50 バズP を獲得しました。"); showScreen("home-screen"); }, 200);
+      var reward = didPlayerLose ? 100 : 300;
+      userData.points += reward; saveUserData();
+      var msg = didPlayerLose
+        ? "💀 " + state.p2.name + "の勝利... 参加賞として 100 バズP を獲得しました。"
+        : "🎉 " + state.p2.name + "の勝利！報酬として 300 バズP を獲得しました！";
+      setTimeout(function() { alert(msg); showScreen("home-screen"); }, 200);
       return true;
     }
     return false;
