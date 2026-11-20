@@ -1329,15 +1329,26 @@
         state.p1 = data.p1; state.p2 = data.p2; state.turn = data.turn; state.activeSide = data.activeSide;
         state.isInputLocked = (state.activeSide !== state.myRole);
         if (data.logMsg) log(data.logMsg);
-        if (data.cutinMsg) showCutin(data.cutinMsg);
+        if (data.godCard) showGodSummonCutin(data.godCard, data.godSummoner || "相手");
+        else if (data.cutinMsg) showCutin(data.cutinMsg);
         checkGameOver(); render();
       }
     });
   }
 
-  function sendSync(logMsg, cutinMsg) {
+  function sendSync(logMsg, cutinMsg, godCard, godSummoner) {
     if (state.mode === "online" && conn && conn.open) {
-      conn.send({ type: "SYNC_STATE", p1: state.p1, p2: state.p2, turn: state.turn, activeSide: state.activeSide, logMsg: logMsg || null, cutinMsg: cutinMsg || null });
+      conn.send({
+        type: "SYNC_STATE",
+        p1: state.p1,
+        p2: state.p2,
+        turn: state.turn,
+        activeSide: state.activeSide,
+        logMsg: logMsg || null,
+        cutinMsg: cutinMsg || null,
+        godCard: godCard || null,
+        godSummoner: godSummoner || null
+      });
     }
   }
 
@@ -1367,6 +1378,55 @@
     overlay.style.display = "flex"; setTimeout(function() { overlay.style.display = "none"; }, duration || 1100);
   }
 
+  function showGodSummonCutin(card, summonerName) {
+    if (!card || card.rarity !== "GOD") return;
+
+    var overlay = document.getElementById("god-summon-overlay");
+    var iconEl = document.getElementById("god-summon-icon");
+    var nameEl = document.getElementById("god-summon-name");
+    var quoteEl = document.getElementById("god-summon-quote");
+    var statsEl = document.getElementById("god-summon-stats");
+
+    var themes = {
+      god_internet: {
+        bg: "radial-gradient(circle at center, #1b1464 0%, #05020a 100%)",
+        quote: "「" + summonerName + "の呼び声に応え、全ネット民の集合知が降臨する――！」"
+      },
+      god_moderator: {
+        bg: "radial-gradient(circle at center, #5c0011 0%, #090205 100%)",
+        quote: "「規約違反を確認。このタイムラインは" + summonerName + "の権限により粛清される――！」"
+      },
+      god_deepweb: {
+        bg: "radial-gradient(circle at center, #2d004d 0%, #020005 100%)",
+        quote: "「検索してはいけない領域の扉を、" + summonerName + "が開いてしまった――！」"
+      }
+    };
+
+    var theme = themes[card.id] || {
+      bg: "radial-gradient(circle at center, #240046 0%, #05020a 100%)",
+      quote: "「伝説のGODレアが" + summonerName + "の場に降臨した――！」"
+    };
+
+    overlay.style.background = theme.bg;
+    iconEl.innerHTML = card.img ? '<img src="' + card.img + '" style="width:110px;height:110px;border-radius:16px;object-fit:cover;border:3px solid #ffd32a;">' : (card.icon || "🌌");
+    nameEl.innerText = card.name;
+    quoteEl.innerText = theme.quote;
+    statsEl.innerText = "⚔️ ATK " + (card.atk + (card.isBuzz ? 1 : 0)) + "  /  ❤️ HP " + card.hp + "  /  ⏳ 鮮度 " + card.freshness;
+
+    var flash = document.createElement("div");
+    flash.className = "screen-flash rarity-GOD";
+    document.body.appendChild(flash);
+    setTimeout(function() { flash.remove(); }, 850);
+
+    overlay.classList.add("quake-anim");
+    overlay.style.display = "flex";
+
+    setTimeout(function() {
+      overlay.classList.remove("quake-anim");
+      overlay.style.display = "none";
+    }, 2400);
+  }
+
   function dealDamageToMeme(meme, amount) {
     if (amount <= 0) return;
     if (meme.shield) {
@@ -1389,6 +1449,7 @@
     var self = getViewSelf(), card = self.hand[handIndex];
     if (self.giga < card.cost) { log("⚠️ ギガ（コスト）が足りません！"); return; }
     var actionLog = "";
+    var summonedGodCard = null;
     var isPlayerAction = (state.mode === "cpu" && state.activeSide === "p1") || (state.mode === "online" && state.activeSide === state.myRole) || (state.mode === "local");
 
     if (card.type === "meme") {
@@ -1397,13 +1458,17 @@
       if (isPlayerAction) addMissionStat("summons", 1);
       actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！"; log(actionLog);
       window.CardEffects.triggerSummonEffect(effectCtx, state.activeSide, card);
+      if (card.rarity === "GOD") {
+        summonedGodCard = card;
+        showGodSummonCutin(card, self.name);
+      }
     } else if (card.type === "spell") {
       self.giga -= card.cost; self.hand.splice(handIndex, 1);
       if (isPlayerAction) addMissionStat("spells", 1);
       actionLog = "⚡ " + self.name + "が構文「" + card.name + "」を発動！"; log(actionLog);
       window.CardEffects.executeSpell(effectCtx, state.activeSide, card);
     }
-    state.selectedAttackerIndex = null; sendSync(actionLog); checkGameOver(); render();
+    state.selectedAttackerIndex = null; sendSync(actionLog, null, summonedGodCard, self.name); checkGameOver(); render();
   }
 
   function selectAttacker(index) {
@@ -1479,6 +1544,9 @@
           cpu.giga -= card.cost; cpu.hand.splice(i, 1); card.isBuzz = true; cpu.field.push(card);
           actions.push("「" + card.name + "」を召喚"); log("👾 CPUが「" + card.name + "」を召喚！");
           window.CardEffects.triggerSummonEffect(effectCtx, "p2", card);
+          if (card.rarity === "GOD") {
+            showGodSummonCutin(card, cpu.name);
+          }
         } else if (card.type === "spell") {
           cpu.giga -= card.cost; cpu.hand.splice(i, 1);
           actions.push("「" + card.name + "」を発動"); log("👾 CPUが「" + card.name + "」を発動！");

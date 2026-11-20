@@ -554,6 +554,75 @@
     .owned-badge { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); background: #000; border: 1px solid #ffd32a; color: #ffd32a; font-size: 0.62rem; padding: 1px 6px; border-radius: 8px; white-space: nowrap; }
     .owned-badge.unowned { border-color: #666; color: #888; }
 
+    /* ================= GOD召喚専用フルスクリーン演出 ================= */
+    #god-summon-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at center, #240046 0%, #05020a 100%);
+      z-index: 2700; display: none; flex-direction: column;
+      align-items: center; justify-content: center; overflow: hidden;
+      pointer-events: auto;
+    }
+    .god-summon-rays {
+      position: absolute; width: 220vmax; height: 220vmax;
+      background: repeating-conic-gradient(
+        from 0deg,
+        rgba(255, 211, 42, 0.35) 0deg 8deg,
+        rgba(165, 94, 234, 0.12) 8deg 16deg,
+        rgba(0, 210, 255, 0.35) 16deg 24deg,
+        transparent 24deg 32deg
+      );
+      animation: spin-burst 5s linear infinite;
+    }
+    .god-summon-ring {
+      position: absolute; width: 280px; height: 280px; border-radius: 50%;
+      border: 4px dashed rgba(255, 211, 42, 0.8);
+      box-shadow: 0 0 40px rgba(255, 211, 42, 0.6), inset 0 0 40px rgba(0, 210, 255, 0.6);
+      animation: god-ring-spin 3s linear infinite;
+    }
+    @keyframes god-ring-spin {
+      0% { transform: scale(0.5) rotate(0deg); opacity: 0; }
+      30% { transform: scale(1.1) rotate(120deg); opacity: 1; }
+      100% { transform: scale(1.35) rotate(360deg); opacity: 0.7; }
+    }
+    .god-summon-content {
+      position: relative; z-index: 10; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      padding: 20px;
+    }
+    .god-summon-badge {
+      background: linear-gradient(90deg, #ff4757, #ffd32a, #00d2ff);
+      color: #000; font-weight: 900; font-size: 0.9rem;
+      padding: 4px 16px; border-radius: 20px; letter-spacing: 2px;
+      box-shadow: 0 0 15px #ffd32a;
+    }
+    .god-summon-icon {
+      font-size: 5.5rem;
+      filter: drop-shadow(0 0 25px #ffd32a) drop-shadow(0 0 45px #ff4757);
+      animation: god-icon-descend 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes god-icon-descend {
+      0% { transform: translateY(-120px) scale(2.5); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .god-summon-name {
+      font-size: 2rem; font-weight: 900;
+      background: linear-gradient(90deg, #fff, #ffd32a, #00d2ff, #ff4757, #fff);
+      background-size: 200% auto;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.95));
+      animation: text-slam 0.45s ease-out forwards;
+    }
+    .god-summon-quote {
+      font-size: 1.05rem; font-weight: bold; color: #f1f2f6;
+      background: rgba(0, 0, 0, 0.75); border: 1px solid #ffd32a;
+      padding: 8px 18px; border-radius: 10px;
+      text-shadow: 0 0 8px #000;
+    }
+    .god-summon-stats {
+      font-size: 1.1rem; font-weight: 900; color: #ffd32a;
+      letter-spacing: 1px; text-shadow: 0 2px 4px #000;
+    }
+
     /* オーバーレイ・アニメーション */
     .overlay-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; }
     .cutin-box { background: linear-gradient(135deg, #ff4757, #1e272e); border: 2px solid #ffd32a; padding: 25px 35px; border-radius: 14px; font-size: 1.3rem; font-weight: bold; text-align: center; white-space: pre-line; }
@@ -962,6 +1031,19 @@
     </div>
     <div id="self-hand" class="hand-area"></div>
     <div id="log" class="log-box"></div>
+  </div>
+
+  <!-- GOD召喚専用フルスクリーン演出オーバーレイ -->
+  <div id="god-summon-overlay">
+    <div id="god-summon-rays" class="god-summon-rays"></div>
+    <div class="god-summon-ring"></div>
+    <div class="god-summon-content">
+      <div class="god-summon-badge">⚡ GOD降臨 / DIVINE SUMMON ⚡</div>
+      <div id="god-summon-icon" class="god-summon-icon">🌌</div>
+      <div id="god-summon-name" class="god-summon-name">インターネットの集合知</div>
+      <div id="god-summon-quote" class="god-summon-quote">「全てのネット民の記憶が今、一つに集結する――！」</div>
+      <div id="god-summon-stats" class="god-summon-stats">⚔️ ATK 7 / ❤️ HP 7 / ⏳ 鮮度 5</div>
+    </div>
   </div>
 
   <!-- カットイン演出・端末交代画面 -->
