@@ -168,49 +168,53 @@
     }
     .pack-tearing-anim { animation: pack-tear-shake 0.7s ease-in-out; }
 
-    /* ================= 激アツ確定演出オーバーレイ群（全5パターン） ================= */
+    /* ============================================================
+       激アツ脳汁演出オーバーレイ（全6パターン共通＆個別スタイル）
+       ============================================================ */
     #pachinko-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: #000; z-index: 2500; display: none;
       flex-direction: column; align-items: center; justify-content: center;
       overflow: hidden;
     }
-    .cutin-pattern-box {
-      position: relative; width: 100%; height: 100%;
+    .effect-scene {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       display: none; flex-direction: column; align-items: center; justify-content: center;
+      overflow: hidden;
     }
+    .effect-scene.active { display: flex; }
 
-    /* パターン1：パトランプ脳汁演出 */
+    /* 1. 定番パチンコ・キュイン演出 */
     .pachi-sunburst {
       position: absolute; width: 220vmax; height: 220vmax;
-      background: repeating-conic-gradient(from 0deg, rgba(255,71,87,0.45) 0deg 10deg, transparent 10deg 20deg);
+      background: repeating-conic-gradient(from 0deg, rgba(255,71,87,0.5) 0deg 10deg, rgba(255,211,42,0.18) 10deg 20deg);
       animation: spin-burst 4s linear infinite;
     }
     .pachi-sunburst.god-mode {
       background: repeating-conic-gradient(
         from 0deg,
-        rgba(255,71,87,0.6) 0deg 8deg,
-        rgba(255,211,42,0.6) 8deg 16deg,
-        rgba(46,213,115,0.6) 16deg 24deg,
-        rgba(0,210,255,0.6) 24deg 32deg,
-        rgba(165,94,234,0.6) 32deg 40deg
+        rgba(255,71,87,0.65) 0deg 8deg,
+        rgba(255,211,42,0.65) 8deg 16deg,
+        rgba(46,213,115,0.65) 16deg 24deg,
+        rgba(0,210,255,0.65) 24deg 32deg,
+        rgba(165,94,234,0.65) 32deg 40deg
       );
       animation: spin-burst 2.2s linear infinite;
     }
     @keyframes spin-burst { 100% { transform: rotate(360deg); } }
 
     .patlamp-box {
-      position: relative; z-index: 5; font-size: 4.5rem;
-      animation: patlamp-flash 0.18s infinite alternate;
+      position: relative; z-index: 5; font-size: 4.8rem;
+      animation: patlamp-flash 0.16s infinite alternate;
       filter: drop-shadow(0 0 25px #ff0000);
     }
     @keyframes patlamp-flash {
-      0% { transform: scale(0.95) rotate(-8deg); filter: drop-shadow(0 0 15px #ff0000); }
-      100% { transform: scale(1.15) rotate(8deg); filter: drop-shadow(0 0 45px #ffd32a); }
+      0% { transform: scale(0.95) rotate(-10deg); filter: drop-shadow(0 0 15px #ff0000); }
+      100% { transform: scale(1.18) rotate(10deg); filter: drop-shadow(0 0 45px #ffd32a); }
     }
 
     .pachi-warning-strip {
-      position: relative; z-index: 5; width: 110%; padding: 8px 0;
+      position: relative; z-index: 5; width: 115%; padding: 8px 0;
       background: repeating-linear-gradient(-45deg, #ffd32a 0px, #ffd32a 15px, #111 15px, #111 30px);
       color: #fff; font-weight: 900; text-align: center; font-size: 1rem;
       text-shadow: 0 2px 4px #000, 0 0 8px #000;
@@ -220,7 +224,7 @@
 
     .pachi-main-text {
       position: relative; z-index: 6; font-size: 2.3rem; font-weight: 900;
-      text-align: center; line-height: 1.2; padding: 10px 20px;
+      text-align: center; line-height: 1.25; padding: 10px 20px;
       color: #fff;
       text-shadow: 0 0 10px #ff4757, 0 0 25px #ff4757, 0 0 40px #ffd32a, 3px 3px 0 #000;
       animation: text-slam 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
@@ -232,101 +236,137 @@
       filter: drop-shadow(0 0 18px rgba(255,255,255,0.95));
     }
 
-    /* パターン2：雷鳴＆画面クラック演出 */
-    .lightning-bg {
-      position: absolute; inset: 0;
-      background: radial-gradient(circle, #00d2ff 0%, #0984e3 35%, #050510 85%);
-      animation: lightning-strobe 0.25s infinite alternate;
+    /* 2. 画面クラッシュ＆逆転復活演出 */
+    .crash-bg {
+      background: radial-gradient(circle, #1e272e 0%, #050505 100%);
+      transition: background 0.15s;
     }
-    .lightning-bg.god-mode {
-      background: radial-gradient(circle, #ffffff 0%, #a55eea 35%, #ff4757 70%, #050510 100%);
+    .crash-bg.revived {
+      background: radial-gradient(circle, #4a0e1c 0%, #090a0f 100%);
     }
-    @keyframes lightning-strobe {
-      0% { opacity: 0.65; }
-      100% { opacity: 1; }
+    .crash-crack-svg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 4; opacity: 0;
     }
-    .lightning-bolts {
-      position: relative; z-index: 6; font-size: 5rem;
-      filter: drop-shadow(0 0 30px #fff) drop-shadow(0 0 50px #00d2ff);
-      animation: bolt-strike 0.35s ease-out;
+    .crash-crack-svg.show { opacity: 1; animation: text-slam 0.2s ease-out forwards; }
+    .crash-fake-box {
+      z-index: 5; text-align: center; padding: 20px;
+      border: 2px solid #555; border-radius: 12px; background: rgba(20,20,20,0.9);
     }
-    @keyframes bolt-strike {
-      0% { transform: translateY(-120px) scale(1.6); opacity: 0; }
-      100% { transform: translateY(0) scale(1); opacity: 1; }
-    }
-    .crack-line {
-      position: absolute; width: 140%; height: 4px; background: #fff;
-      box-shadow: 0 0 15px #00d2ff, 0 0 30px #fff; z-index: 4;
+    .crash-revive-box {
+      z-index: 6; text-align: center; display: none; flex-direction: column; align-items: center; gap: 10px;
     }
 
-    /* パターン3：プチュン・ブラックアウト（フリーズ）演出 */
-    .blackout-stage {
-      position: absolute; inset: 0; background: #000;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      z-index: 10;
+    /* 3. 777 スロット大当たり演出 */
+    .slot-bg {
+      background: radial-gradient(circle, #2b1608 0%, #0a0604 100%);
     }
-    .puchun-dot {
-      width: 100%; height: 4px; background: #fff; box-shadow: 0 0 25px #fff;
-      animation: puchun-shrink 0.45s ease-in forwards;
-    }
-    @keyframes puchun-shrink {
-      0% { transform: scaleY(60) scaleX(1); opacity: 1; }
-      70% { transform: scaleY(1) scaleX(1); opacity: 1; }
-      100% { transform: scaleY(0) scaleX(0); opacity: 0; }
-    }
-    .freeze-reveal-box {
-      display: none; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; z-index: 12; padding: 20px;
-    }
-    .freeze-reveal-box.active {
-      display: flex;
-      animation: text-slam 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-
-    /* パターン4：777 ネットミームスロット演出 */
     .slot-machine-frame {
-      position: relative; z-index: 8;
-      background: linear-gradient(180deg, #2c2c38, #14141a);
-      border: 4px solid #ffd32a; border-radius: 18px;
-      padding: 20px 18px; box-shadow: 0 0 35px rgba(255, 211, 42, 0.8);
-      text-align: center; width: 90%; max-width: 360px;
+      position: relative; z-index: 5;
+      background: linear-gradient(180deg, #333 0%, #111 100%);
+      border: 4px solid #ffd32a; border-radius: 16px;
+      padding: 18px 16px; box-shadow: 0 0 35px rgba(255, 211, 42, 0.7);
+      text-align: center;
     }
     .slot-reels-row {
-      display: flex; justify-content: center; gap: 10px; margin: 14px 0;
+      display: flex; gap: 10px; justify-content: center; margin: 12px 0;
     }
     .slot-reel {
-      width: 82px; height: 96px; background: #fff; color: #ff4757;
-      border: 3px solid #333; border-radius: 10px;
+      width: 78px; height: 96px; background: #fff; color: #ff4757;
+      border: 3px solid #ffd32a; border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 3.1rem; font-weight: 900;
-      box-shadow: inset 0 6px 12px rgba(0,0,0,0.35);
+      font-size: 3.4rem; font-weight: 900;
+      box-shadow: inset 0 0 14px rgba(0,0,0,0.45);
+      text-shadow: 2px 2px 0 #ffd32a;
     }
-    .slot-reel.locked {
-      background: linear-gradient(180deg, #fff6cc, #ffe066);
-      border-color: #ff4757;
-      animation: reel-lock-pop 0.25s ease-out;
+    .slot-reel.spinning {
+      background: #f1f2f6; color: #2f3542;
+      animation: reel-blur 0.08s infinite alternate;
     }
-    @keyframes reel-lock-pop {
-      0% { transform: scale(1.25); }
-      100% { transform: scale(1); }
+    .slot-reel.stopped-win {
+      background: linear-gradient(180deg, #fff9c4 0%, #ffd32a 100%);
+      animation: text-slam 0.25s ease-out;
+    }
+    @keyframes reel-blur {
+      0% { transform: translateY(-4px) scaleY(1.1); }
+      100% { transform: translateY(4px) scaleY(0.9); }
     }
 
-    /* パターン5：炎上大バズリ・通知ラッシュ演出 */
-    .buzz-storm-container {
-      position: absolute; inset: 0;
-      background: radial-gradient(circle, #4a0e17 0%, #120508 100%);
-      overflow: hidden;
+    /* 4. ネットミーム風・大炎上トレンド1位演出 */
+    .trend-bg {
+      background: radial-gradient(circle, #101820 0%, #05070a 100%);
     }
-    .buzz-toast-card {
-      position: absolute; background: #1e242b; border: 2px solid #00d2ff;
-      border-radius: 12px; padding: 8px 14px; color: #fff;
-      font-weight: bold; font-size: 0.85rem; white-space: nowrap;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.8);
-      animation: toast-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    .trend-news-card {
+      position: relative; z-index: 6;
+      background: #15202b; border: 2px solid #1da1f2; border-radius: 14px;
+      padding: 16px 22px; width: 88%; max-width: 380px;
+      box-shadow: 0 0 30px rgba(29, 161, 242, 0.75);
+      text-align: left;
+      animation: text-slam 0.4s ease-out forwards;
     }
-    @keyframes toast-pop {
-      0% { transform: scale(0.3); opacity: 0; }
+    .trend-rank-badge {
+      display: inline-block; background: #ff4757; color: #fff;
+      font-weight: 900; font-size: 0.8rem; padding: 3px 10px;
+      border-radius: 20px; margin-bottom: 6px;
+    }
+    .danmaku-layer {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 4; overflow: hidden;
+    }
+    .danmaku-item {
+      position: absolute; white-space: nowrap; font-weight: 900;
+      text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+      animation: danmaku-flow linear forwards;
+    }
+    @keyframes danmaku-flow {
+      0% { transform: translateX(105vw); }
+      100% { transform: translateX(-120%); }
+    }
+
+    /* 5. 宇宙ビッグバン・GOD降臨演出 */
+    .space-bg {
+      background: radial-gradient(circle, #0b0320 0%, #000000 100%);
+    }
+    .blackhole-core {
+      position: relative; z-index: 5;
+      width: 110px; height: 110px; border-radius: 50%;
+      background: #000;
+      box-shadow: 0 0 30px 10px #a55eea, 0 0 60px 25px #00d2ff, inset 0 0 20px #fff;
+      animation: bh-implode 1.15s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
+    }
+    @keyframes bh-implode {
+      0% { transform: scale(0.4) rotate(0deg); }
+      75% { transform: scale(1.4) rotate(540deg); }
+      100% { transform: scale(0.05) rotate(720deg); }
+    }
+    .supernova-burst {
+      position: absolute; z-index: 7; width: 100%; height: 100%;
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      background: radial-gradient(circle, #ffffff 0%, #ffd32a 30%, #ff4757 60%, #1e0038 100%);
+      animation: nova-expand 0.5s ease-out forwards;
+    }
+    @keyframes nova-expand {
+      0% { transform: scale(0.1); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* 6. 突発ブラックアウト（プチュン暗転）演出 */
+    .blackout-bg {
+      background: #000000;
+    }
+    .puchun-line {
+      width: 100%; height: 3px; background: #fff;
+      box-shadow: 0 0 20px #fff, 0 0 40px #00d2ff;
+      animation: tv-off-line 0.35s ease-out forwards;
+    }
+    @keyframes tv-off-line {
+      0% { transform: scaleY(40) scaleX(1); opacity: 1; }
+      60% { transform: scaleY(1) scaleX(1); opacity: 1; }
+      100% { transform: scaleY(0) scaleX(0); opacity: 0; }
+    }
+    .blackout-reveal-box {
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; z-index: 6;
     }
 
     @keyframes text-slam {
@@ -341,7 +381,7 @@
       60% { transform: translate(-6px, -4px); }
       80% { transform: translate(6px, 4px); }
     }
-    .quake-anim { animation: screen-quake 0.35s infinite; }
+    .quake-anim { animation: screen-quake 0.32s infinite; }
 
     @keyframes flash-burst { 0% { opacity: 0.95; } 100% { opacity: 0; } }
     .screen-flash {
@@ -656,17 +696,6 @@
         </div>
       </div>
 
-      <div class="admin-section">
-        <h4>🎬 確定演出プレビュー（即再生テスト）</h4>
-        <div class="admin-btn-grid">
-          <button class="admin-btn" data-test-cutin="patlamp">🚨 パトランプ脳汁</button>
-          <button class="admin-btn" data-test-cutin="lightning">⚡ 雷鳴クラック</button>
-          <button class="admin-btn" data-test-cutin="blackout">🖤 プチュンフリーズ</button>
-          <button class="admin-btn" data-test-cutin="slot">🎰 777スロット</button>
-          <button class="admin-btn" data-test-cutin="buzz" style="grid-column: span 2;">🔥 炎上万バズ通知ラッシュ</button>
-        </div>
-      </div>
-
       <div class="admin-section" style="margin-bottom:0;">
         <h4>⚠️ システム操作</h4>
         <button id="admin-reset-all" class="admin-btn danger" style="width:100%;">セーブデータを完全初期化</button>
@@ -737,10 +766,13 @@
     </div>
   </div>
 
-  <!-- パチンコ＆カオス風・激アツ確定演出オーバーレイ（5種切り替え対応） -->
+  <!-- ============================================================
+       激アツ脳汁演出オーバーレイ（全6種類シーン内包）
+       ============================================================ -->
   <div id="pachinko-overlay">
-    <!-- パターン1：パトランプ脳汁 -->
-    <div id="cutin-patlamp" class="cutin-pattern-box">
+
+    <!-- 演出1: 定番パチンコ・キュイン演出 -->
+    <div id="scene-pachinko" class="effect-scene">
       <div id="pachi-sunburst" class="pachi-sunburst"></div>
       <div class="patlamp-box">🚨</div>
       <div class="pachi-warning-strip">⚠️ 激アツ確定!! WARNING!! 激アツ確定!! ⚠️</div>
@@ -748,45 +780,75 @@
       <div class="pachi-warning-strip">⚠️ 脳汁注意!! FEVER!! 脳汁注意!! ⚠️</div>
     </div>
 
-    <!-- パターン2：雷鳴＆画面クラック -->
-    <div id="cutin-lightning" class="cutin-pattern-box">
-      <div id="lightning-bg" class="lightning-bg"></div>
-      <div class="crack-line" style="transform: rotate(22deg); top: 32%;"></div>
-      <div class="crack-line" style="transform: rotate(-18deg); top: 68%;"></div>
-      <div class="lightning-bolts">⚡🌩️⚡</div>
-      <div id="lightning-main-text" class="pachi-main-text">稲妻昇格!!<br>UR以上確定!!</div>
-    </div>
-
-    <!-- パターン3：プチュン・ブラックアウト -->
-    <div id="cutin-blackout" class="cutin-pattern-box">
-      <div class="blackout-stage">
-        <div id="puchun-dot" class="puchun-dot"></div>
-        <div id="freeze-reveal-box" class="freeze-reveal-box">
-          <div style="font-size:3.5rem; margin-bottom:10px;">✨👑✨</div>
-          <div id="freeze-main-text" class="pachi-main-text">……プチュン。<br>フリーズUR確定!!</div>
-        </div>
+    <!-- 演出2: 画面クラッシュ＆逆転復活演出 -->
+    <div id="scene-crash" class="effect-scene crash-bg">
+      <svg id="crash-crack-svg" class="crash-crack-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <polyline points="50,0 44,24 58,42 36,68 52,100" fill="none" stroke="#fff" stroke-width="1.3"/>
+        <polyline points="0,35 28,46 58,42 82,58 100,48" fill="none" stroke="#fff" stroke-width="1.1"/>
+        <polyline points="20,0 44,24 18,62 0,85" fill="none" stroke="#ffd32a" stroke-width="0.9"/>
+        <polyline points="85,0 58,42 88,82 100,95" fill="none" stroke="#ff4757" stroke-width="0.9"/>
+      </svg>
+      <div id="crash-fake-box" class="crash-fake-box">
+        <div style="font-size:1rem; color:#888; margin-bottom:4px;">RESULT...</div>
+        <div style="font-size:2rem; font-weight:900; color:#aaa;">Nレア確定…？</div>
+      </div>
+      <div id="crash-revive-box" class="crash-revive-box">
+        <div style="font-size:3.2rem;">⚡💥⚡</div>
+        <div id="crash-revive-text" class="pachi-main-text">バグ発生！昇格！！<br>激アツ UR 降臨!!</div>
       </div>
     </div>
 
-    <!-- パターン4：777スロット -->
-    <div id="cutin-slot" class="cutin-pattern-box">
-      <div class="pachi-sunburst"></div>
+    <!-- 演出3: 777 スロット大当たり演出 -->
+    <div id="scene-slot" class="effect-scene slot-bg">
       <div class="slot-machine-frame">
-        <div style="color:#ffd32a; font-weight:900; font-size:1rem;">🎰 MEME FEVER SLOT 🎰</div>
+        <div style="font-size:0.9rem; font-weight:900; color:#ffd32a; letter-spacing:2px;">🎰 MEME FEVER SLOT 🎰</div>
         <div class="slot-reels-row">
-          <div id="slot-reel-1" class="slot-reel">❓</div>
-          <div id="slot-reel-2" class="slot-reel">❓</div>
-          <div id="slot-reel-3" class="slot-reel">❓</div>
+          <div id="slot-reel-1" class="slot-reel spinning">7</div>
+          <div id="slot-reel-2" class="slot-reel spinning">7</div>
+          <div id="slot-reel-3" class="slot-reel spinning">7</div>
         </div>
-        <div id="slot-main-text" style="font-size:1.35rem; font-weight:900; color:#fff; text-shadow:0 0 10px #ff4757;">目押し中...</div>
+        <div id="slot-result-banner" style="font-size:1.3rem; font-weight:900; color:#fff; min-height:36px;">
+          リーチ！！狙え！！
+        </div>
       </div>
     </div>
 
-    <!-- パターン5：炎上万バズ通知ラッシュ -->
-    <div id="cutin-buzz" class="cutin-pattern-box">
-      <div id="buzz-storm-container" class="buzz-storm-container"></div>
-      <div id="buzz-main-text" class="pachi-main-text" style="z-index:20;">🔥 トレンド1位!! 🔥<br>万バズUR確定!!</div>
+    <!-- 演出4: ネットミーム風・大炎上トレンド1位演出 -->
+    <div id="scene-trend" class="effect-scene trend-bg">
+      <div id="danmaku-layer" class="danmaku-layer"></div>
+      <div class="trend-news-card">
+        <span class="trend-rank-badge">🔥 日本のトレンド 1位</span>
+        <div id="trend-hashtag" style="font-size:1.45rem; font-weight:900; color:#fff; margin-bottom:6px;">
+          #神引き脳汁大炎上
+        </div>
+        <div id="trend-subtext" style="font-size:0.9rem; color:#8899a6;">
+          114,514件のポスト・超激レア出現でサーバーが落ちかけています！
+        </div>
+      </div>
     </div>
+
+    <!-- 演出5: 宇宙ビッグバン・GOD降臨演出 -->
+    <div id="scene-bigbang" class="effect-scene space-bg">
+      <div id="blackhole-core" class="blackhole-core"></div>
+      <div id="supernova-burst" class="supernova-burst">
+        <div style="font-size:4rem; margin-bottom:6px;">🌌✨🪐</div>
+        <div id="bigbang-main-text" class="pachi-main-text god-text">
+          BIG BANG!!<br>宇宙創造 GOD 降臨!!
+        </div>
+      </div>
+    </div>
+
+    <!-- 演出6: 突発ブラックアウト（プチュン暗転）演出 -->
+    <div id="scene-blackout" class="effect-scene blackout-bg">
+      <div id="puchun-line" class="puchun-line"></div>
+      <div id="blackout-reveal-box" class="blackout-reveal-box">
+        <div style="font-size:1.2rem; color:#aaa; letter-spacing:4px; margin-bottom:8px;">……プチュン。</div>
+        <div id="blackout-main-text" class="pachi-main-text">
+          暗転からの衝撃!!<br>超激熱 UR 確定!!
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- パック収録カード一覧モーダル -->
