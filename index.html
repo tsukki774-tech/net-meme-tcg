@@ -168,13 +168,19 @@
     }
     .pack-tearing-anim { animation: pack-tear-shake 0.7s ease-in-out; }
 
-    /* パチンコ風・激アツ脳汁演出 */
+    /* ================= 激アツ確定演出オーバーレイ群（全5パターン） ================= */
     #pachinko-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: #000; z-index: 2500; display: none;
       flex-direction: column; align-items: center; justify-content: center;
       overflow: hidden;
     }
+    .cutin-pattern-box {
+      position: relative; width: 100%; height: 100%;
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+    }
+
+    /* パターン1：パトランプ脳汁演出 */
     .pachi-sunburst {
       position: absolute; width: 220vmax; height: 220vmax;
       background: repeating-conic-gradient(from 0deg, rgba(255,71,87,0.45) 0deg 10deg, transparent 10deg 20deg);
@@ -225,6 +231,104 @@
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       filter: drop-shadow(0 0 18px rgba(255,255,255,0.95));
     }
+
+    /* パターン2：雷鳴＆画面クラック演出 */
+    .lightning-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(circle, #00d2ff 0%, #0984e3 35%, #050510 85%);
+      animation: lightning-strobe 0.25s infinite alternate;
+    }
+    .lightning-bg.god-mode {
+      background: radial-gradient(circle, #ffffff 0%, #a55eea 35%, #ff4757 70%, #050510 100%);
+    }
+    @keyframes lightning-strobe {
+      0% { opacity: 0.65; }
+      100% { opacity: 1; }
+    }
+    .lightning-bolts {
+      position: relative; z-index: 6; font-size: 5rem;
+      filter: drop-shadow(0 0 30px #fff) drop-shadow(0 0 50px #00d2ff);
+      animation: bolt-strike 0.35s ease-out;
+    }
+    @keyframes bolt-strike {
+      0% { transform: translateY(-120px) scale(1.6); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .crack-line {
+      position: absolute; width: 140%; height: 4px; background: #fff;
+      box-shadow: 0 0 15px #00d2ff, 0 0 30px #fff; z-index: 4;
+    }
+
+    /* パターン3：プチュン・ブラックアウト（フリーズ）演出 */
+    .blackout-stage {
+      position: absolute; inset: 0; background: #000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 10;
+    }
+    .puchun-dot {
+      width: 100%; height: 4px; background: #fff; box-shadow: 0 0 25px #fff;
+      animation: puchun-shrink 0.45s ease-in forwards;
+    }
+    @keyframes puchun-shrink {
+      0% { transform: scaleY(60) scaleX(1); opacity: 1; }
+      70% { transform: scaleY(1) scaleX(1); opacity: 1; }
+      100% { transform: scaleY(0) scaleX(0); opacity: 0; }
+    }
+    .freeze-reveal-box {
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; z-index: 12; padding: 20px;
+    }
+    .freeze-reveal-box.active {
+      display: flex;
+      animation: text-slam 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    /* パターン4：777 ネットミームスロット演出 */
+    .slot-machine-frame {
+      position: relative; z-index: 8;
+      background: linear-gradient(180deg, #2c2c38, #14141a);
+      border: 4px solid #ffd32a; border-radius: 18px;
+      padding: 20px 18px; box-shadow: 0 0 35px rgba(255, 211, 42, 0.8);
+      text-align: center; width: 90%; max-width: 360px;
+    }
+    .slot-reels-row {
+      display: flex; justify-content: center; gap: 10px; margin: 14px 0;
+    }
+    .slot-reel {
+      width: 82px; height: 96px; background: #fff; color: #ff4757;
+      border: 3px solid #333; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.1rem; font-weight: 900;
+      box-shadow: inset 0 6px 12px rgba(0,0,0,0.35);
+    }
+    .slot-reel.locked {
+      background: linear-gradient(180deg, #fff6cc, #ffe066);
+      border-color: #ff4757;
+      animation: reel-lock-pop 0.25s ease-out;
+    }
+    @keyframes reel-lock-pop {
+      0% { transform: scale(1.25); }
+      100% { transform: scale(1); }
+    }
+
+    /* パターン5：炎上大バズリ・通知ラッシュ演出 */
+    .buzz-storm-container {
+      position: absolute; inset: 0;
+      background: radial-gradient(circle, #4a0e17 0%, #120508 100%);
+      overflow: hidden;
+    }
+    .buzz-toast-card {
+      position: absolute; background: #1e242b; border: 2px solid #00d2ff;
+      border-radius: 12px; padding: 8px 14px; color: #fff;
+      font-weight: bold; font-size: 0.85rem; white-space: nowrap;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.8);
+      animation: toast-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes toast-pop {
+      0% { transform: scale(0.3); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
     @keyframes text-slam {
       0% { transform: scale(3.2); opacity: 0; }
       70% { transform: scale(0.92); opacity: 1; }
@@ -552,6 +656,17 @@
         </div>
       </div>
 
+      <div class="admin-section">
+        <h4>🎬 確定演出プレビュー（即再生テスト）</h4>
+        <div class="admin-btn-grid">
+          <button class="admin-btn" data-test-cutin="patlamp">🚨 パトランプ脳汁</button>
+          <button class="admin-btn" data-test-cutin="lightning">⚡ 雷鳴クラック</button>
+          <button class="admin-btn" data-test-cutin="blackout">🖤 プチュンフリーズ</button>
+          <button class="admin-btn" data-test-cutin="slot">🎰 777スロット</button>
+          <button class="admin-btn" data-test-cutin="buzz" style="grid-column: span 2;">🔥 炎上万バズ通知ラッシュ</button>
+        </div>
+      </div>
+
       <div class="admin-section" style="margin-bottom:0;">
         <h4>⚠️ システム操作</h4>
         <button id="admin-reset-all" class="admin-btn danger" style="width:100%;">セーブデータを完全初期化</button>
@@ -622,13 +737,56 @@
     </div>
   </div>
 
-  <!-- パチンコ風・激アツ脳汁演出オーバーレイ -->
+  <!-- パチンコ＆カオス風・激アツ確定演出オーバーレイ（5種切り替え対応） -->
   <div id="pachinko-overlay">
-    <div id="pachi-sunburst" class="pachi-sunburst"></div>
-    <div class="patlamp-box">🚨</div>
-    <div class="pachi-warning-strip">⚠️ 激アツ確定!! WARNING!! 激アツ確定!! ⚠️</div>
-    <div id="pachi-main-text" class="pachi-main-text">キュインキュイン！<br>UR以上確定!!</div>
-    <div class="pachi-warning-strip">⚠️ 脳汁注意!! FEVER!! 脳汁注意!! ⚠️</div>
+    <!-- パターン1：パトランプ脳汁 -->
+    <div id="cutin-patlamp" class="cutin-pattern-box">
+      <div id="pachi-sunburst" class="pachi-sunburst"></div>
+      <div class="patlamp-box">🚨</div>
+      <div class="pachi-warning-strip">⚠️ 激アツ確定!! WARNING!! 激アツ確定!! ⚠️</div>
+      <div id="pachi-main-text" class="pachi-main-text">キュインキュイン！<br>UR以上確定!!</div>
+      <div class="pachi-warning-strip">⚠️ 脳汁注意!! FEVER!! 脳汁注意!! ⚠️</div>
+    </div>
+
+    <!-- パターン2：雷鳴＆画面クラック -->
+    <div id="cutin-lightning" class="cutin-pattern-box">
+      <div id="lightning-bg" class="lightning-bg"></div>
+      <div class="crack-line" style="transform: rotate(22deg); top: 32%;"></div>
+      <div class="crack-line" style="transform: rotate(-18deg); top: 68%;"></div>
+      <div class="lightning-bolts">⚡🌩️⚡</div>
+      <div id="lightning-main-text" class="pachi-main-text">稲妻昇格!!<br>UR以上確定!!</div>
+    </div>
+
+    <!-- パターン3：プチュン・ブラックアウト -->
+    <div id="cutin-blackout" class="cutin-pattern-box">
+      <div class="blackout-stage">
+        <div id="puchun-dot" class="puchun-dot"></div>
+        <div id="freeze-reveal-box" class="freeze-reveal-box">
+          <div style="font-size:3.5rem; margin-bottom:10px;">✨👑✨</div>
+          <div id="freeze-main-text" class="pachi-main-text">……プチュン。<br>フリーズUR確定!!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- パターン4：777スロット -->
+    <div id="cutin-slot" class="cutin-pattern-box">
+      <div class="pachi-sunburst"></div>
+      <div class="slot-machine-frame">
+        <div style="color:#ffd32a; font-weight:900; font-size:1rem;">🎰 MEME FEVER SLOT 🎰</div>
+        <div class="slot-reels-row">
+          <div id="slot-reel-1" class="slot-reel">❓</div>
+          <div id="slot-reel-2" class="slot-reel">❓</div>
+          <div id="slot-reel-3" class="slot-reel">❓</div>
+        </div>
+        <div id="slot-main-text" style="font-size:1.35rem; font-weight:900; color:#fff; text-shadow:0 0 10px #ff4757;">目押し中...</div>
+      </div>
+    </div>
+
+    <!-- パターン5：炎上万バズ通知ラッシュ -->
+    <div id="cutin-buzz" class="cutin-pattern-box">
+      <div id="buzz-storm-container" class="buzz-storm-container"></div>
+      <div id="buzz-main-text" class="pachi-main-text" style="z-index:20;">🔥 トレンド1位!! 🔥<br>万バズUR確定!!</div>
+    </div>
   </div>
 
   <!-- パック収録カード一覧モーダル -->
