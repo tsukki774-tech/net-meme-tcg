@@ -510,7 +510,6 @@
     grid.innerHTML = "";
     packCards.forEach(function(card) {
       var owned = userData.collection[card.id] || 0;
-      // onClickをnullにするとタップで即詳細が開く
       var el = createCardElement(card, null, {});
       var badge = document.createElement("div");
       badge.className = owned > 0 ? "owned-badge" : "owned-badge unowned";
@@ -680,7 +679,7 @@
       visual.classList.remove("pack-tearing-anim");
 
       if (data.maxRarity === "UR" || data.maxRarity === "GOD") {
-        triggerPachinkoCutin(data.maxRarity, function() {
+        triggerSpecialCutin(data.maxRarity, function() {
           revealCardsSequence(data);
         });
       } else {
@@ -689,28 +688,245 @@
     }, 650);
   }
 
-  function triggerPachinkoCutin(rarity, onComplete) {
-    var overlay = document.getElementById("pachinko-overlay");
-    var burst = document.getElementById("pachi-sunburst");
-    var text = document.getElementById("pachi-main-text");
-
-    overlay.classList.add("quake-anim");
+  // =========================================================================
+  // 激アツ演出ルーレット（全6パターン：パチンコ / 画面クラッシュ / 777スロット / トレンド炎上 / 宇宙ビッグバン / プチュン暗転）
+  // =========================================================================
+  function pickCutinType(rarity) {
+    var r = Math.random() * 100;
     if (rarity === "GOD") {
-      burst.className = "pachi-sunburst god-mode";
-      text.className = "pachi-main-text god-text";
-      text.innerHTML = "🌈 脳汁確定!! 🌈<br>超激レア GOD 降臨!!";
+      // GOD時：ビッグバン(35%) / 暗転(20%) / 777(15%) / クラッシュ(10%) / トレンド(10%) / パチンコ(10%)
+      if (r < 35) return "bigbang";
+      if (r < 55) return "blackout";
+      if (r < 70) return "slot";
+      if (r < 80) return "crash";
+      if (r < 90) return "trend";
+      return "pachinko";
     } else {
-      burst.className = "pachi-sunburst";
-      text.className = "pachi-main-text";
-      text.innerHTML = "🚨 キュインキュイン!! 🚨<br>激アツ UR 確定!!";
+      // UR時：パチンコ(22%) / クラッシュ(20%) / 777(20%) / トレンド(18%) / 暗転(15%) / ビッグバン(5%)
+      if (r < 22) return "pachinko";
+      if (r < 42) return "crash";
+      if (r < 62) return "slot";
+      if (r < 80) return "trend";
+      if (r < 95) return "blackout";
+      return "bigbang";
     }
+  }
 
+  function triggerSpecialCutin(rarity, onComplete) {
+    var overlay = document.getElementById("pachinko-overlay");
+    var scenes = ["scene-pachinko", "scene-crash", "scene-slot", "scene-trend", "scene-bigbang", "scene-blackout"];
+    scenes.forEach(function(id) {
+      document.getElementById(id).classList.remove("active");
+    });
+    overlay.classList.remove("quake-anim");
     overlay.style.display = "flex";
-    setTimeout(function() {
-      overlay.classList.remove("quake-anim");
-      overlay.style.display = "none";
-      onComplete();
-    }, rarity === "GOD" ? 2100 : 1600);
+
+    var isGod = (rarity === "GOD");
+    var type = pickCutinType(rarity);
+
+    if (type === "pachinko") {
+      // 1. 🚨 定番パチンコ・キュイン演出
+      var sc = document.getElementById("scene-pachinko");
+      var burst = document.getElementById("pachi-sunburst");
+      var text = document.getElementById("pachi-main-text");
+      sc.classList.add("active");
+      overlay.classList.add("quake-anim");
+
+      if (isGod) {
+        burst.className = "pachi-sunburst god-mode";
+        text.className = "pachi-main-text god-text";
+        text.innerHTML = "🌈 脳汁確定!! 🌈<br>超激レア GOD 降臨!!";
+      } else {
+        burst.className = "pachi-sunburst";
+        text.className = "pachi-main-text";
+        text.innerHTML = "🚨 キュインキュイン!! 🚨<br>激アツ UR 確定!!";
+      }
+
+      setTimeout(function() {
+        overlay.classList.remove("quake-anim");
+        overlay.style.display = "none";
+        onComplete();
+      }, isGod ? 2100 : 1700);
+
+    } else if (type === "crash") {
+      // 2. ⚡ 画面クラッシュ＆逆転復活演出
+      var scCrash = document.getElementById("scene-crash");
+      var crackSvg = document.getElementById("crash-crack-svg");
+      var fakeBox = document.getElementById("crash-fake-box");
+      var reviveBox = document.getElementById("crash-revive-box");
+      var reviveText = document.getElementById("crash-revive-text");
+
+      scCrash.className = "effect-scene crash-bg active";
+      crackSvg.classList.remove("show");
+      fakeBox.style.display = "block";
+      reviveBox.style.display = "none";
+
+      setTimeout(function() {
+        // 画面ひび割れ＆逆転！
+        overlay.classList.add("quake-anim");
+        scCrash.classList.add("revived");
+        crackSvg.classList.add("show");
+        fakeBox.style.display = "none";
+        reviveBox.style.display = "flex";
+        reviveText.className = isGod ? "pachi-main-text god-text" : "pachi-main-text";
+        reviveText.innerHTML = isGod
+          ? "バグ発生！限界突破！！<br>🌈 超神レア GOD 昇格!! 🌈"
+          : "バグ発生！昇格！！<br>🚨 激アツ UR 逆転確定!! 🚨";
+      }, 850);
+
+      setTimeout(function() {
+        overlay.classList.remove("quake-anim");
+        overlay.style.display = "none";
+        onComplete();
+      }, 2350);
+
+    } else if (type === "slot") {
+      // 3. 🎰 777 スロット大当たり演出
+      var scSlot = document.getElementById("scene-slot");
+      var r1 = document.getElementById("slot-reel-1");
+      var r2 = document.getElementById("slot-reel-2");
+      var r3 = document.getElementById("slot-reel-3");
+      var banner = document.getElementById("slot-result-banner");
+      var winSymbol = isGod ? "🌈" : "7";
+      var dummyIcons = ["🍒", "🔔", "💎", "🔥", "7", "🌈"];
+
+      scSlot.classList.add("active");
+      [r1, r2, r3].forEach(function(r) {
+        r.className = "slot-reel spinning";
+      });
+      banner.style.color = "#fff";
+      banner.innerText = "リーチ！！狙え！！";
+
+      var spinTimer = setInterval(function() {
+        [r1, r2, r3].forEach(function(r) {
+          if (r.classList.contains("spinning")) {
+            r.innerText = dummyIcons[Math.floor(Math.random() * dummyIcons.length)];
+          }
+        });
+      }, 75);
+
+      setTimeout(function() {
+        r1.className = "slot-reel stopped-win";
+        r1.innerText = winSymbol;
+      }, 500);
+
+      setTimeout(function() {
+        r2.className = "slot-reel stopped-win";
+        r2.innerText = winSymbol;
+        banner.style.color = "#ffd32a";
+        banner.innerText = "⚡ 激アツ テンパイ！！ ⚡";
+      }, 950);
+
+      setTimeout(function() {
+        clearInterval(spinTimer);
+        r3.className = "slot-reel stopped-win";
+        r3.innerText = winSymbol;
+        overlay.classList.add("quake-anim");
+        banner.style.color = isGod ? "#00d2ff" : "#ff4757";
+        banner.innerHTML = isGod ? "🌈 GOD揃い大当たり!! 🌈" : "🎰 777 FEVER!! UR確定!! 🎰";
+      }, 1450);
+
+      setTimeout(function() {
+        clearInterval(spinTimer);
+        overlay.classList.remove("quake-anim");
+        overlay.style.display = "none";
+        onComplete();
+      }, 2450);
+
+    } else if (type === "trend") {
+      // 4. 💻 ネットミーム風・大炎上トレンド1位演出
+      var scTrend = document.getElementById("scene-trend");
+      var danmakuLayer = document.getElementById("danmaku-layer");
+      var hashtagEl = document.getElementById("trend-hashtag");
+      var subtextEl = document.getElementById("trend-subtext");
+
+      scTrend.classList.add("active");
+      overlay.classList.add("quake-anim");
+      danmakuLayer.innerHTML = "";
+
+      hashtagEl.innerText = isGod ? "#GOD降臨でサーバー爆発" : "#神引き脳汁大炎上";
+      subtextEl.innerText = isGod
+        ? "1,145,140件のポスト・伝説のGODレア出現に全SNSが騒然！！"
+        : "114,514件のポスト・激アツUR引き当てでタイムラインが大炎上中！！";
+
+      var words = isGod
+        ? ["GOD降臨ｗｗｗ", "うおおおおお！！", "優勝すぎる", "脳汁ドバドバ", "神引きｷﾀ━━━━(ﾟ∀ﾟ)━━━━!!", "草不可避", "運営やりすぎｗ", "伝説の瞬間"]
+        : ["神引きｗｗｗ", "脳汁ヤバすぎ", "優勝！！", "草ｗｗｗｗｗ", "URｷﾀ━━━━(ﾟ∀ﾟ)━━━━!!", "勝ち組確定", "強すぎて草", "大炎上トレンド1位"];
+      var colors = ["#fff", "#ffd32a", "#00d2ff", "#ff4757", "#2ed573"];
+
+      for (var d = 0; d < 24; d++) {
+        var span = document.createElement("span");
+        span.className = "danmaku-item";
+        span.innerText = words[d % words.length];
+        span.style.top = (5 + Math.random() * 88) + "%";
+        span.style.fontSize = (1.0 + Math.random() * 1.1) + "rem";
+        span.style.color = colors[d % colors.length];
+        span.style.animationDuration = (1.1 + Math.random() * 0.9) + "s";
+        span.style.animationDelay = (Math.random() * 0.6) + "s";
+        danmakuLayer.appendChild(span);
+      }
+
+      setTimeout(function() {
+        overlay.classList.remove("quake-anim");
+        overlay.style.display = "none";
+        onComplete();
+      }, 2100);
+
+    } else if (type === "bigbang") {
+      // 5. 🌌 宇宙ビッグバン・GOD降臨演出
+      var scSpace = document.getElementById("scene-bigbang");
+      var bhCore = document.getElementById("blackhole-core");
+      var novaBurst = document.getElementById("supernova-burst");
+      var bbText = document.getElementById("bigbang-main-text");
+
+      scSpace.classList.add("active");
+      bhCore.style.display = "block";
+      novaBurst.style.display = "none";
+
+      setTimeout(function() {
+        bhCore.style.display = "none";
+        novaBurst.style.display = "flex";
+        overlay.classList.add("quake-anim");
+        bbText.className = isGod ? "pachi-main-text god-text" : "pachi-main-text";
+        bbText.innerHTML = isGod
+          ? "🌌 BIG BANG!! 🌌<br>宇宙創造 GOD 降臨!!"
+          : "💥 SUPERNOVA!! 💥<br>超新星爆発 UR 降臨!!";
+      }, 1100);
+
+      setTimeout(function() {
+        overlay.classList.remove("quake-anim");
+        overlay.style.display = "none";
+        onComplete();
+      }, 2400);
+
+    } else {
+      // 6. 🌑 突発ブラックアウト（プチュン暗転）演出
+      var scBlack = document.getElementById("scene-blackout");
+      var puchunLine = document.getElementById("puchun-line");
+      var revealBox = document.getElementById("blackout-reveal-box");
+      var boText = document.getElementById("blackout-main-text");
+
+      scBlack.classList.add("active");
+      puchunLine.style.display = "block";
+      revealBox.style.display = "none";
+
+      // 暗転の静寂のあと、一気に光と文字が弾ける！
+      setTimeout(function() {
+        puchunLine.style.display = "none";
+        revealBox.style.display = "flex";
+        overlay.classList.add("quake-anim");
+        boText.className = isGod ? "pachi-main-text god-text" : "pachi-main-text";
+        boText.innerHTML = isGod
+          ? "🌑 暗転フリーズ降臨!! 🌑<br>🌈 最高峰 GOD 確定!! 🌈"
+          : "🌑 暗転からの衝撃!! 🌑<br>🚨 超激熱 UR 確定!! 🚨";
+      }, 950);
+
+      setTimeout(function() {
+        overlay.classList.remove("quake-anim");
+        overlay.style.display = "none";
+        onComplete();
+      }, 2350);
+    }
   }
 
   function revealCardsSequence(data) {
@@ -1316,7 +1532,6 @@
     var oppFieldEl = document.getElementById("opp-field");
     oppFieldEl.innerHTML = opp.field.length === 0 ? '<span class="empty-msg">相手の場にミームはいません</span>' : "";
     opp.field.forEach(function(c, idx) {
-      // 攻撃対象選択中なら攻撃、そうでなければタップでも詳細を見られるようにする
       var action = (!state.isInputLocked && state.selectedAttackerIndex !== null)
         ? function() { attackMeme(idx); }
         : null;
@@ -1349,7 +1564,6 @@
     if (flags.unplayable) classes.push("unplayable");
     div.className = classes.join(" ");
 
-    // タップ・長押し・右クリックで詳細表示する仕組み
     if (typeof onClick === "function") {
       var pressTimer = null;
       var longPressed = false;
@@ -1407,7 +1621,6 @@
         onClick(e);
       });
     } else {
-      // 閲覧専用カードはタップだけで即詳細を開く
       div.addEventListener("click", function() {
         showCardDetail(card);
       });
