@@ -161,7 +161,61 @@
     document.getElementById("display-player-name").innerText = userData.playerName || DEFAULT_PLAYER_NAME;
   }
 
-  // ================= カード詳細拡大モーダル =================
+  // ================= アップデートお知らせ機能 =================
+  var SEEN_VERSION_KEY = "netmeme_tcg_seen_version";
+
+  function updateNewsBadge() {
+    var badge = document.getElementById("home-news-badge");
+    if (!badge || typeof APP_VERSION === "undefined") return;
+    var seenVer = localStorage.getItem(SEEN_VERSION_KEY);
+    badge.style.display = (seenVer !== APP_VERSION) ? "inline-block" : "none";
+  }
+
+  function openNewsModal() {
+    var container = document.getElementById("news-list-scroll");
+    container.innerHTML = "";
+    if (typeof UPDATE_LOGS !== "undefined") {
+      UPDATE_LOGS.forEach(function(entry) {
+        var card = document.createElement("div");
+        card.className = "news-entry" + (entry.isLatest ? " latest" : "");
+        var itemsHtml = entry.items.map(function(it) {
+          return '<li><span class="news-tag" style="background:' + (it.color || "#00d2ff") + ';">' + it.tag + '</span><span>' + it.text + '</span></li>';
+        }).join("");
+        card.innerHTML =
+          '<div class="news-entry-header">' +
+            '<span class="news-ver-badge">' + entry.version + (entry.isLatest ? ' ✨NEW' : '') + '</span>' +
+            '<span style="font-size:0.75rem; color:#aaa;">' + entry.date + '</span>' +
+          '</div>' +
+          '<div class="news-entry-title">' + entry.title + '</div>' +
+          '<ul class="news-item-list">' + itemsHtml + '</ul>';
+        container.appendChild(card);
+      });
+    }
+    document.getElementById("news-modal").style.display = "flex";
+  }
+
+  function closeNewsModal() {
+    if (typeof APP_VERSION !== "undefined") {
+      localStorage.setItem(SEEN_VERSION_KEY, APP_VERSION);
+    }
+    updateNewsBadge();
+    document.getElementById("news-modal").style.display = "none";
+  }
+
+  document.getElementById("nav-news").addEventListener("click", openNewsModal);
+  document.getElementById("btn-close-news").addEventListener("click", closeNewsModal);
+  document.getElementById("btn-confirm-news").addEventListener("click", closeNewsModal);
+  document.getElementById("news-modal").addEventListener("click", function(e) {
+    if (e.target === this) closeNewsModal();
+  });
+
+  // 未読の新バージョンがある場合は起動時に自動ポップアップ
+  updateNewsBadge();
+  if (typeof APP_VERSION !== "undefined" && localStorage.getItem(SEEN_VERSION_KEY) !== APP_VERSION) {
+    openNewsModal();
+  }
+
+  // ================= カード詳細拡大モーダル ================= 
   function showCardDetail(card) {
     if (!card) return;
     var modal = document.getElementById("card-detail-modal");
