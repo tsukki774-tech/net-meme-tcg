@@ -1,6 +1,9 @@
 // game.js - メインゲームループ・UI・ミッション・セーブデータ・通信処理
 
 (function() {
+  // Firebase Realtime Database URL
+  var FIREBASE_DB_URL = "https://tcgnet-bf199-default-rtdb.firebaseio.com";
+
   var SAVE_KEY = "netmeme_tcg_save_v2";
   var DECK_SIZE = 40;
   var MAX_DECK_SLOTS = 5;
@@ -492,7 +495,10 @@
 
   document.getElementById("back-from-pack").addEventListener("click", function() { showScreen("home-screen"); });
   document.getElementById("back-from-deck").addEventListener("click", function() { showScreen("home-screen"); });
-  document.getElementById("back-from-setup").addEventListener("click", function() { showScreen("home-screen"); });
+  document.getElementById("back-from-setup").addEventListener("click", function() {
+    cancelRandomMatch();
+    showScreen("home-screen");
+  });
 
   // ================= パック開封ステージ =================
   document.getElementById("btn-open-pack").addEventListener("click", enterPackOpenStage);
@@ -791,6 +797,7 @@
     selectedAttackerIndex: null
   };
   var peer = null, conn = null, p1OnlineDeck = null, p2OnlineDeck = null, ROOM_PREFIX = "netmeme-tcg-v10-";
+  var myQueueKey = null, randomPollTimer = null;
 
   var effectCtx = {
     state: state,
@@ -865,8 +872,122 @@
     state.mode = "online"; p1OnlineDeck = myDeck;
     document.getElementById("step-mode").style.display = "none";
     document.getElementById("step-online").style.display = "block";
+    document.getElementById("random-waiting-box").style.display = "none";
+    document.getElementById("btn-random-match").disabled = false;
   });
 
+  // ================= Firebase連携・ランダムマッチ処理 =================
+  function cancelRandomMatch() {
+    clearInterval(randomPollTimer);
+    randomPollTimer = null;
+    if (myQueueKey) {
+      fetch(FIREBASE_DB_URL + "/match_queue/" + myQueueKey + ".json", { method: "DELETE" }).catch(function() {});
+      myQueueKey = null;
+    }
+    if (peer) {
+      peer.destroy();
+      peer = null;
+    }
+    document.getElementById("random-waiting-box").style.display = "none";
+    document.getElementById("btn-random-match").disabled = false;
+  }
+
+  document.getElementById("btn-cancel-random").addEventListener("click", cancelRandomMatch);
+
+  document.getElementById("btn-random-match").addEventListener("click", async function() {
+    document.getElementById("btn-random-match").disabled = true;
+    document.getElementById("random-waiting-box").style.display = "block";
+    document.getElementById("random-status-text").innerText = "ロビーを検索中...";
+
+    var myPeerId = ROOM_PREFIX + "rnd-" + Math.random().toString(36).substring(2, 10);
+    peer = new Peer(myPeerId);
+
+    peer.on("error", function(err) {
+      document.getElementById("random-status-text").innerText = "通信エラー: " + err.type;
+    });
+
+    peer.on("open", async function() {
+      try {
+        var res = await fetch(FIREBASE_DB_URL + "/match_queue.json");
+        var queue = await res.json();
+        var now = Date.now();
+        var targetKey = null;
+        var targetPeerId = null;
+
+        if (queue) {
+          var keys = Object.keys(queue);
+          for (var i = 0; i < keys.length; i++) {
+            var k = keys[i];
+            var entry = queue[k];
+            // 60秒以上前の古いデータは削除してスキップ
+            if (!entry || !entry.peerId || (now - entry.timestamp > 60000)) {
+              fetch(FIREBASE_DB_URL + "/match_queue/" + k + ".json", { method: "DELETE" }).catch(function() {});
+              continue;
+            }
+            if (entry.peerId !== myPeerId) {
+              targetKey = k;
+              targetPeerId = entry.peerId;
+              break;
+            }
+          }
+        }
+
+        if (targetKey && targetPeerId) {
+          // 待機中の相手を発見！キューから削除して接続する（自分がp2側）
+          document.getElementById("random-status-text").innerText = "対戦相手を発見！接続中...";
+          await fetch(FIREBASE_DB_URL + "/match_queue/" + targetKey + ".json", { method: "DELETE" });
+
+          conn = peer.connect(targetPeerId);
+          conn.on("open", function() {
+            state.myRole = "p2";
+            setupConnectionHandlers();
+            conn.send({ type: "SEND_DECK", deck: p1OnlineDeck, playerName: userData.playerName || DEFAULT_PLAYER_NAME });
+          });
+        } else {
+          // 誰もいないので自分が待機リストに登録して待つ（自分がp1ホスト側）
+          document.getElementById("random-status-text").innerText = "対戦相手を待っています...";
+          var postRes = await fetch(FIREBASE_DB_URL + "/match_queue.json", {
+            method: "POST",
+            body: JSON.stringify({ peerId: myPeerId, timestamp: Date.now() })
+          });
+          var postData = await postRes.json();
+          myQueueKey = postData.name;
+
+          // 待機中であることを維持するため15秒ごとにタイムスタンプ更新
+          randomPollTimer = setInterval(function() {
+            if (myQueueKey) {
+              fetch(FIREBASE_DB_URL + "/match_queue/" + myQueueKey + "/timestamp.json", {
+                method: "PUT",
+                body: JSON.stringify(Date.now())
+              }).catch(function() {});
+            }
+          }, 15000);
+
+          peer.on("connection", function(connection) {
+            clearInterval(randomPollTimer);
+            if (myQueueKey) {
+              fetch(FIREBASE_DB_URL + "/match_queue/" + myQueueKey + ".json", { method: "DELETE" }).catch(function() {});
+              myQueueKey = null;
+            }
+            conn = connection;
+            state.myRole = "p1";
+            setupConnectionHandlers();
+          });
+        }
+      } catch (e) {
+        document.getElementById("random-status-text").innerText = "サーバー接続に失敗しました（Firebaseのルール設定を確認してください）";
+      }
+    });
+  });
+
+  // ページを閉じた時に待機リストが残っていたら消す
+  window.addEventListener("beforeunload", function() {
+    if (myQueueKey) {
+      navigator.sendBeacon(FIREBASE_DB_URL + "/match_queue/" + myQueueKey + ".json", "");
+    }
+  });
+
+  // ================= 従来の合言葉対戦処理 =================
   document.getElementById("btn-create-room").addEventListener("click", function() {
     var code = Math.floor(1000 + Math.random() * 9000).toString();
     document.getElementById("btn-create-room").disabled = true;
