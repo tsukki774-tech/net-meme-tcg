@@ -201,6 +201,7 @@ const CPU_BOSSES = {
     startHp: 22,
     introQuote: "「半年ROMれ！古き良きインターネットの恐ろしさを教えてやるお！」",
     winQuote: "「ぬるぽ…ガッ……時代は令和に移ったというのか…」",
+    passiveDesc: "【ボス特性】深夜の勢い：ターン開始時、場の2chミーム1体の鮮度+1",
     deckLabel: "伝説の2ch＆ニコニコ黄金期デッキ",
     ids: [
       "mona","mona","mona","giko","giko","giko","yaruo","yaruo","yaruo",
@@ -218,6 +219,7 @@ const CPU_BOSSES = {
     startHp: 22,
     introQuote: "「これって炎上案件ですよね？スクショ撮って拡散しますね〜ｗ」",
     winQuote: "「現在コメント欄を閉鎖しております。お騒がせしました…」",
+    passiveDesc: "【ボス特性】トレンド入り：ターン開始時、50%で相手本体に1ダメ",
     deckLabel: "令和バズ＆X大炎上デッキ",
     ids: [
       "neko","neko","neko","nekokoubun","nekokoubun","chiikawa","chiikawa",
@@ -236,6 +238,7 @@ const CPU_BOSSES = {
     startHp: 25,
     introQuote: "「いいよ！来いよ！24歳、学生です。早速レスバしようや！」",
     winQuote: "「やりますねぇ！お前の論破力、王道を征く強さだったぞ…」",
+    passiveDesc: "【ボス特性】迫真の威圧：ターン開始時、場の味方が2体以上なら1体の攻撃+1",
     deckLabel: "迫真・野獣＆なんJ猛虎魂デッキ",
     ids: [
       "kmr","kmr","kmr","mur","mur","mur","tono","tono","tono",
@@ -253,6 +256,7 @@ const CPU_BOSSES = {
     startHp: 30,
     introQuote: "「警告：一般ユーザーのアクセス権限を超過しています。BANを実行します。」",
     winQuote: "「503 Service Unavailable... まさか神を超えると……」",
+    passiveDesc: "【ボス特性】運営権限：毎ターン自動BOT召喚＋4T以降手札補充＋5Tにギガ加速",
     deckLabel: "神域・GOD全種＆壊れカードデッキ",
     ids: [
       "god_internet","god_internet","god_moderator","god_moderator","god_deepweb","god_deepweb",

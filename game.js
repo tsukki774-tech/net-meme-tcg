@@ -1167,6 +1167,7 @@
           '<span class="boss-diff">' + boss.difficulty + '</span>' +
         '</div>' +
         '<div style="font-size:0.78rem; color:#ddd;">' + boss.introQuote + '</div>' +
+        (boss.passiveDesc ? '<div style="font-size:0.75rem; color:#00d2ff; font-weight:bold;">' + boss.passiveDesc + '</div>' : '') +
         '<div class="boss-sub-row">' +
           '<span>使用デッキ: ' + boss.deckLabel + '（初期HP: ' + boss.startHp + '）</span>' +
           '<span class="boss-reward-pill">🏆 勝利報酬: ' + boss.reward + ' バズP</span>' +
@@ -1417,6 +1418,9 @@
     for (var i = 0; i < 4; i++) { drawCard("p1"); drawCard("p2"); }
     state.isInputLocked = (state.mode === "online" && state.myRole !== "p1");
     log("対戦開始！");
+    if (state.currentBoss && state.currentBoss.id === "god_admin") {
+      triggerBossPassive(state.currentBoss);
+    }
     if (bossQuote) {
       log("👾 " + p2Name + "：" + bossQuote);
       showCutin("⚔️ VS " + p2Name + "\n" + bossQuote + "\n\n" + state.p1.name + "のターン", 1800);
@@ -1595,6 +1599,60 @@
     p.field.forEach(function(m) { m.isBuzz = false; m.freshness--; m.canAttack = true; });
     p.field.filter(function(m) { return m.freshness <= 0; }).forEach(function(m) { log("⌛ 「" + m.name + "」は飽きられてオワコン化した..."); });
     p.field = p.field.filter(function(m) { return m.freshness > 0; });
+
+    // ボスCPU専用ターン開始時パッシブ
+    if (who === "p2" && state.mode === "cpu" && state.currentBoss) {
+      triggerBossPassive(state.currentBoss);
+    }
+  }
+
+  function triggerBossPassive(boss) {
+    var cpu = state.p2;
+    if (boss.id === "retro_2ch") {
+      var targets2ch = cpu.field.filter(function(m) { return m.era === "2ch"; });
+      if (targets2ch.length > 0) {
+        var picked = targets2ch[Math.floor(Math.random() * targets2ch.length)];
+        picked.freshness += 1;
+        log("👾 【ボス特性：深夜の勢い】「" + picked.name + "」の鮮度が+1された！");
+      }
+    } else if (boss.id === "reiwa_fire") {
+      if (Math.random() < 0.5) {
+        state.p1.hp -= 1;
+        log("👾 【ボス特性：トレンド入り】通知スパムであなたのメンタルに1ダメージ！");
+      }
+    } else if (boss.id === "yaju_alliance") {
+      if (cpu.field.length >= 2) {
+        var buffTarget = cpu.field[Math.floor(Math.random() * cpu.field.length)];
+        buffTarget.atk += 1;
+        log("👾 【ボス特性：迫真の威圧】「" + buffTarget.name + "」の攻撃力が+1された！");
+      }
+    } else if (boss.id === "god_admin") {
+      // ① 場に空きがあれば自動BOT（インプレゾンビ）展開
+      if (cpu.field.length < 3) {
+        var zombieTpl = ALL_CARDS.find(function(c) { return c.id === "zombie"; });
+        if (zombieTpl) {
+          var bot = JSON.parse(JSON.stringify(zombieTpl));
+          bot.canAttack = true;
+          bot.isBuzz = false;
+          cpu.field.push(bot);
+          log("🛠️ 【運営権限：自動BOT展開】「インプレゾンビ」がタイムラインに湧いた！");
+        }
+      }
+      // ② ターン4以降、手札が3枚以下なら1枚追加ドロー
+      if (state.turn >= 4 && cpu.hand.length <= 3) {
+        drawCard("p2");
+        log("🛠️ 【運営権限：不正ドロー】運営が手札を1枚補充した！");
+      }
+      // ③ ターン5に1度だけサーバー増強（最大ギガ+1）
+      if (state.turn === 5 && !cpu.adminBoosted) {
+        cpu.adminBoosted = true;
+        if (cpu.maxGiga < 10) {
+          cpu.maxGiga++;
+          cpu.giga = cpu.maxGiga;
+        }
+        log("🛠️ 【運営権限：サーバー増強】最大ギガが加速した！");
+      }
+    }
   }
 
   function cpuAI() {
