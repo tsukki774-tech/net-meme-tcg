@@ -4,6 +4,7 @@
   var SAVE_KEY = "netmeme_tcg_save_v2";
   var DECK_SIZE = 40;
   var MAX_DECK_SLOTS = 5;
+  var DEFAULT_PLAYER_NAME = "名無しのレスバ民";
   var selectedPackNo = 1;
   var currentDeckSlot = 0;
   var editingDeckCards = [];
@@ -49,6 +50,9 @@
     if (raw) {
       try {
         var parsed = JSON.parse(raw);
+        if (!parsed.playerName) {
+          parsed.playerName = DEFAULT_PLAYER_NAME;
+        }
         if (!Array.isArray(parsed.decks)) {
           parsed.decks = createDefaultDecks(Array.isArray(parsed.myDeck) ? parsed.myDeck : defaultDeck);
         }
@@ -62,6 +66,7 @@
       } catch (e) {}
     }
     return {
+      playerName: DEFAULT_PLAYER_NAME,
       points: 1500,
       collection: { mona: 3, giko: 3, yaruo: 3, numai: 3, kusa: 3, neko: 3, chiikawa: 3, ronpa: 2, ojisan: 2, kmr: 3, mur: 3, tono: 2, kirinuki: 3, zombie: 3, kagiaka: 2 },
       decks: createDefaultDecks(defaultDeck),
@@ -141,16 +146,34 @@
 
   function saveUserData() {
     localStorage.setItem(SAVE_KEY, JSON.stringify(userData));
-    updatePointsUI();
+    updateHeaderUI();
     updateMissionBadges();
   }
 
-  function updatePointsUI() {
+  function updateHeaderUI() {
     document.getElementById("user-points").innerText = userData.points;
+    document.getElementById("display-player-name").innerText = userData.playerName || DEFAULT_PLAYER_NAME;
   }
 
+  // ================= プレイヤー名変更モーダル =================
+  document.getElementById("btn-edit-player-name").addEventListener("click", function() {
+    document.getElementById("player-name-input").value = userData.playerName || DEFAULT_PLAYER_NAME;
+    document.getElementById("name-edit-modal").style.display = "flex";
+  });
+
+  document.getElementById("btn-cancel-name").addEventListener("click", function() {
+    document.getElementById("name-edit-modal").style.display = "none";
+  });
+
+  document.getElementById("btn-save-name").addEventListener("click", function() {
+    var newName = document.getElementById("player-name-input").value.trim();
+    userData.playerName = newName || DEFAULT_PLAYER_NAME;
+    saveUserData();
+    document.getElementById("name-edit-modal").style.display = "none";
+  });
+
   checkDailyReset();
-  updatePointsUI();
+  updateHeaderUI();
   updateMissionBadges();
 
   // ================= ミッション画面の描画・受け取り処理 =================
@@ -769,7 +792,6 @@
   };
   var peer = null, conn = null, p1OnlineDeck = null, p2OnlineDeck = null, ROOM_PREFIX = "netmeme-tcg-v10-";
 
-  // effects.js に渡すコンテキストオブジェクト
   var effectCtx = {
     state: state,
     drawCard: drawCard,
@@ -862,7 +884,11 @@
     peer = new Peer();
     peer.on("open", function() {
       conn = peer.connect(ROOM_PREFIX + code);
-      conn.on("open", function() { state.myRole = "p2"; setupConnectionHandlers(); conn.send({ type: "SEND_DECK", deck: p1OnlineDeck }); });
+      conn.on("open", function() {
+        state.myRole = "p2";
+        setupConnectionHandlers();
+        conn.send({ type: "SEND_DECK", deck: p1OnlineDeck, playerName: userData.playerName || DEFAULT_PLAYER_NAME });
+      });
     });
     peer.on("error", function() { document.getElementById("join-status").innerText = "部屋が見つかりません。"; });
   });
@@ -870,13 +896,14 @@
   function setupConnectionHandlers() {
     conn.on("data", function(data) {
       if (data.type === "SEND_DECK" && state.myRole === "p1") {
-        p2OnlineDeck = data.deck; startMatch(p1OnlineDeck, p2OnlineDeck, "プレイヤー2");
+        p2OnlineDeck = data.deck;
+        startMatch(p1OnlineDeck, p2OnlineDeck, data.playerName || "プレイヤー2");
         conn.send({ type: "START_MATCH", p1: state.p1, p2: state.p2 });
       } else if (data.type === "START_MATCH") {
         state.p1 = data.p1; state.p2 = data.p2; state.turn = 1; state.activeSide = "p1";
         state.isInputLocked = (state.myRole !== "p1");
         addMissionStat("battles", 1);
-        showScreen("game-screen"); log("対戦開始！"); showCutin("⚔️ 対戦開始！\n先攻（プレイヤー1）のターン"); render();
+        showScreen("game-screen"); log("対戦開始！"); showCutin("⚔️ 対戦開始！\n先攻（" + state.p1.name + "）のターン"); render();
       } else if (data.type === "SYNC_STATE") {
         state.p1 = data.p1; state.p2 = data.p2; state.turn = data.turn; state.activeSide = data.activeSide;
         state.isInputLocked = (state.activeSide !== state.myRole);
@@ -895,8 +922,9 @@
 
   function startMatch(p1Deck, p2Deck, p2Name) {
     addMissionStat("battles", 1);
+    var myName = userData.playerName || DEFAULT_PLAYER_NAME;
     state.turn = 1; state.activeSide = "p1";
-    state.p1 = { name: "プレイヤー1", label: p1Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p1Deck.cards, hand: [], field: [] };
+    state.p1 = { name: myName, label: p1Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p1Deck.cards, hand: [], field: [] };
     state.p2 = { name: p2Name, label: p2Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p2Deck.cards, hand: [], field: [] };
     showScreen("game-screen"); document.getElementById("log").innerHTML = "";
     for (var i = 0; i < 4; i++) { drawCard("p1"); drawCard("p2"); }
@@ -1051,8 +1079,8 @@
     if (checkGameOver()) return;
     state.turn++; state.activeSide = "p1"; state.isInputLocked = false; processTurnStart("p1");
     var summary = actions.length > 0 ? "CPUは " + actions.join(" → ") + "！\n" : "CPUは何もしなかった。\n";
-    showCutin(summary + "🧑 あなたのターン（ターン " + state.turn + "）", 1400);
-    log("--- あなたのターン（ターン " + state.turn + "） ---"); render();
+    showCutin(summary + "🧑 " + state.p1.name + "のターン（ターン " + state.turn + "）", 1400);
+    log("--- " + state.p1.name + "のターン（ターン " + state.turn + "） ---"); render();
   }
 
   function checkGameOver() {
@@ -1076,7 +1104,7 @@
 
   function updateGuideBanner() {
     var banner = document.getElementById("guide-banner"), self = getViewSelf(), opp = getViewOpp();
-    if (state.isInputLocked) { banner.innerText = state.mode === "online" ? "⏳ 相手プレイヤーのターンです..." : "⏳ CPUのターンです..."; banner.style.borderColor = "#ff6b6b"; return; }
+    if (state.isInputLocked) { banner.innerText = state.mode === "online" ? "⏳ " + opp.name + "のターンです..." : "⏳ CPUのターンです..."; banner.style.borderColor = "#ff6b6b"; return; }
     banner.style.borderColor = "#00d2ff";
     if (state.selectedAttackerIndex !== null) {
       var attacker = self.field[state.selectedAttackerIndex];
@@ -1084,8 +1112,8 @@
       return;
     }
     var canPlayAny = self.hand.some(function(c) { return c.cost <= self.giga; }), canAttackAny = self.field.some(function(m) { return m.canAttack; });
-    if (canPlayAny && canAttackAny) banner.innerText = "💡 あなたのターン：手札（緑枠）を出すか、場のミーム（緑枠）で攻撃しよう！";
-    else if (canPlayAny) banner.innerText = "💡 あなたのターン：手札の緑枠カードをタップして投稿しよう！";
+    if (canPlayAny && canAttackAny) banner.innerText = "💡 " + self.name + "のターン：手札（緑枠）を出すか、場のミーム（緑枠）で攻撃しよう！";
+    else if (canPlayAny) banner.innerText = "💡 " + self.name + "のターン：手札の緑枠カードをタップして投稿しよう！";
     else if (canAttackAny) banner.innerText = "⚔️ 場の緑枠ミームをタップして攻撃しよう！";
     else banner.innerText = "✅ できる行動がありません。「⏭️ ターン終了」を押そう！";
   }
