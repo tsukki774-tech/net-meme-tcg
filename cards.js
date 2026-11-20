@@ -269,14 +269,25 @@ const CPU_BOSSES = {
   }
 };
 
-const APP_VERSION = "v1.4";
+const APP_VERSION = "v1.5";
 
 const UPDATE_LOGS = [
+  {
+    version: "v1.5",
+    date: "最新アップデート",
+    title: "パック開封＆激アツ演出に効果音（SE）を実装！",
+    isLatest: true,
+    items: [
+      { tag: "サウンド", color: "#ffd32a", text: "パックをスワイプで切り裂く音、カードめくり音、SR→UR/GOD昇格の雷撃音など全10種以上の効果音を実装！" },
+      { tag: "激アツ演出", color: "#ff4757", text: "パチンコ・キュイン音、画面クラッシュ音、777スロット回転＆揃い音、プチュン暗転音など全6演出がサウンド付きに進化！" },
+      { tag: "UI", color: "#00d2ff", text: "ホーム画面右上にサウンドON/OFF切替ボタンを追加しました。" }
+    ]
+  },
   {
     version: "v1.4",
     date: "最新アップデート",
     title: "強敵ボスCPU＆GOD召喚演出＆お知らせ機能実装！",
-    isLatest: true,
+    isLatest: false,
     items: [
       { tag: "新機能", color: "#00d2ff", text: "「CPU・ボスバトル」に5種類のテーマ別CPUを追加！裏ボス「インターネット運営・神」が降臨！" },
       { tag: "調整", color: "#2ed573", text: "各ボスに専用のターン開始時パッシブ特性（運営権限による自動BOT召喚など）を実装！" },

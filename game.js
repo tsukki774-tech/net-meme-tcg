@@ -602,6 +602,227 @@
     showScreen("home-screen");
   });
 
+  // ================= Web Audio API パック開封効果音エンジン =================
+  var SOUND_KEY = "netmeme_tcg_sound_on";
+  var isSoundEnabled = (localStorage.getItem(SOUND_KEY) !== "false");
+  var audioCtx = null;
+
+  function getAudioCtx() {
+    if (!isSoundEnabled) return null;
+    if (!audioCtx) {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) audioCtx = new Ctx();
+    }
+    if (audioCtx && audioCtx.state === "suspended") {
+      audioCtx.resume().catch(function() {});
+    }
+    return audioCtx;
+  }
+
+  function updateSoundBtnUI() {
+    var btn = document.getElementById("btn-toggle-sound");
+    if (!btn) return;
+    if (isSoundEnabled) {
+      btn.innerText = "🔊 音ON";
+      btn.style.borderColor = "#ffd32a";
+      btn.style.opacity = "1";
+    } else {
+      btn.innerText = "🔇 音OFF";
+      btn.style.borderColor = "#666";
+      btn.style.opacity = "0.7";
+    }
+  }
+
+  var btnSoundToggle = document.getElementById("btn-toggle-sound");
+  if (btnSoundToggle) {
+    updateSoundBtnUI();
+    btnSoundToggle.addEventListener("click", function() {
+      isSoundEnabled = !isSoundEnabled;
+      localStorage.setItem(SOUND_KEY, isSoundEnabled ? "true" : "false");
+      updateSoundBtnUI();
+      if (isSoundEnabled) PackSFX.tap();
+    });
+  }
+
+  var PackSFX = {
+    tone: function(freq, type, duration, vol, delay, slideToFreq) {
+      var ctx = getAudioCtx();
+      if (!ctx) return;
+      var t = ctx.currentTime + (delay || 0);
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = type || "sine";
+      osc.frequency.setValueAtTime(freq, t);
+      if (slideToFreq) {
+        osc.frequency.exponentialRampToValueAtTime(Math.max(20, slideToFreq), t + duration);
+      }
+      gain.gain.setValueAtTime(vol || 0.15, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + duration + 0.02);
+    },
+    noise: function(duration, vol, delay, filterFreq) {
+      var ctx = getAudioCtx();
+      if (!ctx) return;
+      var t = ctx.currentTime + (delay || 0);
+      var bufferSize = Math.floor(ctx.sampleRate * duration);
+      var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      var data = buffer.getChannelData(0);
+      for (var i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      var src = ctx.createBufferSource();
+      src.buffer = buffer;
+
+      var filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.setValueAtTime(filterFreq || 2200, t);
+
+      var gain = ctx.createGain();
+      gain.gain.setValueAtTime(vol || 0.2, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      src.start(t);
+      src.stop(t + duration + 0.02);
+    },
+    tap: function() {
+      this.tone(660, "triangle", 0.08, 0.12, 0, 880);
+    },
+    tearTick: function(progressPct) {
+      // スワイプ進行度に応じてチリチリ音が高くなる
+      var freq = 1400 + progressPct * 24;
+      this.noise(0.045, 0.12, 0, freq);
+      this.tone(300 + progressPct * 6, "sawtooth", 0.03, 0.04, 0);
+    },
+    tearRip: function() {
+      // パックをビリッと切り裂く爽快音
+      this.noise(0.32, 0.35, 0, 2800);
+      this.tone(420, "sawtooth", 0.25, 0.14, 0, 1250);
+    },
+    glowNormal: function(rarity) {
+      if (rarity === "SR") {
+        this.tone(523.25, "triangle", 0.2, 0.18, 0);
+        this.tone(659.25, "triangle", 0.2, 0.18, 0.08);
+        this.tone(783.99, "triangle", 0.35, 0.22, 0.16);
+      } else if (rarity === "R") {
+        this.tone(587.33, "sine", 0.18, 0.15, 0);
+        this.tone(880, "sine", 0.28, 0.18, 0.09);
+      } else {
+        this.tone(440, "sine", 0.2, 0.12, 0, 520);
+      }
+    },
+    fakeYellow: function() {
+      this.tone(523.25, "triangle", 0.18, 0.18, 0);
+      this.tone(659.25, "triangle", 0.25, 0.18, 0.09);
+    },
+    thunderUpgrade: function(isGod) {
+      // 雷撃＆昇格サウンド！
+      this.noise(0.45, 0.4, 0, 900);
+      this.tone(180, "sawtooth", 0.35, 0.25, 0, 45);
+      this.tone(587.33, "square", 0.15, 0.18, 0.05);
+      this.tone(880, "square", 0.18, 0.2, 0.14);
+      this.tone(1174.66, "square", 0.22, 0.22, 0.23);
+      if (isGod) {
+        this.tone(1760, "triangle", 0.5, 0.25, 0.32);
+      }
+    },
+    pachinkoKyuin: function(isGod) {
+      // キュインキュイン！パチンコ確定音
+      var repeats = isGod ? 4 : 3;
+      for (var i = 0; i < repeats; i++) {
+        var d = i * 0.32;
+        this.tone(950, "square", 0.12, 0.2, d, 2400);
+        this.tone(1800, "sine", 0.16, 0.22, d + 0.1, 3200);
+      }
+      this.tone(1046.5, "triangle", 0.6, 0.25, repeats * 0.32);
+    },
+    crashFake: function() {
+      // 一瞬ショボい音
+      this.tone(240, "sine", 0.25, 0.12, 0, 170);
+    },
+    crashGlass: function() {
+      // ガラス粉砕＆逆転ファンファーレ
+      this.noise(0.5, 0.45, 0, 3200);
+      this.tone(150, "sawtooth", 0.4, 0.28, 0, 40);
+      this.tone(659.25, "square", 0.18, 0.2, 0.12);
+      this.tone(880, "square", 0.2, 0.22, 0.24);
+      this.tone(1318.5, "square", 0.45, 0.25, 0.36);
+    },
+    slotSpin: function() {
+      this.tone(360 + Math.random() * 180, "square", 0.05, 0.08, 0);
+    },
+    slotStop: function(step) {
+      var freqs = [523.25, 659.25, 1046.5];
+      this.tone(freqs[step] || 523.25, "square", 0.22, 0.22, 0);
+      if (step === 2) {
+        // 777揃い大当たりファンファーレ
+        this.tone(1318.5, "triangle", 0.18, 0.22, 0.12);
+        this.tone(1567.98, "triangle", 0.22, 0.24, 0.24);
+        this.tone(2093.0, "triangle", 0.55, 0.26, 0.36);
+      }
+    },
+    trendBuzz: function() {
+      // SNS通知連打＆トレンド爆発音
+      for (var i = 0; i < 8; i++) {
+        var d = i * 0.14;
+        this.tone(987.77, "sine", 0.09, 0.16, d);
+        this.tone(1318.51, "sine", 0.14, 0.18, d + 0.06);
+      }
+    },
+    bigBangImplode: function() {
+      // ブラックホール収束音
+      this.tone(90, "sawtooth", 1.0, 0.25, 0, 520);
+      this.tone(140, "sine", 1.0, 0.22, 0, 880);
+    },
+    bigBangBoom: function() {
+      // ビッグバン大爆発＆神聖和音
+      this.noise(0.85, 0.45, 0, 500);
+      this.tone(110, "sawtooth", 0.7, 0.3, 0, 32);
+      this.tone(523.25, "triangle", 0.9, 0.22, 0.08);
+      this.tone(659.25, "triangle", 0.9, 0.22, 0.08);
+      this.tone(783.99, "triangle", 0.9, 0.22, 0.08);
+      this.tone(1046.5, "triangle", 1.0, 0.25, 0.15);
+    },
+    puchunOff: function() {
+      // プチュン！電源断音
+      this.tone(1400, "sine", 0.18, 0.24, 0, 45);
+      this.noise(0.08, 0.2, 0, 1800);
+    },
+    puchunFreeze: function() {
+      // 暗転からの衝撃音
+      this.tone(75, "sawtooth", 0.5, 0.32, 0, 35);
+      this.tone(880, "square", 0.18, 0.22, 0.05);
+      this.tone(1174.66, "square", 0.2, 0.24, 0.18);
+      this.tone(1760, "square", 0.55, 0.26, 0.32);
+    },
+    cardFlip: function(rarity) {
+      if (rarity === "GOD") {
+        this.noise(0.25, 0.25, 0, 2600);
+        this.tone(523.25, "triangle", 0.45, 0.22, 0);
+        this.tone(783.99, "triangle", 0.45, 0.22, 0.06);
+        this.tone(1046.5, "triangle", 0.5, 0.24, 0.12);
+        this.tone(1567.98, "sine", 0.65, 0.26, 0.18);
+      } else if (rarity === "UR") {
+        this.tone(587.33, "square", 0.15, 0.18, 0);
+        this.tone(880, "square", 0.18, 0.2, 0.07);
+        this.tone(1174.66, "triangle", 0.4, 0.24, 0.14);
+      } else if (rarity === "SR") {
+        this.tone(523.25, "triangle", 0.14, 0.16, 0);
+        this.tone(783.99, "triangle", 0.28, 0.2, 0.08);
+      } else if (rarity === "R") {
+        this.tone(659.25, "sine", 0.18, 0.15, 0);
+      } else {
+        this.noise(0.06, 0.12, 0, 2400);
+        this.tone(380, "sine", 0.08, 0.1, 0, 480);
+      }
+    }
+  };
+
   // ================= パック開封ステージ =================
   document.getElementById("btn-open-pack").addEventListener("click", enterPackOpenStage);
   document.getElementById("btn-stage-again").addEventListener("click", enterPackOpenStage);
@@ -612,6 +833,7 @@
   function enterPackOpenStage() {
     if (pendingPackData) return;
     if (userData.points < 100) { alert("バズPが足りません！ミッションやCPU戦勝利でポイントを貯めよう！"); return; }
+    PackSFX.tap();
 
     userData.points -= 100;
     addMissionStat("packs", 1);
@@ -677,10 +899,12 @@
   }
 
   var packWrapper = document.getElementById("pack-wrapper");
+  var lastTearTickTime = 0;
 
   function handleTearStart(clientX) {
     if (!pendingPackData) return;
     isTearing = true;
+    getAudioCtx();
   }
 
   function handleTearMove(clientX) {
@@ -688,6 +912,12 @@
     var rect = packWrapper.getBoundingClientRect();
     var progress = Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100));
     document.getElementById("tear-progress-bar").style.width = progress + "%";
+
+    var now = Date.now();
+    if (progress > 5 && now - lastTearTickTime > 75) {
+      lastTearTickTime = now;
+      PackSFX.tearTick(progress);
+    }
 
     if (progress >= 65) {
       isTearing = false;
@@ -720,6 +950,8 @@
     var data = pendingPackData;
     pendingPackData = null;
 
+    PackSFX.tearRip();
+
     var visual = document.getElementById("pack-visual");
     var slit = document.getElementById("pack-slit-glow");
     var hint = document.getElementById("tear-hint");
@@ -735,9 +967,11 @@
       // ① まず黄色に光る！
       hint.innerText = "✨ SR光…!? ✨";
       slit.className = "pack-slit-glow rarity-SR";
+      PackSFX.fakeYellow();
 
       // ② 0.65秒後に雷撃とともに赤（または虹）へ昇格！！
       setTimeout(function() {
+        PackSFX.thunderUpgrade(data.maxRarity === "GOD");
         hint.innerText = data.maxRarity === "GOD" ? "🌈 限界突破昇格!! 🌈" : "⚡ 赤昇格!! ⚡";
         slit.className = "pack-slit-glow rarity-" + data.maxRarity;
 
@@ -760,6 +994,7 @@
       // 通常発光パターン
       hint.innerText = "✨ OPEN!! ✨";
       slit.className = "pack-slit-glow rarity-" + data.maxRarity;
+      PackSFX.glowNormal(data.maxRarity);
 
       setTimeout(function() {
         visual.classList.remove("pack-tearing-anim");
@@ -813,6 +1048,7 @@
 
     if (type === "pachinko") {
       // 1. 🚨 定番パチンコ・キュイン演出
+      PackSFX.pachinkoKyuin(isGod);
       var sc = document.getElementById("scene-pachinko");
       var burst = document.getElementById("pachi-sunburst");
       var text = document.getElementById("pachi-main-text");
@@ -847,9 +1083,11 @@
       crackSvg.classList.remove("show");
       fakeBox.style.display = "block";
       reviveBox.style.display = "none";
+      PackSFX.crashFake();
 
       setTimeout(function() {
         // 画面ひび割れ＆逆転！
+        PackSFX.crashGlass();
         overlay.classList.add("quake-anim");
         scCrash.classList.add("revived");
         crackSvg.classList.add("show");
@@ -885,6 +1123,7 @@
       banner.innerText = "リーチ！！狙え！！";
 
       var spinTimer = setInterval(function() {
+        PackSFX.slotSpin();
         [r1, r2, r3].forEach(function(r) {
           if (r.classList.contains("spinning")) {
             r.innerText = dummyIcons[Math.floor(Math.random() * dummyIcons.length)];
@@ -893,11 +1132,13 @@
       }, 75);
 
       setTimeout(function() {
+        PackSFX.slotStop(0);
         r1.className = "slot-reel stopped-win";
         r1.innerText = winSymbol;
       }, 500);
 
       setTimeout(function() {
+        PackSFX.slotStop(1);
         r2.className = "slot-reel stopped-win";
         r2.innerText = winSymbol;
         banner.style.color = "#ffd32a";
@@ -906,6 +1147,7 @@
 
       setTimeout(function() {
         clearInterval(spinTimer);
+        PackSFX.slotStop(2);
         r3.className = "slot-reel stopped-win";
         r3.innerText = winSymbol;
         overlay.classList.add("quake-anim");
@@ -930,6 +1172,7 @@
       scTrend.classList.add("active");
       overlay.classList.add("quake-anim");
       danmakuLayer.innerHTML = "";
+      PackSFX.trendBuzz();
 
       hashtagEl.innerText = isGod ? "#GOD降臨でサーバー爆発" : "#神引き脳汁大炎上";
       subtextEl.innerText = isGod
@@ -969,8 +1212,10 @@
       scSpace.classList.add("active");
       bhCore.style.display = "block";
       novaBurst.style.display = "none";
+      PackSFX.bigBangImplode();
 
       setTimeout(function() {
+        PackSFX.bigBangBoom();
         bhCore.style.display = "none";
         novaBurst.style.display = "flex";
         overlay.classList.add("quake-anim");
@@ -996,9 +1241,11 @@
       scBlack.classList.add("active");
       puchunLine.style.display = "block";
       revealBox.style.display = "none";
+      PackSFX.puchunOff();
 
       // 暗転の静寂のあと、一気に光と文字が弾ける！
       setTimeout(function() {
+        PackSFX.puchunFreeze();
         puchunLine.style.display = "none";
         revealBox.style.display = "flex";
         overlay.classList.add("quake-anim");
@@ -1036,6 +1283,7 @@
 
     data.pulled.forEach(function(c, idx) {
       setTimeout(function() {
+        PackSFX.cardFlip(c.rarity);
         var el = createCardElement(c, null, {});
         el.classList.add("card-revealed");
         resultArea.replaceChild(el, resultArea.children[idx]);
