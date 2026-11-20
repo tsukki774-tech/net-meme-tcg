@@ -161,6 +161,50 @@
     document.getElementById("display-player-name").innerText = userData.playerName || DEFAULT_PLAYER_NAME;
   }
 
+  // ================= カード詳細拡大モーダル =================
+  function showCardDetail(card) {
+    if (!card) return;
+    var modal = document.getElementById("card-detail-modal");
+    var box = document.getElementById("card-detail-box");
+
+    box.className = "card-detail-modal-box rarity-" + (card.rarity || "N");
+    document.getElementById("detail-cost").innerText = "コスト " + card.cost;
+    document.getElementById("detail-rarity").innerText = card.rarity || "N";
+    document.getElementById("detail-era").innerText = card.era || "現代";
+    document.getElementById("detail-title").innerText = card.name;
+
+    var artEl = document.getElementById("detail-art");
+    artEl.innerHTML = card.img ? '<img src="' + card.img + '" alt="' + card.name + '">' : (card.icon || "🌐");
+
+    var statsEl = document.getElementById("detail-stats");
+    if (card.type === "meme") {
+      var displayAtk = card.atk + (card.isBuzz ? 1 : 0);
+      var buzzNote = card.isBuzz ? ' <span style="color:#ff4757; font-size:0.8rem;">(🔥バズ+1)</span>' : "";
+      var shieldNote = card.shield ? ' <span style="color:#00d2ff; font-size:0.8rem;">[🛡️無敵]</span>' : "";
+      statsEl.innerHTML =
+        '<span>⚔️ 攻撃力: ' + displayAtk + buzzNote + '</span>' +
+        '<span>⏳ 鮮度: ' + card.freshness + '</span>' +
+        '<span>❤️ 体力: ' + card.hp + shieldNote + '</span>';
+    } else {
+      statsEl.innerHTML = '<span style="color:#ffd32a;">⚡ 【構文 / スペルカード】</span>';
+    }
+
+    document.getElementById("detail-desc").innerText = card.desc || "効果なし";
+    document.getElementById("detail-pack").innerText = "収録: 第" + (card.pack || 1) + "弾パック";
+    document.getElementById("detail-owned").innerText = "所持数: " + (userData.collection[card.id] || 0) + "枚";
+
+    modal.style.display = "flex";
+  }
+
+  document.getElementById("btn-close-card-detail").addEventListener("click", function() {
+    document.getElementById("card-detail-modal").style.display = "none";
+  });
+  document.getElementById("card-detail-modal").addEventListener("click", function(e) {
+    if (e.target === this) {
+      this.style.display = "none";
+    }
+  });
+
   // ================= プレイヤー名変更モーダル =================
   document.getElementById("btn-edit-player-name").addEventListener("click", function() {
     document.getElementById("player-name-input").value = userData.playerName || DEFAULT_PLAYER_NAME;
@@ -212,7 +256,7 @@
 
     var slot = document.getElementById("ur-reward-card-slot");
     slot.innerHTML = "";
-    var el = createCardElement(chosen, function() {}, {});
+    var el = createCardElement(chosen, null, {});
     el.classList.add("card-revealed");
     slot.appendChild(el);
     document.getElementById("ur-reward-modal").style.display = "flex";
@@ -466,7 +510,8 @@
     grid.innerHTML = "";
     packCards.forEach(function(card) {
       var owned = userData.collection[card.id] || 0;
-      var el = createCardElement(card, function() {}, {});
+      // onClickをnullにするとタップで即詳細が開く
+      var el = createCardElement(card, null, {});
       var badge = document.createElement("div");
       badge.className = owned > 0 ? "owned-badge" : "owned-badge unowned";
       badge.innerText = owned > 0 ? "所持: " + owned + "枚" : "未所持";
@@ -677,7 +722,7 @@
     document.body.appendChild(flash);
     setTimeout(function() { flash.remove(); }, 850);
 
-    stageGuide.innerText = "✨ 獲得カード ✨";
+    stageGuide.innerText = "✨ 獲得カード（タップで詳細） ✨";
 
     for (var j = 0; j < 5; j++) {
       var back = document.createElement("div");
@@ -688,7 +733,7 @@
 
     data.pulled.forEach(function(c, idx) {
       setTimeout(function() {
-        var el = createCardElement(c, function() {}, {});
+        var el = createCardElement(c, null, {});
         el.classList.add("card-revealed");
         resultArea.replaceChild(el, resultArea.children[idx]);
         if (idx === data.pulled.length - 1) {
@@ -735,6 +780,7 @@
       chip.className = "mini-chip";
       chip.innerHTML = '<span class="cost-badge" style="width:16px;height:16px;font-size:0.7rem;">' + card.cost + '</span> ' + card.icon + ' ' + card.name + ' ✕';
       chip.addEventListener("click", function() { editingDeckCards.splice(index, 1); renderDeckBuilder(); });
+      chip.addEventListener("contextmenu", function(e) { e.preventDefault(); showCardDetail(card); });
       deckListEl.appendChild(chip);
     });
 
@@ -926,7 +972,6 @@
         snapshot.forEach(function(child) {
           var val = child.val();
           if (!val || !val.peerId || (now - val.timestamp > 60000)) {
-            // 60秒以上経過した古い待機データは掃除する
             child.ref.remove().catch(function() {});
             return false;
           }
@@ -937,13 +982,12 @@
         });
 
         if (targetKey && targetPeerId) {
-          // 待機中の相手を発見！トランザクションで重複取得を防ぎつつ接続する
           var candidateRef = queueRef.child(targetKey);
           candidateRef.transaction(function(currentData) {
             if (currentData && currentData.peerId === targetPeerId) {
-              return null; // キューから削除して権利を獲得
+              return null;
             }
-            return; // 他人に先に取られた場合は中止
+            return;
           }, function(error, committed) {
             if (committed) {
               document.getElementById("random-status-text").innerText = "⚡ 対戦相手を発見！接続中...";
@@ -954,12 +998,10 @@
                 conn.send({ type: "SEND_DECK", deck: p1OnlineDeck, playerName: userData.playerName || DEFAULT_PLAYER_NAME });
               });
             } else {
-              // タッチの差で別の人がマッチングした場合は自分が待機側に回る
               registerAsWaitingHost(queueRef, myPeerId);
             }
           });
         } else {
-          // 誰もいなければ自分が待機リストに登録して待つ
           registerAsWaitingHost(queueRef, myPeerId);
         }
       }).catch(function(err) {
@@ -971,14 +1013,12 @@
   function registerAsWaitingHost(queueRef, myPeerId) {
     document.getElementById("random-status-text").innerText = "🔍 対戦相手を探しています...";
     myQueueRef = queueRef.push();
-    // ブラウザを閉じたり通信が切れたらFirebase側で自動削除させる
     myQueueRef.onDisconnect().remove();
     myQueueRef.set({
       peerId: myPeerId,
       timestamp: Date.now()
     });
 
-    // 待機中は15秒ごとに生存タイムスタンプを更新
     randomHeartbeatTimer = setInterval(function() {
       if (myQueueRef) {
         myQueueRef.update({ timestamp: Date.now() }).catch(function() {});
@@ -1241,7 +1281,7 @@
 
   function updateGuideBanner() {
     var banner = document.getElementById("guide-banner"), self = getViewSelf(), opp = getViewOpp();
-    if (state.isInputLocked) { banner.innerText = state.mode === "online" ? "⏳ " + opp.name + "のターンです..." : "⏳ CPUのターンです..."; banner.style.borderColor = "#ff6b6b"; return; }
+    if (state.isInputLocked) { banner.innerText = state.mode === "online" ? "⏳ " + opp.name + "のターンです...（長押しで詳細）" : "⏳ CPUのターンです..."; banner.style.borderColor = "#ff6b6b"; return; }
     banner.style.borderColor = "#00d2ff";
     if (state.selectedAttackerIndex !== null) {
       var attacker = self.field[state.selectedAttackerIndex];
@@ -1249,7 +1289,7 @@
       return;
     }
     var canPlayAny = self.hand.some(function(c) { return c.cost <= self.giga; }), canAttackAny = self.field.some(function(m) { return m.canAttack; });
-    if (canPlayAny && canAttackAny) banner.innerText = "💡 " + self.name + "のターン：手札（緑枠）を出すか、場のミーム（緑枠）で攻撃しよう！";
+    if (canPlayAny && canAttackAny) banner.innerText = "💡 " + self.name + "のターン：手札を出すか、場のミームで攻撃！（長押しで詳細）";
     else if (canPlayAny) banner.innerText = "💡 " + self.name + "のターン：手札の緑枠カードをタップして投稿しよう！";
     else if (canAttackAny) banner.innerText = "⚔️ 場の緑枠ミームをタップして攻撃しよう！";
     else banner.innerText = "✅ できる行動がありません。「⏭️ ターン終了」を押そう！";
@@ -1276,7 +1316,11 @@
     var oppFieldEl = document.getElementById("opp-field");
     oppFieldEl.innerHTML = opp.field.length === 0 ? '<span class="empty-msg">相手の場にミームはいません</span>' : "";
     opp.field.forEach(function(c, idx) {
-      oppFieldEl.appendChild(createCardElement(c, function() { attackMeme(idx); }, { isTarget: !state.isInputLocked && state.selectedAttackerIndex !== null }));
+      // 攻撃対象選択中なら攻撃、そうでなければタップでも詳細を見られるようにする
+      var action = (!state.isInputLocked && state.selectedAttackerIndex !== null)
+        ? function() { attackMeme(idx); }
+        : null;
+      oppFieldEl.appendChild(createCardElement(c, action, { isTarget: !state.isInputLocked && state.selectedAttackerIndex !== null }));
     });
 
     var selfFieldEl = document.getElementById("self-field");
@@ -1304,7 +1348,70 @@
     if (flags.playable) classes.push("playable");
     if (flags.unplayable) classes.push("unplayable");
     div.className = classes.join(" ");
-    div.addEventListener("click", onClick);
+
+    // タップ・長押し・右クリックで詳細表示する仕組み
+    if (typeof onClick === "function") {
+      var pressTimer = null;
+      var longPressed = false;
+      var startX = 0, startY = 0;
+
+      var startPress = function(x, y) {
+        longPressed = false;
+        startX = x;
+        startY = y;
+        clearTimeout(pressTimer);
+        pressTimer = setTimeout(function() {
+          longPressed = true;
+          showCardDetail(card);
+        }, 420);
+      };
+
+      var cancelPress = function() {
+        clearTimeout(pressTimer);
+      };
+
+      div.addEventListener("touchstart", function(e) {
+        if (e.touches && e.touches[0]) startPress(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: true });
+      div.addEventListener("touchmove", function(e) {
+        if (e.touches && e.touches[0]) {
+          if (Math.abs(e.touches[0].clientX - startX) > 10 || Math.abs(e.touches[0].clientY - startY) > 10) {
+            cancelPress();
+          }
+        }
+      }, { passive: true });
+      div.addEventListener("touchend", cancelPress);
+
+      div.addEventListener("mousedown", function(e) {
+        if (e.button === 0) startPress(e.clientX, e.clientY);
+      });
+      div.addEventListener("mousemove", function(e) {
+        if (Math.abs(e.clientX - startX) > 8 || Math.abs(e.clientY - startY) > 8) cancelPress();
+      });
+      div.addEventListener("mouseup", cancelPress);
+      div.addEventListener("mouseleave", cancelPress);
+
+      div.addEventListener("contextmenu", function(e) {
+        e.preventDefault();
+        cancelPress();
+        showCardDetail(card);
+      });
+
+      div.addEventListener("click", function(e) {
+        if (longPressed) {
+          e.preventDefault();
+          e.stopPropagation();
+          longPressed = false;
+          return;
+        }
+        onClick(e);
+      });
+    } else {
+      // 閲覧専用カードはタップだけで即詳細を開く
+      div.addEventListener("click", function() {
+        showCardDetail(card);
+      });
+    }
 
     var displayAtk = card.atk + (card.isBuzz ? 1 : 0);
     var buzzBadge = card.isBuzz ? '<div class="buzz-badge">🔥バズ中(+1)</div>' : "";
@@ -1318,7 +1425,8 @@
       '<div class="card-header"><span class="cost-badge">' + card.cost + '</span><span class="rarity-tag">' + (card.rarity || "N") + '</span><span class="era-tag">' + card.era + '</span></div>' +
       '<div class="card-title">' + card.name + '</div>' +
       '<div class="card-art">' + artHtml + '</div>' +
-      '<div class="card-desc">' + card.desc + '</div>' + statsHtml;
+      '<div class="card-desc">' + card.desc + '</div>' +
+      '<span class="detail-zoom-hint">🔍</span>' + statsHtml;
     return div;
   }
 })();
