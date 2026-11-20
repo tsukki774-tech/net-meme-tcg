@@ -1,4 +1,4 @@
-// net-meme-tcg-v3
+// net-meme-tcg-v4
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -31,10 +31,102 @@
     .pack-tab.active { border-color: #00d2ff; color: #fff; background: #1a2a3a; box-shadow: 0 0 10px rgba(0,210,255,0.4); }
     .pack-tab.active.vol2 { border-color: #ff4757; background: #3a1a24; box-shadow: 0 0 10px rgba(255,71,87,0.4); }
     .pack-center { text-align: center; }
-    .pack-box-visual { width: 190px; height: 245px; margin: 10px auto 18px; background: linear-gradient(135deg, #2b1055, #7597de); border: 3px solid #00d2ff; border-radius: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 0 20px rgba(0,210,255,0.4); padding: 10px; }
-    .pack-box-visual.vol2 { background: linear-gradient(135deg, #4a001f, #ff4757); border-color: #ffd32a; box-shadow: 0 0 20px rgba(255,71,87,0.5); }
-    .pack-title { font-size: 1.3rem; font-weight: 900; color: #ffd32a; }
-    .pack-sub { font-size: 0.78rem; color: #eee; margin-top: 8px; line-height: 1.3; }
+
+    /* リアル風アルミパック造形 */
+    .real-pack-wrapper { position: relative; width: 210px; height: 310px; margin: 10px auto 18px; touch-action: none; }
+    .real-pack {
+      width: 100%; height: 100%; position: relative; border-radius: 4px; overflow: hidden;
+      background: linear-gradient(135deg, #1b2845 0%, #274060 35%, #5c80bc 50%, #274060 65%, #1b2845 100%);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.7), inset 0 0 15px rgba(255,255,255,0.3);
+      border-left: 3px solid rgba(255,255,255,0.25);
+      border-right: 3px solid rgba(0,0,0,0.4);
+      display: flex; flex-direction: column; justify-content: space-between;
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+    .real-pack.vol2 {
+      background: linear-gradient(135deg, #3b0014 0%, #7a0026 35%, #ff4757 50%, #7a0026 65%, #3b0014 100%);
+    }
+    /* 上下の圧着ギザギザ加工 */
+    .pack-crimp-top, .pack-crimp-bottom {
+      height: 22px; width: 100%;
+      background: repeating-linear-gradient(90deg, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 3px, rgba(0,0,0,0.35) 3px, rgba(0,0,0,0.35) 6px);
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      position: relative; z-index: 3;
+    }
+    .pack-crimp-bottom { border-bottom: none; border-top: 1px solid rgba(255,255,255,0.3); }
+    /* 切り取り線（スワイプゾーン） */
+    .pack-tear-zone {
+      position: relative; height: 34px; width: 100%;
+      background: rgba(0,0,0,0.35);
+      border-bottom: 2px dashed rgba(255,255,255,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 4; overflow: hidden;
+    }
+    .tear-progress-bar {
+      position: absolute; left: 0; top: 0; height: 100%; width: 0%;
+      background: linear-gradient(90deg, rgba(255,255,255,0.9), #ffd32a);
+      box-shadow: 0 0 15px #fff;
+      pointer-events: none;
+    }
+    .tear-hint {
+      position: relative; z-index: 2; font-size: 0.72rem; font-weight: bold;
+      color: #ffd32a; text-shadow: 0 1px 3px #000; letter-spacing: 0.5px;
+    }
+    .real-pack-body {
+      flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+      padding: 12px; position: relative; z-index: 2;
+    }
+    .pack-emblem { font-size: 3.4rem; margin-bottom: 6px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6)); }
+    .pack-title { font-size: 1.35rem; font-weight: 900; color: #ffd32a; text-shadow: 0 2px 4px #000; letter-spacing: 1px; }
+    .pack-sub { font-size: 0.75rem; color: #f1f2f6; margin-top: 6px; line-height: 1.35; text-shadow: 0 1px 2px #000; }
+    .pack-foil-shine {
+      position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.28), transparent);
+      transform: skewX(-20deg); animation: foil-sweep 3.5s infinite; pointer-events: none; z-index: 2;
+    }
+    @keyframes foil-sweep { 0% { left: -100%; } 40%, 100% { left: 160%; } }
+
+    /* 開封待機中の強調・裂け目発光演出 */
+    .real-pack.ready-to-tear {
+      transform: scale(1.04);
+      box-shadow: 0 0 25px rgba(255, 211, 42, 0.75);
+      cursor: grab;
+    }
+    .pack-slit-glow {
+      position: absolute; top: 52px; left: 0; width: 100%; height: 8px;
+      opacity: 0; z-index: 10; pointer-events: none; transition: opacity 0.2s;
+    }
+    .pack-slit-glow.rarity-R { background: #00d2ff; box-shadow: 0 0 25px 10px #00d2ff; opacity: 1; }
+    .pack-slit-glow.rarity-SR { background: #ffd32a; box-shadow: 0 0 35px 15px #ffd32a; opacity: 1; }
+    .pack-slit-glow.rarity-UR {
+      background: linear-gradient(90deg, #ff4757, #ffd32a, #2ed573, #00d2ff, #a55eea);
+      box-shadow: 0 0 45px 20px #ff4757, 0 0 60px 25px #ffd32a; opacity: 1;
+    }
+
+    @keyframes pack-tear-shake {
+      0%, 100% { transform: scale(1.05) rotate(0deg); }
+      20% { transform: scale(1.08) rotate(-4deg); }
+      40% { transform: scale(1.08) rotate(4deg); }
+      60% { transform: scale(1.1) rotate(-3deg); }
+      80% { transform: scale(1.1) rotate(3deg); }
+    }
+    .pack-tearing-anim { animation: pack-tear-shake 0.75s ease-in-out; }
+
+    /* レアリティ別画面フラッシュ */
+    @keyframes flash-burst {
+      0% { opacity: 0.95; }
+      100% { opacity: 0; }
+    }
+    .screen-flash {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 2000; animation: flash-burst 0.8s ease-out forwards;
+    }
+    .screen-flash.rarity-R { background: radial-gradient(circle, #ffffff 10%, #00d2ff 60%, transparent 100%); }
+    .screen-flash.rarity-SR { background: radial-gradient(circle, #ffffff 15%, #ffd32a 60%, rgba(255,165,2,0.5) 100%); }
+    .screen-flash.rarity-UR {
+      background: conic-gradient(from 0deg, #ff4757, #ffd32a, #2ed573, #00d2ff, #a55eea, #ff4757);
+    }
+
     .pack-btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; }
 
     /* パック内容モーダル */
@@ -92,12 +184,7 @@
     .overlay-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; }
     .cutin-box { background: linear-gradient(135deg, #ff4757, #1e272e); border: 2px solid #ffd32a; padding: 25px 35px; border-radius: 14px; font-size: 1.3rem; font-weight: bold; text-align: center; white-space: pre-line; }
     .pass-box { background: #1e1e1e; border: 2px solid #00d2ff; padding: 30px; border-radius: 14px; text-align: center; display: flex; flex-direction: column; gap: 15px; }
-    @keyframes pack-shake { 0%, 100% { transform: rotate(0deg) scale(1); } 25% { transform: rotate(-5deg) scale(1.05); } 75% { transform: rotate(5deg) scale(1.05); } }
     @keyframes card-reveal { 0% { transform: scale(0.4) rotateY(90deg); opacity: 0; } 100% { transform: scale(1) rotateY(0deg); opacity: 1; } }
-    .pack-opening-anim { animation: pack-shake 0.9s ease-in-out; }
-    .pack-glow-SR { border-color: #ffd32a !important; box-shadow: 0 0 25px #ffd32a !important; }
-    .pack-glow-UR { border-color: #ff4757 !important; box-shadow: 0 0 30px #ff4757 !important; }
-    .screen-flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); pointer-events: none; z-index: 2000; opacity: 0; }
     .card-back-mystery { width: 128px; height: 175px; background: #222; border: 2px solid #555; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 2rem; color: #ffd32a; }
     .card-revealed { animation: card-reveal 0.4s ease-out forwards; }
   </style>
@@ -134,13 +221,27 @@
     </div>
 
     <div class="pack-center">
-      <div id="pack-visual" class="pack-box-visual">
-        <div id="pack-visual-title" class="pack-title">VOL.1 BASIC</div>
-        <div id="pack-visual-sub" class="pack-sub">基本ミームパック（全41種）<br>5枚入り / R以上1枚確定</div>
+      <!-- リアル風アルミパック -->
+      <div class="real-pack-wrapper" id="pack-wrapper">
+        <div id="pack-visual" class="real-pack">
+          <div class="pack-foil-shine"></div>
+          <div class="pack-crimp-top"></div>
+          <div id="pack-tear-zone" class="pack-tear-zone">
+            <div id="tear-progress-bar" class="tear-progress-bar"></div>
+            <span id="tear-hint" class="tear-hint">◀ 下の購入ボタンでセット</span>
+          </div>
+          <div id="pack-slit-glow" class="pack-slit-glow"></div>
+          <div class="real-pack-body">
+            <div id="pack-emblem" class="pack-emblem">🌐</div>
+            <div id="pack-visual-title" class="pack-title">VOL.1 BASIC</div>
+            <div id="pack-visual-sub" class="pack-sub">基本ミームパック（全41種）<br>5枚入り / R以上1枚確定</div>
+          </div>
+          <div class="pack-crimp-bottom"></div>
+        </div>
       </div>
 
       <div class="pack-btn-row">
-        <button id="btn-open-pack" class="primary-btn">💎 100 バズPで1パック開封</button>
+        <button id="btn-open-pack" class="primary-btn">💎 100 バズPでパックを用意</button>
         <button id="btn-view-pack-list" class="sub-btn">📋 収録カード一覧を見る</button>
       </div>
 
@@ -335,7 +436,7 @@
     { id: "cheems", pack: 2, name: "Cheems（泣き柴）", type: "meme", era: "海外", rarity: "N", cost: 1, atk: 1, hp: 3, freshness: 4, icon: "🐶", desc: "打たれ強い海外ミームの癒やし枠。" },
 
     { id: "meiwaku", pack: 2, name: "迷惑系配信者", type: "meme", era: "配信者", rarity: "UR", cost: 4, atk: 5, hp: 3, freshness: 2, icon: "🚨", desc: "召喚時：お互いの手札を1枚ランダムに捨てさせ、相手本体に2ダメージ！" },
-    { id: "dou接", pack: 2, name: "同接工作員", type: "meme", era: "配信者", rarity: "N", cost: 1, atk: 1, hp: 2, freshness: 3, icon: "🤖", desc: "場の数を水増しする軽量ユニット。" },
+    { id: "dousetsu", pack: 2, name: "同接工作員", type: "meme", era: "配信者", rarity: "N", cost: 1, atk: 1, hp: 2, freshness: 3, icon: "🤖", desc: "場の数を水増しする軽量ユニット。" },
     { id: "enjo_nenryo", pack: 2, name: "炎上燃料投下", type: "spell", era: "配信者", rarity: "SR", cost: 2, icon: "⛽", desc: "相手ミーム1体に3ダメージ。それで倒せたら1枚ドロー！" },
 
     { id: "x_spec", pack: 2, name: "仕様変更（インプレ制限）", type: "spell", era: "X炎上", rarity: "SR", cost: 2, icon: "🔧", desc: "相手ミーム全ての鮮度を-1する（0になったミームは即消滅）。" },
@@ -359,6 +460,11 @@
     var DECK_SIZE = 40;
     var selectedPackNo = 1;
     var userData = loadUserData();
+
+    // リアルパック開封用の状態管理
+    var pendingPackData = null;
+    var isTearing = false;
+    var tearStartX = 0;
 
     function loadUserData() {
       var raw = localStorage.getItem(SAVE_KEY);
@@ -391,11 +497,15 @@
 
     // パック切り替え処理
     function selectPackTab(packNo) {
+      if (pendingPackData) return; // 開封待機中は切り替えロック
       selectedPackNo = packNo;
       document.getElementById("pack-result-area").innerHTML = "";
+      resetPackVisual();
+
       var tab1 = document.getElementById("tab-pack-1");
       var tab2 = document.getElementById("tab-pack-2");
       var visual = document.getElementById("pack-visual");
+      var emblem = document.getElementById("pack-emblem");
       var vTitle = document.getElementById("pack-visual-title");
       var vSub = document.getElementById("pack-visual-sub");
 
@@ -403,15 +513,28 @@
         tab1.classList.add("active");
         tab2.classList.remove("active", "vol2");
         visual.classList.remove("vol2");
+        emblem.innerText = "🌐";
         vTitle.innerText = "VOL.1 BASIC";
         vSub.innerHTML = "基本ミームパック（全41種）<br>5枚入り / R以上1枚確定";
       } else {
         tab1.classList.remove("active");
         tab2.classList.add("active", "vol2");
         visual.classList.add("vol2");
+        emblem.innerText = "🔥";
         vTitle.innerText = "VOL.2 CHAOS";
         vSub.innerHTML = "第2弾：カオス＆深淵編（全24種）<br>無敵バリア＆新エース収録！";
       }
+    }
+
+    function resetPackVisual() {
+      var visual = document.getElementById("pack-visual");
+      var bar = document.getElementById("tear-progress-bar");
+      var hint = document.getElementById("tear-hint");
+      var slit = document.getElementById("pack-slit-glow");
+      visual.classList.remove("ready-to-tear", "pack-tearing-anim");
+      bar.style.width = "0%";
+      hint.innerText = "◀ 下の購入ボタンでセット";
+      slit.className = "pack-slit-glow";
     }
 
     document.getElementById("tab-pack-1").addEventListener("click", function() { selectPackTab(1); });
@@ -459,18 +582,24 @@
       showScreen("deck-screen");
     });
 
-    document.getElementById("back-from-pack").addEventListener("click", function() { showScreen("home-screen"); });
+    document.getElementById("back-from-pack").addEventListener("click", function() {
+      if (pendingPackData) { alert("購入したパックを先に開封してください！"); return; }
+      showScreen("home-screen");
+    });
     document.getElementById("back-from-deck").addEventListener("click", function() { showScreen("home-screen"); });
     document.getElementById("back-from-setup").addEventListener("click", function() { showScreen("home-screen"); });
-    document.getElementById("btn-open-pack").addEventListener("click", openPack);
 
-    function openPack() {
+    // ステップ1：パック購入＆スワイプ待機状態にする
+    document.getElementById("btn-open-pack").addEventListener("click", preparePack);
+
+    function preparePack() {
+      if (pendingPackData) return;
       if (userData.points < 100) { alert("バズPが足りません！CPU戦に勝利してポイントを貯めよう！"); return; }
+
       var btn = document.getElementById("btn-open-pack");
       btn.disabled = true;
       userData.points -= 100;
-      var resultArea = document.getElementById("pack-result-area");
-      resultArea.innerHTML = "";
+      document.getElementById("pack-result-area").innerHTML = "";
 
       var targetCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
       var poolN = targetCards.filter(function(c) { return c.rarity === "N"; });
@@ -478,32 +607,104 @@
       var poolSR = targetCards.filter(function(c) { return c.rarity === "SR"; });
       var poolUR = targetCards.filter(function(c) { return c.rarity === "UR"; });
 
-      var pulled = [], hasSR = false, hasUR = false;
+      var pulled = [];
+      var maxRarity = "R";
+      var rankMap = { N: 1, R: 2, SR: 3, UR: 4 };
+
       for (var i = 0; i < 5; i++) {
         var rand = Math.random() * 100, pool = poolN;
         if (i === 4) { if (rand < 8) pool = poolUR; else if (rand < 35) pool = poolSR; else pool = poolR; }
         else { if (rand < 3) pool = poolUR; else if (rand < 15) pool = poolSR; else if (rand < 45) pool = poolR; }
         var card = pool[Math.floor(Math.random() * pool.length)];
-        if (card.rarity === "SR") hasSR = true;
-        if (card.rarity === "UR") hasUR = true;
+        if (rankMap[card.rarity] > rankMap[maxRarity]) maxRarity = card.rarity;
         pulled.push(card);
         userData.collection[card.id] = (userData.collection[card.id] || 0) + 1;
       }
       saveUserData();
 
-      var packBox = document.querySelector(".pack-box-visual");
-      packBox.classList.remove("pack-opening-anim", "pack-glow-SR", "pack-glow-UR");
-      void packBox.offsetWidth;
-      packBox.classList.add("pack-opening-anim");
-      if (hasUR) packBox.classList.add("pack-glow-UR");
-      else if (hasSR) packBox.classList.add("pack-glow-SR");
+      pendingPackData = { pulled: pulled, maxRarity: maxRarity };
+
+      var visual = document.getElementById("pack-visual");
+      var bar = document.getElementById("tear-progress-bar");
+      var hint = document.getElementById("tear-hint");
+      var slit = document.getElementById("pack-slit-glow");
+
+      slit.className = "pack-slit-glow";
+      bar.style.width = "0%";
+      visual.classList.add("ready-to-tear");
+      hint.innerText = "✂️ 右へなぞって開封！";
+    }
+
+    // ステップ2：指スワイプ（またはタップ）で切り取り線を開封するイベント
+    var packWrapper = document.getElementById("pack-wrapper");
+
+    function handleTearStart(clientX) {
+      if (!pendingPackData) return;
+      isTearing = true;
+      tearStartX = clientX;
+    }
+
+    function handleTearMove(clientX) {
+      if (!isTearing || !pendingPackData) return;
+      var rect = packWrapper.getBoundingClientRect();
+      var progress = Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100));
+      document.getElementById("tear-progress-bar").style.width = progress + "%";
+
+      if (progress >= 70) {
+        isTearing = false;
+        executePackReveal();
+      }
+    }
+
+    function handleTearEnd() {
+      if (!isTearing || !pendingPackData) return;
+      isTearing = false;
+      // スワイプしきれなかった場合は0%に戻す（タップだけの場合はそのまま開封）
+      var currentW = parseFloat(document.getElementById("tear-progress-bar").style.width) || 0;
+      if (currentW < 10) {
+        document.getElementById("tear-progress-bar").style.width = "100%";
+        executePackReveal();
+      } else {
+        document.getElementById("tear-progress-bar").style.width = "0%";
+      }
+    }
+
+    packWrapper.addEventListener("touchstart", function(e) { handleTearStart(e.touches[0].clientX); }, { passive: true });
+    packWrapper.addEventListener("touchmove", function(e) { handleTearMove(e.touches[0].clientX); }, { passive: true });
+    packWrapper.addEventListener("touchend", handleTearEnd);
+
+    packWrapper.addEventListener("mousedown", function(e) { handleTearStart(e.clientX); });
+    window.addEventListener("mousemove", function(e) { handleTearMove(e.clientX); });
+    window.addEventListener("mouseup", handleTearEnd);
+
+    // ステップ3：切り裂き完了 → 最大レアリティの色の光＆カードめくり演出
+    function executePackReveal() {
+      if (!pendingPackData) return;
+      var data = pendingPackData;
+      pendingPackData = null;
+
+      var visual = document.getElementById("pack-visual");
+      var slit = document.getElementById("pack-slit-glow");
+      var hint = document.getElementById("tear-hint");
+      var resultArea = document.getElementById("pack-result-area");
+      var btn = document.getElementById("btn-open-pack");
+
+      document.getElementById("tear-progress-bar").style.width = "100%";
+      hint.innerText = "✨ OPEN!! ✨";
+      visual.classList.remove("ready-to-tear");
+      visual.classList.add("pack-tearing-anim");
+
+      // 切り口から最大レアリティの色が漏れ出す
+      slit.classList.add("rarity-" + data.maxRarity);
 
       setTimeout(function() {
-        packBox.classList.remove("pack-opening-anim", "pack-glow-SR", "pack-glow-UR");
+        visual.classList.remove("pack-tearing-anim");
+
+        // 最大レアリティの色の画面フラッシュ
         var flash = document.createElement("div");
-        flash.className = "screen-flash";
+        flash.className = "screen-flash rarity-" + data.maxRarity;
         document.body.appendChild(flash);
-        setTimeout(function() { flash.remove(); }, 650);
+        setTimeout(function() { flash.remove(); }, 850);
 
         for (var j = 0; j < 5; j++) {
           var back = document.createElement("div");
@@ -511,15 +712,19 @@
           back.innerHTML = "❓<br><span style='font-size:0.75rem; color:#aaa;'>MEME</span>";
           resultArea.appendChild(back);
         }
-        pulled.forEach(function(c, idx) {
+
+        data.pulled.forEach(function(c, idx) {
           setTimeout(function() {
             var el = createCardElement(c, function() {}, {});
             el.classList.add("card-revealed");
             resultArea.replaceChild(el, resultArea.children[idx]);
-            if (idx === pulled.length - 1) btn.disabled = false;
-          }, 300 + idx * 350);
+            if (idx === data.pulled.length - 1) {
+              btn.disabled = false;
+              hint.innerText = "◀ 下の購入ボタンで次のパック";
+            }
+          }, 250 + idx * 320);
         });
-      }, 900);
+      }, 650);
     }
 
     function renderDeckBuilder() {
@@ -580,7 +785,7 @@
       p2: { name: "CPU", label: "相手デッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
       selectedAttackerIndex: null
     };
-    var peer = null, conn = null, p1OnlineDeck = null, p2OnlineDeck = null, ROOM_PREFIX = "netmeme-tcg-v3-";
+    var peer = null, conn = null, p1OnlineDeck = null, p2OnlineDeck = null, ROOM_PREFIX = "netmeme-tcg-v4-";
 
     function getSelectedDeckCards() {
       var choice = document.getElementById("battle-deck-select").value, ids = [], label = "";
