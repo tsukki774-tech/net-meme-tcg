@@ -1,4 +1,4 @@
-// net-meme-tcg-v8
+// net-meme-tcg-v9
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -14,17 +14,55 @@
     .game-logo { font-weight: bold; font-size: 1.1rem; color: #00d2ff; }
     .currency-box { background: #2c2c2c; padding: 5px 12px; border-radius: 20px; font-weight: bold; color: #ffd32a; border: 1px solid #ffd32a; cursor: pointer; transition: transform 0.1s; }
     .currency-box:active { transform: scale(0.95); }
-    .home-center { text-align: center; padding: 40px 15px; }
+    .home-center { text-align: center; padding: 35px 15px; }
     .home-center h1 { font-size: 2.2rem; margin-bottom: 5px; color: #fff; }
-    .subtitle { color: #aaa; margin-bottom: 35px; font-size: 1.1rem; }
-    .menu-buttons { display: flex; flex-direction: column; gap: 15px; max-width: 340px; margin: 0 auto; }
-    .menu-btn { padding: 16px; font-size: 1.15rem; font-weight: bold; border: 1px solid #444; border-radius: 12px; background: #222; color: #fff; cursor: pointer; }
+    .subtitle { color: #aaa; margin-bottom: 30px; font-size: 1.1rem; }
+    .menu-buttons { display: flex; flex-direction: column; gap: 14px; max-width: 340px; margin: 0 auto; }
+    .menu-btn { position: relative; padding: 16px; font-size: 1.15rem; font-weight: bold; border: 1px solid #444; border-radius: 12px; background: #222; color: #fff; cursor: pointer; }
     .menu-btn:active { transform: scale(0.97); }
     .primary-btn { background: linear-gradient(135deg, #ff4757, #ff6b81); border: none; color: #fff; padding: 14px 20px; border-radius: 10px; font-weight: bold; font-size: 1.05rem; cursor: pointer; }
     .primary-btn:disabled { opacity: 0.5; }
     .sub-btn { background: #333; border: 1px solid #555; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
     .back-btn { background: #2c2c2c; border: 1px solid #555; color: #fff; padding: 8px 14px; border-radius: 8px; cursor: pointer; }
     .sub-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+
+    /* 通知バッジ */
+    .notif-badge {
+      position: absolute; top: -7px; right: -7px;
+      background: #ff4757; color: #fff; border: 2px solid #121212;
+      font-size: 0.78rem; font-weight: 900; padding: 2px 8px;
+      border-radius: 20px; box-shadow: 0 0 10px rgba(255,71,87,0.8);
+      animation: badge-bounce 1.2s infinite;
+    }
+    @keyframes badge-bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    /* ミッション画面スタイル */
+    .mission-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+    .mission-tab { flex: 1; padding: 12px; border-radius: 10px; border: 2px solid #444; background: #1e1e1e; color: #aaa; font-weight: bold; cursor: pointer; font-size: 0.95rem; position: relative; }
+    .mission-tab.active { border-color: #ffd32a; color: #fff; background: #2c2614; box-shadow: 0 0 10px rgba(255,211,42,0.3); }
+    .mission-list { display: flex; flex-direction: column; gap: 10px; }
+    .mission-item {
+      background: #1c1c1c; border: 1px solid #333; border-radius: 12px; padding: 12px 14px;
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    }
+    .mission-item.claimable { border-color: #ffd32a; background: linear-gradient(90deg, #1c1c1c 0%, #2d2510 100%); box-shadow: 0 0 12px rgba(255,211,42,0.25); }
+    .mission-item.completed { opacity: 0.55; }
+    .mission-info { flex: 1; }
+    .mission-title { font-weight: bold; font-size: 0.95rem; margin-bottom: 4px; color: #fff; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .mission-step-tag { background: #333; color: #00d2ff; font-size: 0.7rem; padding: 1px 6px; border-radius: 6px; }
+    .mission-desc { font-size: 0.8rem; color: #aaa; margin-bottom: 6px; }
+    .mission-progress-wrap { width: 100%; height: 8px; background: #111; border-radius: 4px; overflow: hidden; border: 1px solid #333; }
+    .mission-progress-bar { height: 100%; background: linear-gradient(90deg, #00d2ff, #2ed573); transition: width 0.3s; }
+    .mission-progress-text { font-size: 0.72rem; color: #ccc; margin-top: 3px; }
+    .mission-reward-col { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; min-width: 105px; }
+    .reward-tag { font-size: 0.78rem; font-weight: bold; color: #ffd32a; background: #2a2410; border: 1px solid #ffd32a; padding: 3px 8px; border-radius: 8px; white-space: nowrap; }
+    .reward-tag.ur-reward { color: #fff; background: linear-gradient(135deg, #ff4757, #a55eea); border-color: #ffd32a; box-shadow: 0 0 8px rgba(255,71,87,0.6); }
+    .claim-btn { padding: 8px 14px; border-radius: 8px; border: none; font-weight: bold; font-size: 0.85rem; cursor: pointer; background: #333; color: #777; }
+    .claim-btn.ready { background: linear-gradient(135deg, #ffd32a, #ffa502); color: #000; box-shadow: 0 0 10px rgba(255,211,42,0.7); }
+    .claim-btn.ready:active { transform: scale(0.95); }
 
     /* パック選択画面＆タブ */
     .pack-tabs { display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; }
@@ -205,10 +243,19 @@
     .screen-flash.rarity-UR { background: radial-gradient(circle, #ffffff 20%, #ff4757 65%, rgba(255,0,0,0.7) 100%); }
     .screen-flash.rarity-GOD { background: conic-gradient(from 0deg, #ff4757, #ffd32a, #2ed573, #00d2ff, #a55eea, #ff4757); }
 
-    /* パック内容モーダル・管理者モーダル */
+    /* モーダル類 */
     .modal-box { background: #1a1a1a; border: 2px solid #00d2ff; border-radius: 14px; width: 92%; max-width: 820px; max-height: 85vh; display: flex; flex-direction: column; padding: 15px; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 10px; }
     .modal-scroll { overflow-y: auto; padding-bottom: 15px; }
+
+    /* UR報酬獲得ポップアップ */
+    .ur-reward-popup {
+      background: radial-gradient(circle at top, #3b0a18 0%, #141414 100%);
+      border: 3px solid #ffd32a; border-radius: 16px; padding: 25px;
+      text-align: center; max-width: 340px; width: 90%;
+      box-shadow: 0 0 35px rgba(255, 71, 87, 0.85);
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+    }
 
     /* 管理者パネル専用スタイル */
     .admin-box { background: #0f1419; border: 2px solid #2ed573; border-radius: 14px; width: 92%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: 20px; box-shadow: 0 0 30px rgba(46, 213, 115, 0.35); }
@@ -319,7 +366,44 @@
         <button id="nav-battle" class="menu-btn primary-btn">⚔️ 対戦する</button>
         <button id="nav-pack" class="menu-btn">📦 パック開封・カードリスト</button>
         <button id="nav-deck" class="menu-btn">🗂️ デッキ編成（最大5個保存）</button>
+        <button id="nav-mission" class="menu-btn">
+          🎯 ミッション・実績
+          <span id="home-mission-badge" class="notif-badge" style="display:none;">0</span>
+        </button>
       </div>
+    </div>
+  </div>
+
+  <!-- 1.5 ミッション画面 -->
+  <div id="mission-screen" class="screen" style="display:none;">
+    <div class="sub-header">
+      <button id="back-from-mission" class="back-btn">◀ 戻る</button>
+      <h2>🎯 ミッション＆実績</h2>
+    </div>
+
+    <div class="mission-tabs">
+      <button id="tab-mission-daily" class="mission-tab active">
+        📅 デイリー
+        <span id="tab-badge-daily" class="notif-badge" style="display:none;">0</span>
+      </button>
+      <button id="tab-mission-total" class="mission-tab">
+        🏆 累計実績（UR報酬あり）
+        <span id="tab-badge-total" class="notif-badge" style="display:none;">0</span>
+      </button>
+    </div>
+
+    <div id="mission-list-container" class="mission-list"></div>
+  </div>
+
+  <!-- UR報酬受け取り時の特別演出モーダル -->
+  <div id="ur-reward-modal" class="overlay-screen" style="display:none; z-index: 2800;">
+    <div class="ur-reward-popup">
+      <div style="font-size: 1.3rem; font-weight: 900; color: #ffd32a; text-shadow: 0 0 10px #ff4757;">
+        🚨 実績達成！UR確定GET!! 🚨
+      </div>
+      <div id="ur-reward-card-slot"></div>
+      <p style="font-size: 0.85rem; color: #ccc;">コレクションに自動で追加されました！</p>
+      <button id="btn-close-ur-reward" class="primary-btn" style="width:100%;">✨ 最高！（閉じる）</button>
     </div>
   </div>
 
@@ -345,6 +429,14 @@
         <div class="admin-btn-grid">
           <button id="admin-unlock-all" class="admin-btn">全カード3枚ずつ入手</button>
           <button id="admin-clear-col" class="admin-btn">所持カードリセット</button>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h4>🎯 ミッションテスト操作</h4>
+        <div class="admin-btn-grid">
+          <button id="admin-boost-missions" class="admin-btn">累計回数を大幅加算</button>
+          <button id="admin-reset-daily" class="admin-btn">デイリー状態リセット</button>
         </div>
       </div>
 
@@ -458,10 +550,8 @@
       <h2>🗂️ デッキ編成（<span id="deck-count-label">0</span> / 40枚）</h2>
     </div>
 
-    <!-- デッキスロット切り替えタブ（1〜5） -->
     <div id="deck-slot-tabs" class="deck-slot-tabs"></div>
 
-    <!-- デッキ名入力＆保存ボタン -->
     <div class="deck-name-row">
       <input type="text" id="deck-name-input" class="deck-name-input" placeholder="デッキ名を入力（例：炎上速攻デッキ）" maxlength="16">
       <button id="btn-save-deck" class="primary-btn">💾 デッキ保存</button>
@@ -667,13 +757,75 @@
     }
   };
 
+  // ================= ミッション定義データ =================
+  const DAILY_MISSIONS = [
+    { id: "d_login", title: "今日のログインボーナス", desc: "今日初めてゲームを起動する", statKey: "login", target: 1, rewardType: "points", rewardVal: 100 },
+    { id: "d_play", title: "今日のレスバ参加", desc: "対戦を1回プレイする（勝敗問わず）", statKey: "battles", target: 1, rewardType: "points", rewardVal: 50 },
+    { id: "d_win", title: "今日の論破勝利", desc: "対戦で1回勝利する", statKey: "wins", target: 1, rewardType: "points", rewardVal: 100 },
+    { id: "d_summon", title: "タイムライン活性化", desc: "ミームを合計5体召喚する", statKey: "summons", target: 5, rewardType: "points", rewardVal: 50 },
+    { id: "d_spell", title: "構文マスター", desc: "スペル（構文）を合計3回発動する", statKey: "spells", target: 3, rewardType: "points", rewardVal: 50 }
+  ];
+
+  // 段階式累計ミッション（最終段階の難しいミッションは「ランダムUR 1枚確定」報酬）
+  const TOTAL_MISSIONS = [
+    {
+      id: "t_wins", title: "レスバ百戦錬磨", descTemplate: "対戦で累計 {target} 回勝利する", statKey: "wins",
+      steps: [
+        { target: 1, rewardType: "points", rewardVal: 100 },
+        { target: 5, rewardType: "points", rewardVal: 300 },
+        { target: 15, rewardType: "points", rewardVal: 600 },
+        { target: 30, rewardType: "ur_card", rewardVal: 1 }
+      ]
+    },
+    {
+      id: "t_packs", title: "ガチャ廃人（無課金）", descTemplate: "パックを累計 {target} 回開封する", statKey: "packs",
+      steps: [
+        { target: 1, rewardType: "points", rewardVal: 100 },
+        { target: 10, rewardType: "points", rewardVal: 300 },
+        { target: 30, rewardType: "points", rewardVal: 800 },
+        { target: 50, rewardType: "ur_card", rewardVal: 1 }
+      ]
+    },
+    {
+      id: "t_summons", title: "ミーム拡散王", descTemplate: "ミームを累計 {target} 体召喚する", statKey: "summons",
+      steps: [
+        { target: 10, rewardType: "points", rewardVal: 100 },
+        { target: 50, rewardType: "points", rewardVal: 300 },
+        { target: 150, rewardType: "ur_card", rewardVal: 1 }
+      ]
+    },
+    {
+      id: "t_spells", title: "構文の使い手", descTemplate: "スペルを累計 {target} 回発動する", statKey: "spells",
+      steps: [
+        { target: 10, rewardType: "points", rewardVal: 100 },
+        { target: 30, rewardType: "points", rewardVal: 300 },
+        { target: 100, rewardType: "ur_card", rewardVal: 1 }
+      ]
+    },
+    {
+      id: "t_collection", title: "ミーム図鑑コレクター", descTemplate: "所持カードの種類を {target} 種類集める", statKey: "uniqueCards",
+      steps: [
+        { target: 20, rewardType: "points", rewardVal: 200 },
+        { target: 50, rewardType: "points", rewardVal: 500 },
+        { target: 75, rewardType: "ur_card", rewardVal: 1 }
+      ]
+    },
+    {
+      id: "t_decksave", title: "オリジナルデッキ職人", descTemplate: "マイデッキを保存する", statKey: "deckSaves",
+      steps: [
+        { target: 1, rewardType: "points", rewardVal: 150 }
+      ]
+    }
+  ];
+
   (function() {
     var SAVE_KEY = "netmeme_tcg_save_v2";
     var DECK_SIZE = 40;
     var MAX_DECK_SLOTS = 5;
     var selectedPackNo = 1;
-    var currentDeckSlot = 0; // 0〜4
-    var editingDeckCards = []; // 編集中の一時配列
+    var currentDeckSlot = 0;
+    var editingDeckCards = [];
+    var currentMissionTab = "daily";
     var userData = loadUserData();
 
     var pendingPackData = null;
@@ -682,7 +834,12 @@
     // 管理者モード用変数
     var adminTapCount = 0;
     var adminTapTimer = null;
-    var rigNextRarity = null; // null | "GOD" | "UR"
+    var rigNextRarity = null;
+
+    function getTodayStr() {
+      var d = new Date();
+      return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+    }
 
     function createDefaultDecks(firstDeckIds) {
       return [
@@ -694,18 +851,30 @@
       ];
     }
 
+    function createDefaultMissions() {
+      return {
+        dailyDate: getTodayStr(),
+        dailyStats: { login: 1, battles: 0, wins: 0, summons: 0, spells: 0 },
+        dailyClaimed: {},
+        totalStats: { wins: 0, packs: 0, summons: 0, spells: 0, deckSaves: 0 },
+        totalStepClaimed: {} // { t_wins: 0, ... } 受け取り済みのステップ数
+      };
+    }
+
     function loadUserData() {
       var defaultDeck = ["mona","mona","mona","giko","giko","giko","yaruo","yaruo","yaruo","numai","numai","numai","kusa","kusa","kusa","neko","neko","neko","chiikawa","chiikawa","chiikawa","ronpa","ronpa","ojisan","ojisan","kmr","kmr","kmr","mur","mur","mur","tono","tono","kirinuki","kirinuki","kirinuki","zombie","zombie","zombie","kagiaka"];
       var raw = localStorage.getItem(SAVE_KEY);
       if (raw) {
         try {
           var parsed = JSON.parse(raw);
-          // 旧バージョン（単一myDeckのみ）からの自動マイグレーション
           if (!Array.isArray(parsed.decks)) {
             parsed.decks = createDefaultDecks(Array.isArray(parsed.myDeck) ? parsed.myDeck : defaultDeck);
           }
           while (parsed.decks.length < MAX_DECK_SLOTS) {
             parsed.decks.push({ name: "マイデッキ " + (parsed.decks.length + 1), ids: [] });
+          }
+          if (!parsed.missions) {
+            parsed.missions = createDefaultMissions();
           }
           return parsed;
         } catch (e) {}
@@ -713,19 +882,222 @@
       return {
         points: 1500,
         collection: { mona: 3, giko: 3, yaruo: 3, numai: 3, kusa: 3, neko: 3, chiikawa: 3, ronpa: 2, ojisan: 2, kmr: 3, mur: 3, tono: 2, kirinuki: 3, zombie: 3, kagiaka: 2 },
-        decks: createDefaultDecks(defaultDeck)
+        decks: createDefaultDecks(defaultDeck),
+        missions: createDefaultMissions()
       };
+    }
+
+    function checkDailyReset() {
+      var today = getTodayStr();
+      if (!userData.missions) userData.missions = createDefaultMissions();
+      if (userData.missions.dailyDate !== today) {
+        userData.missions.dailyDate = today;
+        userData.missions.dailyStats = { login: 1, battles: 0, wins: 0, summons: 0, spells: 0 };
+        userData.missions.dailyClaimed = {};
+        saveUserData();
+      } else if (!userData.missions.dailyStats.login) {
+        userData.missions.dailyStats.login = 1;
+        saveUserData();
+      }
+    }
+
+    function addMissionStat(key, amount) {
+      checkDailyReset();
+      if (userData.missions.dailyStats[key] !== undefined) {
+        userData.missions.dailyStats[key] += amount;
+      }
+      if (userData.missions.totalStats[key] !== undefined) {
+        userData.missions.totalStats[key] += amount;
+      }
+      saveUserData();
+    }
+
+    function getTotalStatValue(statKey) {
+      if (statKey === "uniqueCards") {
+        return Object.keys(userData.collection).filter(function(id) { return userData.collection[id] > 0; }).length;
+      }
+      return userData.missions.totalStats[statKey] || 0;
+    }
+
+    function getClaimableCounts() {
+      checkDailyReset();
+      var dailyCount = 0;
+      DAILY_MISSIONS.forEach(function(m) {
+        var cur = userData.missions.dailyStats[m.statKey] || 0;
+        var claimed = !!userData.missions.dailyClaimed[m.id];
+        if (!claimed && cur >= m.target) dailyCount++;
+      });
+
+      var totalCount = 0;
+      TOTAL_MISSIONS.forEach(function(m) {
+        var stepIdx = userData.missions.totalStepClaimed[m.id] || 0;
+        if (stepIdx < m.steps.length) {
+          var step = m.steps[stepIdx];
+          var cur = getTotalStatValue(m.statKey);
+          if (cur >= step.target) totalCount++;
+        }
+      });
+
+      return { daily: dailyCount, total: totalCount, all: dailyCount + totalCount };
+    }
+
+    function updateMissionBadges() {
+      var counts = getClaimableCounts();
+      var homeBadge = document.getElementById("home-mission-badge");
+      var dailyBadge = document.getElementById("tab-badge-daily");
+      var totalBadge = document.getElementById("tab-badge-total");
+
+      if (counts.all > 0) { homeBadge.style.display = "inline-block"; homeBadge.innerText = counts.all; }
+      else { homeBadge.style.display = "none"; }
+
+      if (counts.daily > 0) { dailyBadge.style.display = "inline-block"; dailyBadge.innerText = counts.daily; }
+      else { dailyBadge.style.display = "none"; }
+
+      if (counts.total > 0) { totalBadge.style.display = "inline-block"; totalBadge.innerText = counts.total; }
+      else { totalBadge.style.display = "none"; }
     }
 
     function saveUserData() {
       localStorage.setItem(SAVE_KEY, JSON.stringify(userData));
       updatePointsUI();
+      updateMissionBadges();
     }
 
     function updatePointsUI() {
       document.getElementById("user-points").innerText = userData.points;
     }
+
+    checkDailyReset();
     updatePointsUI();
+    updateMissionBadges();
+
+    // ================= ミッション画面の描画・受け取り処理 =================
+    document.getElementById("nav-mission").addEventListener("click", function() {
+      checkDailyReset();
+      renderMissionScreen();
+      showScreen("mission-screen");
+    });
+    document.getElementById("back-from-mission").addEventListener("click", function() {
+      showScreen("home-screen");
+    });
+    document.getElementById("tab-mission-daily").addEventListener("click", function() {
+      currentMissionTab = "daily";
+      document.getElementById("tab-mission-daily").classList.add("active");
+      document.getElementById("tab-mission-total").classList.remove("active");
+      renderMissionScreen();
+    });
+    document.getElementById("tab-mission-total").addEventListener("click", function() {
+      currentMissionTab = "total";
+      document.getElementById("tab-mission-total").classList.add("active");
+      document.getElementById("tab-mission-daily").classList.remove("active");
+      renderMissionScreen();
+    });
+
+    function grantRandomURReward() {
+      var urCards = ALL_CARDS.filter(function(c) { return c.rarity === "UR"; });
+      var chosen = urCards[Math.floor(Math.random() * urCards.length)];
+      userData.collection[chosen.id] = (userData.collection[chosen.id] || 0) + 1;
+      saveUserData();
+
+      var slot = document.getElementById("ur-reward-card-slot");
+      slot.innerHTML = "";
+      var el = createCardElement(chosen, function() {}, {});
+      el.classList.add("card-revealed");
+      slot.appendChild(el);
+      document.getElementById("ur-reward-modal").style.display = "flex";
+    }
+
+    document.getElementById("btn-close-ur-reward").addEventListener("click", function() {
+      document.getElementById("ur-reward-modal").style.display = "none";
+    });
+
+    function renderMissionScreen() {
+      updateMissionBadges();
+      var container = document.getElementById("mission-list-container");
+      container.innerHTML = "";
+
+      if (currentMissionTab === "daily") {
+        DAILY_MISSIONS.forEach(function(m) {
+          var cur = Math.min(m.target, userData.missions.dailyStats[m.statKey] || 0);
+          var isClaimed = !!userData.missions.dailyClaimed[m.id];
+          var isReady = !isClaimed && cur >= m.target;
+          var pct = Math.min(100, Math.floor((cur / m.target) * 100));
+
+          var item = document.createElement("div");
+          item.className = "mission-item" + (isReady ? " claimable" : "") + (isClaimed ? " completed" : "");
+          item.innerHTML =
+            '<div class="mission-info">' +
+              '<div class="mission-title">' + m.title + '</div>' +
+              '<div class="mission-desc">' + m.desc + '</div>' +
+              '<div class="mission-progress-wrap"><div class="mission-progress-bar" style="width:' + pct + '%;"></div></div>' +
+              '<div class="mission-progress-text">進行度: ' + cur + ' / ' + m.target + '</div>' +
+            '</div>' +
+            '<div class="mission-reward-col">' +
+              '<span class="reward-tag">💎 ' + m.rewardVal + ' P</span>' +
+              '<button class="claim-btn' + (isReady ? ' ready' : '') + '" ' + (!isReady ? 'disabled' : '') + '>' +
+                (isClaimed ? '受取済' : (isReady ? '🎁 受け取る' : '未達成')) +
+              '</button>' +
+            '</div>';
+
+          if (isReady) {
+            item.querySelector(".claim-btn").addEventListener("click", function() {
+              userData.missions.dailyClaimed[m.id] = true;
+              userData.points += m.rewardVal;
+              saveUserData();
+              renderMissionScreen();
+            });
+          }
+          container.appendChild(item);
+        });
+      } else {
+        TOTAL_MISSIONS.forEach(function(m) {
+          var stepIdx = userData.missions.totalStepClaimed[m.id] || 0;
+          var isAllDone = stepIdx >= m.steps.length;
+          var activeStep = isAllDone ? m.steps[m.steps.length - 1] : m.steps[stepIdx];
+          var rawVal = getTotalStatValue(m.statKey);
+          var cur = Math.min(activeStep.target, rawVal);
+          var isReady = !isAllDone && rawVal >= activeStep.target;
+          var pct = Math.min(100, Math.floor((cur / activeStep.target) * 100));
+          var descText = m.descTemplate.replace("{target}", activeStep.target);
+          var stepLabel = "STEP " + Math.min(stepIdx + 1, m.steps.length) + "/" + m.steps.length;
+
+          var isUR = activeStep.rewardType === "ur_card";
+          var rewardHtml = isUR
+            ? '<span class="reward-tag ur-reward">🚨 ランダムUR 1枚</span>'
+            : '<span class="reward-tag">💎 ' + activeStep.rewardVal + ' P</span>';
+
+          var item = document.createElement("div");
+          item.className = "mission-item" + (isReady ? " claimable" : "") + (isAllDone ? " completed" : "");
+          item.innerHTML =
+            '<div class="mission-info">' +
+              '<div class="mission-title">' + m.title + ' <span class="mission-step-tag">' + stepLabel + '</span></div>' +
+              '<div class="mission-desc">' + descText + '</div>' +
+              '<div class="mission-progress-wrap"><div class="mission-progress-bar" style="width:' + pct + '%;"></div></div>' +
+              '<div class="mission-progress-text">進行度: ' + rawVal + ' / ' + activeStep.target + '</div>' +
+            '</div>' +
+            '<div class="mission-reward-col">' +
+              rewardHtml +
+              '<button class="claim-btn' + (isReady ? ' ready' : '') + '" ' + (!isReady ? 'disabled' : '') + '>' +
+                (isAllDone ? 'コンプリート' : (isReady ? '🎁 受け取る' : '未達成')) +
+              '</button>' +
+            '</div>';
+
+          if (isReady) {
+            item.querySelector(".claim-btn").addEventListener("click", function() {
+              userData.missions.totalStepClaimed[m.id] = stepIdx + 1;
+              if (activeStep.rewardType === "ur_card") {
+                grantRandomURReward();
+              } else {
+                userData.points += activeStep.rewardVal;
+                saveUserData();
+              }
+              renderMissionScreen();
+            });
+          }
+          container.appendChild(item);
+        });
+      }
+    }
 
     // ================= 隠しコマンド：管理者パネル起動 =================
     document.getElementById("secret-admin-trigger").addEventListener("click", function() {
@@ -789,6 +1161,26 @@
       setAdminStatus("所持カードと全デッキを空にしました。");
     });
 
+    document.getElementById("admin-boost-missions").addEventListener("click", function() {
+      userData.missions.totalStats.wins += 10;
+      userData.missions.totalStats.packs += 15;
+      userData.missions.totalStats.summons += 50;
+      userData.missions.totalStats.spells += 30;
+      userData.missions.dailyStats.battles += 1;
+      userData.missions.dailyStats.wins += 1;
+      userData.missions.dailyStats.summons += 5;
+      userData.missions.dailyStats.spells += 3;
+      saveUserData();
+      setAdminStatus("ミッション達成カウントを大幅に加算しました！");
+    });
+
+    document.getElementById("admin-reset-daily").addEventListener("click", function() {
+      userData.missions.dailyStats = { login: 1, battles: 0, wins: 0, summons: 0, spells: 0 };
+      userData.missions.dailyClaimed = {};
+      saveUserData();
+      setAdminStatus("デイリーミッションをリセットしました。");
+    });
+
     document.getElementById("admin-rig-god").addEventListener("click", function() {
       rigNextRarity = (rigNextRarity === "GOD") ? null : "GOD";
       updateRigButtons();
@@ -813,7 +1205,7 @@
     });
 
     // ================= 画面遷移＆パック選択 =================
-    var screens = ["home-screen", "pack-screen", "deck-screen", "setup-screen", "game-screen"];
+    var screens = ["home-screen", "mission-screen", "pack-screen", "deck-screen", "setup-screen", "game-screen"];
     function showScreen(id) {
       for (var i = 0; i < screens.length; i++) {
         var s = screens[i];
@@ -906,9 +1298,10 @@
 
     function enterPackOpenStage() {
       if (pendingPackData) return;
-      if (userData.points < 100) { alert("バズPが足りません！CPU戦に勝利してポイントを貯めよう！"); return; }
+      if (userData.points < 100) { alert("バズPが足りません！ミッションやCPU戦勝利でポイントを貯めよう！"); return; }
 
       userData.points -= 100;
+      addMissionStat("packs", 1);
 
       var targetCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
       var poolN = targetCards.filter(function(c) { return c.rarity === "N"; });
@@ -1180,6 +1573,7 @@
         name: customName,
         ids: editingDeckCards.slice()
       };
+      addMissionStat("deckSaves", 1);
       saveUserData();
       renderDeckSlotTabs();
       alert("✅ 「" + customName + "」（" + DECK_SIZE + "枚）を保存しました！");
@@ -1192,14 +1586,13 @@
       p2: { name: "CPU", label: "相手デッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
       selectedAttackerIndex: null
     };
-    var peer = null, conn = null, p1OnlineDeck = null, p2OnlineDeck = null, ROOM_PREFIX = "netmeme-tcg-v8-";
+    var peer = null, conn = null, p1OnlineDeck = null, p2OnlineDeck = null, ROOM_PREFIX = "netmeme-tcg-v9-";
 
     function populateBattleDeckSelect() {
       var selectEl = document.getElementById("battle-deck-select");
       var prevVal = selectEl.value;
       selectEl.innerHTML = "";
 
-      // 保存済みマイデッキ1〜5を追加
       userData.decks.forEach(function(d, idx) {
         var opt = document.createElement("option");
         opt.value = "mydeck_" + idx;
@@ -1208,7 +1601,6 @@
         selectEl.appendChild(opt);
       });
 
-      // レンタルデッキを追加
       Object.keys(RENTAL_DECKS).forEach(function(key) {
         var opt = document.createElement("option");
         opt.value = key;
@@ -1293,6 +1685,7 @@
         } else if (data.type === "START_MATCH") {
           state.p1 = data.p1; state.p2 = data.p2; state.turn = 1; state.activeSide = "p1";
           state.isInputLocked = (state.myRole !== "p1");
+          addMissionStat("battles", 1);
           showScreen("game-screen"); log("対戦開始！"); showCutin("⚔️ 対戦開始！\n先攻（プレイヤー1）のターン"); render();
         } else if (data.type === "SYNC_STATE") {
           state.p1 = data.p1; state.p2 = data.p2; state.turn = data.turn; state.activeSide = data.activeSide;
@@ -1311,6 +1704,7 @@
     }
 
     function startMatch(p1Deck, p2Deck, p2Name) {
+      addMissionStat("battles", 1);
       state.turn = 1; state.activeSide = "p1";
       state.p1 = { name: "プレイヤー1", label: p1Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p1Deck.cards, hand: [], field: [] };
       state.p2 = { name: p2Name, label: p2Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p2Deck.cards, hand: [], field: [] };
@@ -1356,13 +1750,17 @@
       var self = getViewSelf(), card = self.hand[handIndex];
       if (self.giga < card.cost) { log("⚠️ ギガ（コスト）が足りません！"); return; }
       var actionLog = "";
+      var isPlayerAction = (state.mode === "cpu" && state.activeSide === "p1") || (state.mode === "online" && state.activeSide === state.myRole) || (state.mode === "local");
+
       if (card.type === "meme") {
         if (self.field.length >= 3) { log("⚠️ タイムラインがいっぱいです（最大3体）。"); return; }
         self.giga -= card.cost; self.hand.splice(handIndex, 1); card.canAttack = true; card.isBuzz = true; self.field.push(card);
+        if (isPlayerAction) addMissionStat("summons", 1);
         actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！"; log(actionLog);
         triggerSummonEffect(state.activeSide, card);
       } else if (card.type === "spell") {
         self.giga -= card.cost; self.hand.splice(handIndex, 1);
+        if (isPlayerAction) addMissionStat("spells", 1);
         actionLog = "⚡ " + self.name + "が構文「" + card.name + "」を発動！"; log(actionLog);
         executeSpell(state.activeSide, card);
       }
@@ -1600,13 +1998,18 @@
     }
 
     function checkGameOver() {
+      var didPlayerWin = (state.mode === "online" && state.myRole === "p2") ? (state.p1.hp <= 0) : (state.p2.hp <= 0);
+      var didPlayerLose = (state.mode === "online" && state.myRole === "p2") ? (state.p2.hp <= 0) : (state.p1.hp <= 0);
+
       if (state.p2.hp <= 0) {
+        if (didPlayerWin) addMissionStat("wins", 1);
         userData.points += 150; saveUserData();
         setTimeout(function() { alert("🎉 " + state.p1.name + "の勝利！報酬として 150 バズP を獲得しました！"); showScreen("home-screen"); }, 200);
         return true;
       }
       if (state.p1.hp <= 0) {
-        userData.points += 50; saveUserData();
+        if (didPlayerWin) addMissionStat("wins", 1);
+        userData.points += (didPlayerLose ? 50 : 150); saveUserData();
         setTimeout(function() { alert("💀 " + state.p2.name + "の勝利... 参加賞として 50 バズP を獲得しました。"); showScreen("home-screen"); }, 200);
         return true;
       }
