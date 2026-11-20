@@ -560,7 +560,7 @@
 
   document.getElementById("tab-pack-1").addEventListener("click", function() { selectPackTab(1); });
   document.getElementById("tab-pack-2").addEventListener("click", function() { selectPackTab(2); });
-  document.getElementById("tab-pack-3").addEventListener("click", function() { selectPackTab(3); });
+  var elTab3 = document.getElementById("tab-pack-3"); if (elTab3) { elTab3.addEventListener("click", function() { selectPackTab(3); }); }
 
   document.getElementById("btn-view-pack-list").addEventListener("click", function() {
     var packCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
