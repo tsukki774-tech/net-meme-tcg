@@ -274,6 +274,54 @@
       background: #111; color: #fff; font-size: 1.05rem; font-weight: bold; text-align: center;
     }
 
+    /* カード詳細拡大モーダル */
+    .card-detail-modal-box {
+      background: #181a20; border: 2px solid #00d2ff; border-radius: 18px;
+      width: 90%; max-width: 360px; padding: 20px;
+      display: flex; flex-direction: column; gap: 12px;
+      box-shadow: 0 0 35px rgba(0, 0, 0, 0.9);
+      animation: card-reveal 0.22s ease-out forwards;
+    }
+    .card-detail-modal-box.rarity-R { border-color: #00d2ff; box-shadow: 0 0 25px rgba(0, 210, 255, 0.4); }
+    .card-detail-modal-box.rarity-SR { border-color: #ffd32a; box-shadow: 0 0 25px rgba(255, 211, 42, 0.45); }
+    .card-detail-modal-box.rarity-UR { border-color: #ff4757; box-shadow: 0 0 30px rgba(255, 71, 87, 0.6); }
+    .card-detail-modal-box.rarity-GOD {
+      background: linear-gradient(145deg, #2c003e 0%, #3d0826 55%, #161626 100%);
+      border: 3px solid #ffd32a;
+      box-shadow: 0 0 30px #ff4757, 0 0 40px #00d2ff;
+    }
+    .detail-top-meta { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 0.85rem; }
+    .detail-cost-pill { background: #0097e6; color: #fff; font-weight: 900; padding: 3px 10px; border-radius: 20px; }
+    .detail-rarity-pill { font-weight: 900; color: #ffd32a; font-size: 0.95rem; }
+    .detail-era-pill { background: #2c2c2c; color: #ccc; padding: 3px 8px; border-radius: 6px; font-size: 0.78rem; }
+    .detail-card-title { font-size: 1.35rem; font-weight: 900; text-align: center; color: #fff; line-height: 1.3; }
+    .detail-art-frame {
+      width: 100%; height: 155px; background: #111; border: 1px solid #333;
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 5rem; overflow: hidden;
+    }
+    .detail-art-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .detail-stats-bar {
+      display: flex; justify-content: space-around; align-items: center;
+      background: #101216; border: 1px solid #333; border-radius: 10px;
+      padding: 10px; font-size: 1rem; font-weight: bold;
+    }
+    .detail-desc-box {
+      background: #121418; border: 1px solid #2e323b; border-radius: 10px;
+      padding: 12px; font-size: 0.92rem; line-height: 1.55; color: #f1f2f6;
+      min-height: 76px; white-space: pre-wrap;
+    }
+    .detail-footer-info {
+      display: flex; justify-content: space-between; font-size: 0.78rem; color: #aaa;
+      padding: 0 4px;
+    }
+    .detail-zoom-hint {
+      position: absolute; bottom: 24px; right: 4px;
+      background: rgba(0, 0, 0, 0.75); color: #fff;
+      font-size: 0.58rem; padding: 1px 4px; border-radius: 4px;
+      pointer-events: none; opacity: 0.85;
+    }
+
     /* 管理者パネル専用スタイル */
     .admin-box { background: #0f1419; border: 2px solid #2ed573; border-radius: 14px; width: 92%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: 20px; box-shadow: 0 0 30px rgba(46, 213, 115, 0.35); }
     .admin-section { background: #182026; border: 1px solid #2c3e50; border-radius: 10px; padding: 12px; margin-bottom: 14px; }
@@ -410,6 +458,26 @@
     </div>
   </div>
 
+  <!-- カード詳細拡大モーダル -->
+  <div id="card-detail-modal" class="overlay-screen" style="display:none; z-index: 3200;">
+    <div id="card-detail-box" class="card-detail-modal-box">
+      <div class="detail-top-meta">
+        <span id="detail-cost" class="detail-cost-pill">コスト 1</span>
+        <span id="detail-rarity" class="detail-rarity-pill">UR</span>
+        <span id="detail-era" class="detail-era-pill">令和</span>
+      </div>
+      <div id="detail-title" class="detail-card-title">カード名</div>
+      <div id="detail-art" class="detail-art-frame">🌐</div>
+      <div id="detail-stats" class="detail-stats-bar"></div>
+      <div id="detail-desc" class="detail-desc-box">効果テキスト</div>
+      <div class="detail-footer-info">
+        <span id="detail-pack">収録: 第1弾</span>
+        <span id="detail-owned">所持枚数: 0枚</span>
+      </div>
+      <button id="btn-close-card-detail" class="sub-btn" style="width:100%; margin-top:4px;">✕ 閉じる</button>
+    </div>
+  </div>
+
   <!-- 1.5 ミッション画面 -->
   <div id="mission-screen" class="screen" style="display:none;">
     <div class="sub-header">
@@ -438,7 +506,7 @@
         🚨 実績達成！UR確定GET!! 🚨
       </div>
       <div id="ur-reward-card-slot"></div>
-      <p style="font-size: 0.85rem; color: #ccc;">コレクションに自動で追加されました！</p>
+      <p style="font-size: 0.85rem; color: #ccc;">コレクションに自動で追加されました！（タップで詳細）</p>
       <button id="btn-close-ur-reward" class="primary-btn" style="width:100%;">✨ 最高！（閉じる）</button>
     </div>
   </div>
@@ -572,7 +640,8 @@
       </div>
       <div class="modal-scroll">
         <p style="font-size:0.78rem; color:#aaa; text-align:center; margin-bottom:8px;">
-          排出率：GOD 0.1%（確定枠0.1%） / UR 1.0%（確定枠3.0%） / SR 12%（確定枠27%） / R 30%（確定枠69.9%） / N 56.9%
+          排出率：GOD 0.1%（確定枠0.1%） / UR 1.0%（確定枠3.0%） / SR 12%（確定枠27%） / R 30%（確定枠69.9%） / N 56.9%<br>
+          <span style="color:#00d2ff;">💡 カードをタップすると詳細を拡大表示できます</span>
         </p>
         <div id="modal-card-grid" class="card-grid"></div>
       </div>
@@ -603,7 +672,7 @@
       <div id="current-deck-list" class="mini-deck-list"></div>
     </div>
     <div class="deck-section">
-      <h3>所持カード一覧（タップで追加・同じカードは3枚まで）</h3>
+      <h3>所持カード一覧（タップで追加 / 長押しで詳細確認）</h3>
       <div id="collection-list" class="card-grid"></div>
     </div>
   </div>
@@ -652,7 +721,7 @@
 
   <!-- 5. バトル画面 -->
   <div id="game-screen" class="screen" style="display:none;">
-    <div id="guide-banner" class="guide-banner">💡 あなたのターン：カードを出そう！</div>
+    <div id="guide-banner" class="guide-banner">💡 あなたのターン：カードを出そう！（長押しでカード詳細）</div>
     <div class="player-bar opp-bar">
       <span id="opp-title">👾 相手</span>
       <span>❤️ メンタル: <strong id="opp-hp">20</strong></span>
