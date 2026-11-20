@@ -1,11 +1,6 @@
 // cards.js - カード一覧・レンタルデッキ・ミッションデータ定義
 
 const ALL_CARDS = [
-  // ================= 管理者（開発者）専用カード（pack: 0 / 非売品・隠しコマンド限定） =================
-  { id: "admin_ban_hammer", pack: 0, isAdminOnly: true, name: "【ADMIN】開発者の特権（BANハンマー）", type: "spell", era: "運営", rarity: "ADMIN", cost: 0, icon: "🔨", desc: "【管理者専用】相手場のミームを無敵バリアごと全消滅＆相手手札2枚破壊＆自分メンタル全回復・ギガ最大！" },
-  { id: "admin_god_dev", pack: 0, isAdminOnly: true, name: "【ADMIN】作者の気まぐれ（仕様変更）", type: "meme", era: "運営", rarity: "ADMIN", cost: 1, atk: 99, hp: 99, freshness: 99, icon: "👑", desc: "【管理者専用】召喚時：相手の場のミームを全て奪い取り、自身に無敵バリア（🛡️）を付与して降臨！" },
-  { id: "admin_debug_mode", pack: 0, isAdminOnly: true, name: "【ADMIN】デバッグモード起動", type: "spell", era: "運営", rarity: "ADMIN", cost: 0, icon: "💻", desc: "【管理者専用】山札から3枚ドローし、このターン中自分の手札すべてのコストを0にする！" },
-
   // ================= 第1弾（pack: 1 / 全42種） =================
   { id: "god_internet", pack: 1, name: "インターネットの集合知", type: "meme", era: "2ch", rarity: "GOD", cost: 6, atk: 7, hp: 7, freshness: 5, icon: "🌌", desc: "【神降臨】召喚時：味方全員の攻撃力+2＆無敵バリア付与＆カードを2枚ドロー！" },
 
