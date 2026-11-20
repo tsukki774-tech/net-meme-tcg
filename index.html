@@ -1,4 +1,4 @@
-// net-meme-tcg-v7
+// net-meme-tcg-v8
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -24,7 +24,7 @@
     .primary-btn:disabled { opacity: 0.5; }
     .sub-btn { background: #333; border: 1px solid #555; color: #fff; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
     .back-btn { background: #2c2c2c; border: 1px solid #555; color: #fff; padding: 8px 14px; border-radius: 8px; cursor: pointer; }
-    .sub-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+    .sub-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
 
     /* パック選択画面＆タブ */
     .pack-tabs { display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap; }
@@ -220,12 +220,30 @@
     .admin-btn.active-rig { background: #ff4757; border-color: #ffd32a; color: #fff; box-shadow: 0 0 10px rgba(255,71,87,0.6); }
     .admin-btn.danger { background: #4a151b; border-color: #ff4757; color: #ff6b81; }
 
-    /* デッキ編成・対戦準備・バトル画面 */
+    /* デッキ編成・複数スロットタブ */
+    .deck-slot-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+    .deck-slot-tab {
+      flex: 1; min-width: 90px; padding: 8px 6px; border-radius: 8px;
+      border: 1px solid #444; background: #1a1a1a; color: #aaa;
+      font-size: 0.8rem; font-weight: bold; cursor: pointer; text-align: center;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .deck-slot-tab.active {
+      border-color: #00d2ff; background: #162a3a; color: #fff;
+      box-shadow: 0 0 8px rgba(0, 210, 255, 0.4);
+    }
+    .deck-name-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+    .deck-name-input {
+      flex: 1; padding: 10px 12px; border-radius: 8px; border: 1px solid #555;
+      background: #1e1e1e; color: #fff; font-size: 0.95rem; font-weight: bold;
+    }
     .deck-controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
     .deck-section { background: #1a1a1a; padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #333; }
     .deck-section h3 { font-size: 0.95rem; color: #00d2ff; margin-bottom: 10px; }
     .mini-deck-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px; }
     .mini-chip { background: #2c2c2c; border: 1px solid #555; padding: 5px 10px; border-radius: 16px; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+
+    /* 対戦準備・バトル画面 */
     .setup-box { background: #1e1e1e; padding: 18px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #333; display: flex; flex-direction: column; gap: 10px; }
     .setup-box select, .setup-box input { padding: 12px; border-radius: 8px; border: 1px solid #555; background: #121212; color: #fff; font-size: 1rem; }
     #game-screen { flex-direction: column; height: 100vh; padding: 8px; justify-content: space-between; }
@@ -300,7 +318,7 @@
       <div class="menu-buttons">
         <button id="nav-battle" class="menu-btn primary-btn">⚔️ 対戦する</button>
         <button id="nav-pack" class="menu-btn">📦 パック開封・カードリスト</button>
-        <button id="nav-deck" class="menu-btn">🗂️ デッキ編成（40枚）</button>
+        <button id="nav-deck" class="menu-btn">🗂️ デッキ編成（最大5個保存）</button>
       </div>
     </div>
   </div>
@@ -433,19 +451,29 @@
     </div>
   </div>
 
-  <!-- 3. デッキ編成画面 -->
+  <!-- 3. デッキ編成画面（複数デッキ保存対応） -->
   <div id="deck-screen" class="screen" style="display:none;">
     <div class="sub-header">
       <button id="back-from-deck" class="back-btn">◀ 戻る</button>
       <h2>🗂️ デッキ編成（<span id="deck-count-label">0</span> / 40枚）</h2>
     </div>
+
+    <!-- デッキスロット切り替えタブ（1〜5） -->
+    <div id="deck-slot-tabs" class="deck-slot-tabs"></div>
+
+    <!-- デッキ名入力＆保存ボタン -->
+    <div class="deck-name-row">
+      <input type="text" id="deck-name-input" class="deck-name-input" placeholder="デッキ名を入力（例：炎上速攻デッキ）" maxlength="16">
+      <button id="btn-save-deck" class="primary-btn">💾 デッキ保存</button>
+    </div>
+
     <div class="deck-controls">
       <button id="btn-auto-deck" class="sub-btn">🎲 自動構築</button>
       <button id="btn-clear-deck" class="sub-btn">🗑️ 全解除</button>
-      <button id="btn-save-deck" class="primary-btn">💾 デッキ保存</button>
     </div>
+
     <div class="deck-section">
-      <h3>現在のマイデッキ（タップで外す）</h3>
+      <h3>現在の編集中デッキ（タップで外す）</h3>
       <div id="current-deck-list" class="mini-deck-list"></div>
     </div>
     <div class="deck-section">
@@ -462,11 +490,7 @@
     </div>
     <div class="setup-box">
       <label>使用デッキ選択：</label>
-      <select id="battle-deck-select">
-        <option value="mydeck">マイデッキ（40枚）</option>
-        <option value="rental_2ch">レンタル：レトロ＆ネット黎明期（40枚）</option>
-        <option value="rental_yaju">レンタル：令和・配信・例のアレ連合（40枚）</option>
-      </select>
+      <select id="battle-deck-select"></select>
     </div>
     <div id="step-mode" class="setup-box">
       <h3>対戦モードを選択</h3>
@@ -646,7 +670,10 @@
   (function() {
     var SAVE_KEY = "netmeme_tcg_save_v2";
     var DECK_SIZE = 40;
+    var MAX_DECK_SLOTS = 5;
     var selectedPackNo = 1;
+    var currentDeckSlot = 0; // 0〜4
+    var editingDeckCards = []; // 編集中の一時配列
     var userData = loadUserData();
 
     var pendingPackData = null;
@@ -657,14 +684,36 @@
     var adminTapTimer = null;
     var rigNextRarity = null; // null | "GOD" | "UR"
 
+    function createDefaultDecks(firstDeckIds) {
+      return [
+        { name: "マイデッキ 1", ids: firstDeckIds || [] },
+        { name: "マイデッキ 2", ids: [] },
+        { name: "マイデッキ 3", ids: [] },
+        { name: "マイデッキ 4", ids: [] },
+        { name: "マイデッキ 5", ids: [] }
+      ];
+    }
+
     function loadUserData() {
-      var raw = localStorage.getItem(SAVE_KEY);
-      if (raw) { try { return JSON.parse(raw); } catch (e) {} }
       var defaultDeck = ["mona","mona","mona","giko","giko","giko","yaruo","yaruo","yaruo","numai","numai","numai","kusa","kusa","kusa","neko","neko","neko","chiikawa","chiikawa","chiikawa","ronpa","ronpa","ojisan","ojisan","kmr","kmr","kmr","mur","mur","mur","tono","tono","kirinuki","kirinuki","kirinuki","zombie","zombie","zombie","kagiaka"];
+      var raw = localStorage.getItem(SAVE_KEY);
+      if (raw) {
+        try {
+          var parsed = JSON.parse(raw);
+          // 旧バージョン（単一myDeckのみ）からの自動マイグレーション
+          if (!Array.isArray(parsed.decks)) {
+            parsed.decks = createDefaultDecks(Array.isArray(parsed.myDeck) ? parsed.myDeck : defaultDeck);
+          }
+          while (parsed.decks.length < MAX_DECK_SLOTS) {
+            parsed.decks.push({ name: "マイデッキ " + (parsed.decks.length + 1), ids: [] });
+          }
+          return parsed;
+        } catch (e) {}
+      }
       return {
         points: 1500,
         collection: { mona: 3, giko: 3, yaruo: 3, numai: 3, kusa: 3, neko: 3, chiikawa: 3, ronpa: 2, ojisan: 2, kmr: 3, mur: 3, tono: 2, kirinuki: 3, zombie: 3, kagiaka: 2 },
-        myDeck: defaultDeck
+        decks: createDefaultDecks(defaultDeck)
       };
     }
 
@@ -734,9 +783,10 @@
 
     document.getElementById("admin-clear-col").addEventListener("click", function() {
       userData.collection = {};
-      userData.myDeck = [];
+      userData.decks = createDefaultDecks([]);
+      editingDeckCards = [];
       saveUserData();
-      setAdminStatus("所持カードとマイデッキを空にしました。");
+      setAdminStatus("所持カードと全デッキを空にしました。");
     });
 
     document.getElementById("admin-rig-god").addEventListener("click", function() {
@@ -829,6 +879,7 @@
     });
 
     document.getElementById("nav-battle").addEventListener("click", function() {
+      populateBattleDeckSelect();
       document.getElementById("step-mode").style.display = "block";
       document.getElementById("step-online").style.display = "none";
       showScreen("setup-screen");
@@ -838,7 +889,7 @@
       showScreen("pack-screen");
     });
     document.getElementById("nav-deck").addEventListener("click", function() {
-      renderDeckBuilder();
+      switchDeckSlot(currentDeckSlot);
       showScreen("deck-screen");
     });
 
@@ -1041,17 +1092,43 @@
       });
     }
 
+    // ================= 複数デッキ編成システム =================
+    function switchDeckSlot(slotIdx) {
+      currentDeckSlot = slotIdx;
+      var slotObj = userData.decks[slotIdx];
+      editingDeckCards = slotObj.ids.slice();
+      document.getElementById("deck-name-input").value = slotObj.name;
+      renderDeckBuilder();
+    }
+
+    function renderDeckSlotTabs() {
+      var tabsEl = document.getElementById("deck-slot-tabs");
+      tabsEl.innerHTML = "";
+      userData.decks.forEach(function(d, idx) {
+        var btn = document.createElement("button");
+        btn.className = "deck-slot-tab" + (idx === currentDeckSlot ? " active" : "");
+        var count = (idx === currentDeckSlot) ? editingDeckCards.length : d.ids.length;
+        btn.innerText = d.name + " (" + count + ")";
+        btn.addEventListener("click", function() {
+          switchDeckSlot(idx);
+        });
+        tabsEl.appendChild(btn);
+      });
+    }
+
     function renderDeckBuilder() {
-      document.getElementById("deck-count-label").innerText = userData.myDeck.length;
+      renderDeckSlotTabs();
+      document.getElementById("deck-count-label").innerText = editingDeckCards.length;
+
       var deckListEl = document.getElementById("current-deck-list");
       deckListEl.innerHTML = "";
-      userData.myDeck.forEach(function(cardId, index) {
+      editingDeckCards.forEach(function(cardId, index) {
         var card = ALL_CARDS.find(function(c) { return c.id === cardId; });
         if (!card) return;
         var chip = document.createElement("div");
         chip.className = "mini-chip";
         chip.innerHTML = '<span class="cost-badge" style="width:16px;height:16px;font-size:0.7rem;">' + card.cost + '</span> ' + card.icon + ' ' + card.name + ' ✕';
-        chip.addEventListener("click", function() { userData.myDeck.splice(index, 1); renderDeckBuilder(); });
+        chip.addEventListener("click", function() { editingDeckCards.splice(index, 1); renderDeckBuilder(); });
         deckListEl.appendChild(chip);
       });
 
@@ -1060,11 +1137,11 @@
       ALL_CARDS.forEach(function(card) {
         var owned = userData.collection[card.id] || 0;
         if (owned <= 0) return;
-        var inDeckCount = userData.myDeck.filter(function(id) { return id === card.id; }).length;
+        var inDeckCount = editingDeckCards.filter(function(id) { return id === card.id; }).length;
         var el = createCardElement(card, function() {
-          if (userData.myDeck.length >= DECK_SIZE) { alert("デッキは" + DECK_SIZE + "枚までです！"); return; }
+          if (editingDeckCards.length >= DECK_SIZE) { alert("デッキは" + DECK_SIZE + "枚までです！"); return; }
           if (inDeckCount >= 3 || inDeckCount >= owned) { alert("これ以上同じカードを入れられません（所持数または上限3枚）"); return; }
-          userData.myDeck.push(card.id);
+          editingDeckCards.push(card.id);
           renderDeckBuilder();
         }, {});
         var badge = document.createElement("div");
@@ -1082,14 +1159,30 @@
         for (var i = 0; i < count; i++) available.push(id);
       });
       available.sort(function() { return Math.random() - 0.5; });
-      userData.myDeck = available.slice(0, DECK_SIZE);
+      editingDeckCards = available.slice(0, DECK_SIZE);
       renderDeckBuilder();
     });
-    document.getElementById("btn-clear-deck").addEventListener("click", function() { userData.myDeck = []; renderDeckBuilder(); });
+
+    document.getElementById("btn-clear-deck").addEventListener("click", function() {
+      editingDeckCards = [];
+      renderDeckBuilder();
+    });
+
     document.getElementById("btn-save-deck").addEventListener("click", function() {
-      if (userData.myDeck.length !== DECK_SIZE) { alert("デッキはちょうど" + DECK_SIZE + "枚にしてください！（現在 " + userData.myDeck.length + " 枚）"); return; }
+      if (editingDeckCards.length !== DECK_SIZE) {
+        alert("デッキはちょうど" + DECK_SIZE + "枚にしてください！（現在 " + editingDeckCards.length + " 枚）");
+        return;
+      }
+      var customName = document.getElementById("deck-name-input").value.trim();
+      if (!customName) customName = "マイデッキ " + (currentDeckSlot + 1);
+
+      userData.decks[currentDeckSlot] = {
+        name: customName,
+        ids: editingDeckCards.slice()
+      };
       saveUserData();
-      alert("✅ マイデッキ（" + DECK_SIZE + "枚）を保存しました！");
+      renderDeckSlotTabs();
+      alert("✅ 「" + customName + "」（" + DECK_SIZE + "枚）を保存しました！");
     });
 
     // ================= バトルシステム =================
@@ -1099,14 +1192,50 @@
       p2: { name: "CPU", label: "相手デッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
       selectedAttackerIndex: null
     };
-    var peer = null, conn = null, p1OnlineDeck = null, p2OnlineDeck = null, ROOM_PREFIX = "netmeme-tcg-v7-";
+    var peer = null, conn = null, p1OnlineDeck = null, p2OnlineDeck = null, ROOM_PREFIX = "netmeme-tcg-v8-";
+
+    function populateBattleDeckSelect() {
+      var selectEl = document.getElementById("battle-deck-select");
+      var prevVal = selectEl.value;
+      selectEl.innerHTML = "";
+
+      // 保存済みマイデッキ1〜5を追加
+      userData.decks.forEach(function(d, idx) {
+        var opt = document.createElement("option");
+        opt.value = "mydeck_" + idx;
+        var statusText = (d.ids.length === DECK_SIZE) ? "40枚・準備OK" : (d.ids.length + "/40枚・未完成");
+        opt.innerText = "【マイデッキ】" + d.name + "（" + statusText + "）";
+        selectEl.appendChild(opt);
+      });
+
+      // レンタルデッキを追加
+      Object.keys(RENTAL_DECKS).forEach(function(key) {
+        var opt = document.createElement("option");
+        opt.value = key;
+        opt.innerText = RENTAL_DECKS[key].label;
+        selectEl.appendChild(opt);
+      });
+
+      if (prevVal && Array.from(selectEl.options).some(function(o) { return o.value === prevVal; })) {
+        selectEl.value = prevVal;
+      }
+    }
 
     function getSelectedDeckCards() {
       var choice = document.getElementById("battle-deck-select").value, ids = [], label = "";
-      if (choice === "mydeck") {
-        if (userData.myDeck.length !== DECK_SIZE) { alert("マイデッキが" + DECK_SIZE + "枚になっていません！デッキ編成で" + DECK_SIZE + "枚揃えるか、レンタルデッキを選んでください。"); return null; }
-        ids = userData.myDeck.slice(); label = "マイデッキ";
-      } else { ids = RENTAL_DECKS[choice].ids.slice(); label = RENTAL_DECKS[choice].label; }
+      if (choice.indexOf("mydeck_") === 0) {
+        var slotIdx = parseInt(choice.replace("mydeck_", ""), 10);
+        var targetDeck = userData.decks[slotIdx];
+        if (!targetDeck || targetDeck.ids.length !== DECK_SIZE) {
+          alert("選択した「" + (targetDeck ? targetDeck.name : "マイデッキ") + "」が" + DECK_SIZE + "枚になっていません！デッキ編成で40枚揃えて保存するか、完成済みのデッキ・レンタルデッキを選んでください。");
+          return null;
+        }
+        ids = targetDeck.ids.slice();
+        label = targetDeck.name;
+      } else {
+        ids = RENTAL_DECKS[choice].ids.slice();
+        label = RENTAL_DECKS[choice].label;
+      }
       var cards = ids.map(function(id) { return JSON.parse(JSON.stringify(ALL_CARDS.find(function(c) { return c.id === id; }))); }).sort(function() { return Math.random() - 0.5; });
       return { label: label, cards: cards };
     }
