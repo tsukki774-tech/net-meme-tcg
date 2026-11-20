@@ -1770,9 +1770,14 @@
     if (p.hand.length < 7) p.hand.push(p.deck.pop());
   }
   function log(msg) { var logBox = document.getElementById("log"); logBox.innerHTML = "<p>> " + msg + "</p>" + logBox.innerHTML; }
+  var cutinTimer = null;
   function showCutin(text, duration) {
-    var overlay = document.getElementById("cutin-overlay"); document.getElementById("cutin-text").innerText = text;
-    overlay.style.display = "flex"; setTimeout(function() { overlay.style.display = "none"; }, duration || 1100);
+    var overlay = document.getElementById("cutin-overlay");
+    if (!overlay) return;
+    document.getElementById("cutin-text").innerText = text;
+    overlay.style.display = "flex";
+    clearTimeout(cutinTimer);
+    cutinTimer = setTimeout(function() { overlay.style.display = "none"; }, duration || 1100);
   }
 
   function showGodSummonCutin(card, summonerName) {
@@ -1856,28 +1861,44 @@
   function playCard(handIndex) {
     if (state.isInputLocked) return;
     var self = getViewSelf(), card = self.hand[handIndex];
+    if (!card) return;
     if (self.giga < card.cost) { log("⚠️ ギガ（コスト）が足りません！"); return; }
     var actionLog = "";
     var summonedGodCard = null;
     var isPlayerAction = (state.mode === "cpu" && state.activeSide === "p1") || (state.mode === "online" && state.activeSide === state.myRole) || (state.mode === "local");
 
-    if (card.type === "meme") {
-      if (self.field.length >= 3) { log("⚠️ タイムラインがいっぱいです（最大3体）。"); return; }
-      self.giga -= card.cost; self.hand.splice(handIndex, 1); card.canAttack = true; card.isBuzz = true; self.field.push(card);
-      if (isPlayerAction) addMissionStat("summons", 1);
-      actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！"; log(actionLog);
-      window.CardEffects.triggerSummonEffect(effectCtx, state.activeSide, card);
-      if (card.rarity === "GOD" || card.rarity === "ADMIN") {
-        summonedGodCard = card;
-        showGodSummonCutin(card, self.name);
+    try {
+      if (card.type === "meme") {
+        if (self.field.length >= 3) { log("⚠️ タイムラインがいっぱいです（最大3体）。"); return; }
+        self.giga -= card.cost; self.hand.splice(handIndex, 1); card.canAttack = true; card.isBuzz = true; self.field.push(card);
+        if (isPlayerAction) addMissionStat("summons", 1);
+        actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！"; log(actionLog);
+        try {
+          window.CardEffects.triggerSummonEffect(effectCtx, state.activeSide, card);
+        } catch (effErr) {
+          console.error("SummonEffect error:", effErr);
+        }
+        if (card.rarity === "GOD" || card.rarity === "ADMIN") {
+          summonedGodCard = card;
+          showGodSummonCutin(card, self.name);
+        }
+      } else if (card.type === "spell") {
+        self.giga -= card.cost; self.hand.splice(handIndex, 1);
+        self.usedSpellThisTurn = true;
+        if (isPlayerAction) addMissionStat("spells", 1);
+        actionLog = "⚡ " + self.name + "が構文「" + card.name + "」を発動！"; log(actionLog);
+        try {
+          window.CardEffects.executeSpell(effectCtx, state.activeSide, card);
+        } catch (spellErr) {
+          console.error("SpellEffect error:", spellErr);
+        }
       }
-    } else if (card.type === "spell") {
-      self.giga -= card.cost; self.hand.splice(handIndex, 1);
-      if (isPlayerAction) addMissionStat("spells", 1);
-      actionLog = "⚡ " + self.name + "が構文「" + card.name + "」を発動！"; log(actionLog);
-      window.CardEffects.executeSpell(effectCtx, state.activeSide, card);
+    } finally {
+      state.selectedAttackerIndex = null;
+      sendSync(actionLog, null, summonedGodCard, self.name);
+      checkGameOver();
+      render();
     }
-    state.selectedAttackerIndex = null; sendSync(actionLog, null, summonedGodCard, self.name); checkGameOver(); render();
   }
 
   function selectAttacker(index) {
@@ -1937,6 +1958,7 @@
 
   function processTurnStart(who) {
     var p = state[who];
+    p.usedSpellThisTurn = false;
     if (p.maxGiga < 10) p.maxGiga++;
     p.giga = p.maxGiga; drawCard(who);
     p.field.forEach(function(m) { m.isBuzz = false; m.freshness--; m.canAttack = true; });
@@ -2000,39 +2022,69 @@
 
   function cpuAI() {
     var cpu = state.p2, actions = [];
-    for (var i = cpu.hand.length - 1; i >= 0; i--) {
-      var card = cpu.hand[i];
-      if (card.cost <= cpu.giga) {
-        if (card.type === "meme" && cpu.field.length < 3) {
-          cpu.giga -= card.cost; cpu.hand.splice(i, 1); card.isBuzz = true; cpu.field.push(card);
-          actions.push("「" + card.name + "」を召喚"); log("👾 CPUが「" + card.name + "」を召喚！");
-          window.CardEffects.triggerSummonEffect(effectCtx, "p2", card);
-          if (card.rarity === "GOD" || card.rarity === "ADMIN") {
-            showGodSummonCutin(card, cpu.name);
+    try {
+      for (var i = cpu.hand.length - 1; i >= 0; i--) {
+        var card = cpu.hand[i];
+        if (!card) continue;
+        if (card.cost <= cpu.giga) {
+          if (card.type === "meme" && cpu.field.length < 3) {
+            cpu.giga -= card.cost; cpu.hand.splice(i, 1); card.isBuzz = true; cpu.field.push(card);
+            actions.push("「" + card.name + "」を召喚"); log("👾 CPUが「" + card.name + "」を召喚！");
+            try {
+              window.CardEffects.triggerSummonEffect(effectCtx, "p2", card);
+            } catch (e1) { console.error("CPU summon err:", e1); }
+            if (card.rarity === "GOD" || card.rarity === "ADMIN") {
+              showGodSummonCutin(card, cpu.name);
+            }
+          } else if (card.type === "spell") {
+            cpu.giga -= card.cost; cpu.hand.splice(i, 1);
+            cpu.usedSpellThisTurn = true;
+            actions.push("「" + card.name + "」を発動"); log("👾 CPUが「" + card.name + "」を発動！");
+            try {
+              window.CardEffects.executeSpell(effectCtx, "p2", card);
+            } catch (e2) { console.error("CPU spell err:", e2); }
           }
-        } else if (card.type === "spell") {
-          cpu.giga -= card.cost; cpu.hand.splice(i, 1);
-          actions.push("「" + card.name + "」を発動"); log("👾 CPUが「" + card.name + "」を発動！");
-          window.CardEffects.executeSpell(effectCtx, "p2", card);
         }
       }
+      var attackers = cpu.field.slice();
+      attackers.forEach(function(m) {
+        if (!m || m.hp <= 0) return;
+        var power = m.atk + (m.isBuzz ? 1 : 0);
+        if (state.p1.field.length > 0) {
+          var target = state.p1.field[0];
+          if (target) {
+            dealDamageToMeme(target, power);
+            dealDamageToMeme(m, target.atk + (target.isBuzz ? 1 : 0));
+            actions.push("「" + m.name + "」で攻撃");
+            log("👾 CPUの「" + m.name + "」が「" + target.name + "」を攻撃！");
+            cleanupDeadMemes();
+          }
+        } else {
+          state.p1.hp -= power;
+          actions.push("「" + m.name + "」で直接攻撃");
+          log("👾 CPUの「" + m.name + "」が直接攻撃！メンタルに " + power + " ダメージ！");
+        }
+      });
+    } catch (cpuErr) {
+      console.error("cpuAI error:", cpuErr);
     }
-    cpu.field.forEach(function(m) {
-      var power = m.atk + (m.isBuzz ? 1 : 0);
-      if (state.p1.field.length > 0) {
-        var target = state.p1.field[0];
-        dealDamageToMeme(target, power);
-        dealDamageToMeme(m, target.atk + (target.isBuzz ? 1 : 0));
-        actions.push("「" + m.name + "」で攻撃"); log("👾 CPUの「" + m.name + "」が「" + target.name + "」を攻撃！"); cleanupDeadMemes();
-      } else {
-        state.p1.hp -= power; actions.push("「" + m.name + "」で直接攻撃"); log("👾 CPUの「" + m.name + "」が直接攻撃！メンタルに " + power + " ダメージ！");
-      }
-    });
-    if (checkGameOver()) return;
-    state.turn++; state.activeSide = "p1"; state.isInputLocked = false; processTurnStart("p1");
+
+    var cutinEl = document.getElementById("cutin-overlay");
+    if (cutinEl) cutinEl.style.display = "none";
+
+    if (checkGameOver()) {
+      state.isInputLocked = false;
+      render();
+      return;
+    }
+    state.turn++;
+    state.activeSide = "p1";
+    state.isInputLocked = false;
+    processTurnStart("p1");
     var summary = actions.length > 0 ? "CPUは " + actions.join(" → ") + "！\n" : "CPUは何もしなかった。\n";
     showCutin(summary + "🧑 " + state.p1.name + "のターン（ターン " + state.turn + "）", 1400);
-    log("--- " + state.p1.name + "のターン（ターン " + state.turn + "） ---"); render();
+    log("--- " + state.p1.name + "のターン（ターン " + state.turn + "） ---");
+    render();
   }
 
   function checkGameOver() {

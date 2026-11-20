@@ -202,7 +202,7 @@ window.CardEffects = {
     else if (card.id === "stonks") { if (self.maxGiga < 10) self.maxGiga++; ctx.drawCard(who); ctx.log("📈 Stonks！最大ギガ+1＆1枚ドロー！"); }
     else if (card.id === "enjo_nenryo" && opp.field.length > 0) {
       ctx.dealDamageToMeme(opp.field[0], 3);
-      if (opp.field[0].hp <= 0) { ctx.drawCard(who); ctx.log("⛽ 炎上燃料投下！撃破ボーナスで1枚ドロー！"); }
+      if ((opp.field[0] && opp.field[0].hp <= 0)) { ctx.drawCard(who); ctx.log("⛽ 炎上燃料投下！撃破ボーナスで1枚ドロー！"); }
       else { ctx.log("⛽ 炎上燃料投下！3ダメージ！"); }
     } else if (card.id === "x_spec") {
       opp.field.forEach(function(m) { m.freshness -= 1; });
