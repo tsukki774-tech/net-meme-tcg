@@ -180,3 +180,87 @@ const TOTAL_MISSIONS = [
     ]
   }
 ];
+
+const CPU_BOSSES = {
+  normal: {
+    id: "normal",
+    name: "野良のレスバ民（通常CPU）",
+    difficulty: "★☆☆ 初級",
+    reward: 300,
+    startHp: 20,
+    introQuote: "「とりあえず適当なデッキで対戦よろしくｗｗｗ」",
+    winQuote: "「くそっ、回線落ちしなければ勝ってたのに…！」",
+    deckLabel: "CPU混成デッキ",
+    ids: null // ランダム混成
+  },
+  retro_2ch: {
+    id: "retro_2ch",
+    name: "VIPの古参住民（2ch・ニコニコ連合）",
+    difficulty: "★★☆ 中級",
+    reward: 450,
+    startHp: 22,
+    introQuote: "「半年ROMれ！古き良きインターネットの恐ろしさを教えてやるお！」",
+    winQuote: "「ぬるぽ…ガッ……時代は令和に移ったというのか…」",
+    deckLabel: "伝説の2ch＆ニコニコ黄金期デッキ",
+    ids: [
+      "mona","mona","mona","giko","giko","giko","yaruo","yaruo","yaruo",
+      "yaranaio","yaranaio","vipper","vipper","vipper","numai","numai","numai",
+      "kusa","kusa","matsuri","matsuri","kaiko","kaiko","troll_2ch","troll_2ch",
+      "donald","donald","donald","shuzo","shuzo","yukkuri","yukkuri",
+      "kbc","kbc","billy","elshaddai","danmaku","danmaku","badapple","badapple"
+    ]
+  },
+  reiwa_fire: {
+    id: "reiwa_fire",
+    name: "炎上系インフルエンサー（令和SNS軍団）",
+    difficulty: "★★☆ 中級",
+    reward: 450,
+    startHp: 22,
+    introQuote: "「これって炎上案件ですよね？スクショ撮って拡散しますね〜ｗ」",
+    winQuote: "「現在コメント欄を閉鎖しております。お騒がせしました…」",
+    deckLabel: "令和バズ＆X大炎上デッキ",
+    ids: [
+      "neko","neko","neko","nekokoubun","nekokoubun","chiikawa","chiikawa",
+      "genba","genba","zundamon","zundamon","hiroyuki_king","hiroyuki_king",
+      "ronpa","ronpa","ojisan","ojisan","owakon","owakon","short_video","short_video",
+      "kirinuki","kirinuki","streamer","streamer","meiwaku","meiwaku",
+      "supacha","supacha","enjo_nenryo","enjo_nenryo","zombie","zombie","zombie",
+      "kusoripu","kusoripu","bazu_tweet","bazu_tweet","comnote","digital_tattoo"
+    ]
+  },
+  yaju_alliance: {
+    id: "yaju_alliance",
+    name: "下北沢の王（例のアレ・なんJ特攻隊）",
+    difficulty: "★★★ 上級",
+    reward: 600,
+    startHp: 25,
+    introQuote: "「いいよ！来いよ！24歳、学生です。早速レスバしようや！」",
+    winQuote: "「やりますねぇ！お前の論破力、王道を征く強さだったぞ…」",
+    deckLabel: "迫真・野獣＆なんJ猛虎魂デッキ",
+    ids: [
+      "kmr","kmr","kmr","mur","mur","mur","tono","tono","tono",
+      "kuuhaku","kuuhaku","gois","gois","yaju","yaju","yaju","yaju_king","yaju_king",
+      "jaken","jaken","jaken","karate","karate","karate","icetea","icetea","sanninsyu","sanninsyu",
+      "chigyu","chigyu","j_min","j_min","savanna","savanna","resuba_king","resuba_king",
+      "seiron","seiron","yakusoku_j","yakusoku_j"
+    ]
+  },
+  god_admin: {
+    id: "god_admin",
+    name: "【裏ボス】インターネット運営・神（GOD3種降臨）",
+    difficulty: "★★★★ 最凶",
+    reward: 1000,
+    startHp: 30,
+    introQuote: "「警告：一般ユーザーのアクセス権限を超過しています。BANを実行します。」",
+    winQuote: "「503 Service Unavailable... まさか神を超えると……」",
+    deckLabel: "神域・GOD全種＆壊れカードデッキ",
+    ids: [
+      "god_internet","god_internet","god_moderator","god_moderator","god_deepweb","god_deepweb",
+      "elshaddai","elshaddai","zundamon","zundamon","hiroyuki_king","hiroyuki_king",
+      "billy","billy","yaju","yaju","kbc","kbc","gigachad","gigachad",
+      "pepe","pepe","meiwaku","meiwaku","sanninsyu","sanninsyu",
+      "shazai","shazai","ban","ban","supacha","supacha","stonks","stonks",
+      "comnote","comnote","jaken","jaken","x_spec","x_spec"
+    ]
+  }
+};

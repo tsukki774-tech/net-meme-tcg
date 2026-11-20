@@ -528,6 +528,7 @@
   document.getElementById("nav-battle").addEventListener("click", function() {
     populateBattleDeckSelect();
     document.getElementById("step-mode").style.display = "block";
+    document.getElementById("step-boss").style.display = "none";
     document.getElementById("step-online").style.display = "none";
     showScreen("setup-screen");
   });
@@ -1088,7 +1089,7 @@
 
   // ================= バトルシステム =================
   var state = {
-    mode: "cpu", myRole: "p1", turn: 1, activeSide: "p1", isInputLocked: false,
+    mode: "cpu", myRole: "p1", turn: 1, activeSide: "p1", isInputLocked: false, currentBoss: null,
     p1: { name: "プレイヤー1", label: "マイデッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
     p2: { name: "CPU", label: "相手デッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
     selectedAttackerIndex: null
@@ -1148,25 +1149,79 @@
     return { label: label, cards: cards };
   }
 
+  document.getElementById("btn-back-to-mode").addEventListener("click", function() {
+    document.getElementById("step-boss").style.display = "none";
+    document.getElementById("step-mode").style.display = "block";
+  });
+
+  function renderBossList() {
+    var container = document.getElementById("boss-list-container");
+    container.innerHTML = "";
+    Object.keys(CPU_BOSSES).forEach(function(key) {
+      var boss = CPU_BOSSES[key];
+      var btn = document.createElement("button");
+      btn.className = "boss-item-btn" + (key === "god_admin" ? " boss-god" : (key === "yaju_alliance" ? " boss-hard" : ""));
+      btn.innerHTML =
+        '<div class="boss-top-row">' +
+          '<span class="boss-name">' + boss.name + '</span>' +
+          '<span class="boss-diff">' + boss.difficulty + '</span>' +
+        '</div>' +
+        '<div style="font-size:0.78rem; color:#ddd;">' + boss.introQuote + '</div>' +
+        '<div class="boss-sub-row">' +
+          '<span>使用デッキ: ' + boss.deckLabel + '（初期HP: ' + boss.startHp + '）</span>' +
+          '<span class="boss-reward-pill">🏆 勝利報酬: ' + boss.reward + ' バズP</span>' +
+        '</div>';
+      btn.addEventListener("click", function() {
+        startBossMatch(boss);
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  function startBossMatch(boss) {
+    var p1Deck = getSelectedDeckCards();
+    if (!p1Deck) return;
+    state.mode = "cpu";
+    state.currentBoss = boss;
+
+    var cpuCards = [];
+    if (Array.isArray(boss.ids)) {
+      cpuCards = boss.ids
+        .map(function(id) {
+          var found = ALL_CARDS.find(function(c) { return c.id === id; });
+          return found ? JSON.parse(JSON.stringify(found)) : null;
+        })
+        .filter(Boolean)
+        .sort(function() { return Math.random() - 0.5; });
+    } else {
+      var pool = [];
+      ALL_CARDS.filter(function(c) { return c.rarity !== "GOD"; }).forEach(function(c) { pool.push(c.id, c.id); });
+      pool.sort(function() { return Math.random() - 0.5; });
+      cpuCards = pool.slice(0, DECK_SIZE).map(function(id) {
+        return JSON.parse(JSON.stringify(ALL_CARDS.find(function(c) { return c.id === id; })));
+      });
+    }
+
+    startMatch(p1Deck, { label: boss.deckLabel, cards: cpuCards }, boss.name, boss.startHp, boss.introQuote);
+  }
+
   document.getElementById("btn-mode-cpu").addEventListener("click", function() {
     var p1Deck = getSelectedDeckCards(); if (!p1Deck) return;
-    state.mode = "cpu";
-    var pool = []; ALL_CARDS.filter(function(c) { return c.rarity !== "GOD"; }).forEach(function(c) { pool.push(c.id, c.id); });
-    pool.sort(function() { return Math.random() - 0.5; });
-    var cpuCards = pool.slice(0, DECK_SIZE).map(function(id) { return JSON.parse(JSON.stringify(ALL_CARDS.find(function(c) { return c.id === id; }))); });
-    startMatch(p1Deck, { label: "CPU混成デッキ", cards: cpuCards }, "CPU");
+    renderBossList();
+    document.getElementById("step-mode").style.display = "none";
+    document.getElementById("step-boss").style.display = "block";
   });
 
   document.getElementById("btn-mode-local").addEventListener("click", function() {
     var p1Deck = getSelectedDeckCards(); if (!p1Deck) return;
-    state.mode = "local";
+    state.mode = "local"; state.currentBoss = null;
     var p2Cards = RENTAL_DECKS.rental_yaju.ids.map(function(id) { return JSON.parse(JSON.stringify(ALL_CARDS.find(function(c) { return c.id === id; }))); }).sort(function() { return Math.random() - 0.5; });
     startMatch(p1Deck, { label: "プレイヤー2デッキ", cards: p2Cards }, "プレイヤー2");
   });
 
   document.getElementById("btn-mode-online").addEventListener("click", function() {
     var myDeck = getSelectedDeckCards(); if (!myDeck) return;
-    state.mode = "online"; p1OnlineDeck = myDeck;
+    state.mode = "online"; state.currentBoss = null; p1OnlineDeck = myDeck;
     document.getElementById("step-mode").style.display = "none";
     document.getElementById("step-online").style.display = "block";
     document.getElementById("random-matching-box").style.display = "none";
@@ -1352,16 +1407,23 @@
     }
   }
 
-  function startMatch(p1Deck, p2Deck, p2Name) {
+  function startMatch(p1Deck, p2Deck, p2Name, p2StartHp, bossQuote) {
     addMissionStat("battles", 1);
     var myName = userData.playerName || DEFAULT_PLAYER_NAME;
     state.turn = 1; state.activeSide = "p1";
     state.p1 = { name: myName, label: p1Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p1Deck.cards, hand: [], field: [] };
-    state.p2 = { name: p2Name, label: p2Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p2Deck.cards, hand: [], field: [] };
+    state.p2 = { name: p2Name, label: p2Deck.label, hp: p2StartHp || 20, maxGiga: 1, giga: 1, deck: p2Deck.cards, hand: [], field: [] };
     showScreen("game-screen"); document.getElementById("log").innerHTML = "";
     for (var i = 0; i < 4; i++) { drawCard("p1"); drawCard("p2"); }
     state.isInputLocked = (state.mode === "online" && state.myRole !== "p1");
-    log("対戦開始！"); showCutin("⚔️ 対戦開始！\n" + state.p1.name + "のターン"); render();
+    log("対戦開始！");
+    if (bossQuote) {
+      log("👾 " + p2Name + "：" + bossQuote);
+      showCutin("⚔️ VS " + p2Name + "\n" + bossQuote + "\n\n" + state.p1.name + "のターン", 1800);
+    } else {
+      showCutin("⚔️ 対戦開始！\n" + state.p1.name + "のターン");
+    }
+    render();
   }
 
   function getViewSelf() { return state.mode === "online" ? state[state.myRole] : state[state.activeSide]; }
@@ -1578,8 +1640,14 @@
 
     if (state.p2.hp <= 0) {
       if (didPlayerWin) addMissionStat("wins", 1);
-      userData.points += 300; saveUserData();
-      setTimeout(function() { alert("🎉 " + state.p1.name + "の勝利！報酬として 300 バズP を獲得しました！"); showScreen("home-screen"); }, 200);
+      var boss = (state.mode === "cpu" && state.currentBoss) ? state.currentBoss : null;
+      var winReward = boss ? boss.reward : 300;
+      var quoteLine = (boss && boss.winQuote) ? "\n\n" + boss.name + "：" + boss.winQuote : "";
+      userData.points += winReward; saveUserData();
+      setTimeout(function() {
+        alert("🎉 " + state.p1.name + "の勝利！報酬として " + winReward + " バズP を獲得しました！" + quoteLine);
+        showScreen("home-screen");
+      }, 200);
       return true;
     }
     if (state.p1.hp <= 0) {

@@ -623,6 +623,22 @@
       letter-spacing: 1px; text-shadow: 0 2px 4px #000;
     }
 
+    /* ボスCPU選択UI */
+    .boss-card-list { display: flex; flex-direction: column; gap: 10px; }
+    .boss-item-btn {
+      background: #181c24; border: 2px solid #444; border-radius: 12px;
+      padding: 12px 14px; text-align: left; color: #fff; cursor: pointer;
+      display: flex; flex-direction: column; gap: 4px; transition: transform 0.1s, border-color 0.2s;
+    }
+    .boss-item-btn:active { transform: scale(0.98); }
+    .boss-item-btn.boss-hard { border-color: #ff4757; background: linear-gradient(135deg, #241218 0%, #161820 100%); }
+    .boss-item-btn.boss-god { border-color: #ffd32a; background: linear-gradient(135deg, #2a0836 0%, #3d0c24 100%); box-shadow: 0 0 14px rgba(255, 71, 87, 0.45); }
+    .boss-top-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .boss-name { font-weight: 900; font-size: 1rem; }
+    .boss-diff { font-size: 0.75rem; font-weight: bold; padding: 2px 8px; border-radius: 12px; background: #2c2c2c; color: #ffd32a; }
+    .boss-sub-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #aaa; margin-top: 2px; }
+    .boss-reward-pill { color: #ffd32a; font-weight: bold; }
+
     /* オーバーレイ・アニメーション */
     .overlay-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; }
     .cutin-box { background: linear-gradient(135deg, #ff4757, #1e272e); border: 2px solid #ffd32a; padding: 25px 35px; border-radius: 14px; font-size: 1.3rem; font-weight: bold; text-align: center; white-space: pre-line; }
@@ -978,9 +994,17 @@
     </div>
     <div id="step-mode" class="setup-box">
       <h3>対戦モードを選択</h3>
-      <button id="btn-mode-cpu" class="menu-btn">🤖 CPUと対戦（勝利で300バズP）</button>
+      <button id="btn-mode-cpu" class="menu-btn">🤖 CPU・ボスバトル（最大1000バズP）</button>
       <button id="btn-mode-local" class="menu-btn">📱 1台の端末で2人対戦</button>
       <button id="btn-mode-online" class="menu-btn">🌐 オンライン対戦（ランダム / 友達）</button>
+    </div>
+
+    <div id="step-boss" class="setup-box" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3>👾 対戦するCPU・強敵ボスを選択</h3>
+        <button id="btn-back-to-mode" class="sub-btn" style="padding:6px 10px; font-size:0.8rem;">◀ モード選択へ</button>
+      </div>
+      <div id="boss-list-container" class="boss-card-list"></div>
     </div>
 
     <div id="step-online" class="setup-box" style="display:none;">
