@@ -244,7 +244,7 @@
     }
 
     document.getElementById("detail-desc").innerText = card.desc || "効果なし";
-    document.getElementById("detail-pack").innerText = "収録: 第" + (card.pack || 1) + "弾パック";
+    document.getElementById("detail-pack").innerText = card.isAdminOnly ? "収録: 👑 管理者専用（非売品）" : ("収録: 第" + (card.pack || 1) + "弾パック");
     document.getElementById("detail-owned").innerText = "所持数: " + (userData.collection[card.id] || 0) + "枚";
 
     modal.style.display = "flex";
@@ -455,12 +455,25 @@
   });
 
   document.getElementById("admin-unlock-all").addEventListener("click", function() {
-    ALL_CARDS.forEach(function(c) {
+    var normalCards = ALL_CARDS.filter(function(c) { return !c.isAdminOnly; });
+    normalCards.forEach(function(c) {
       userData.collection[c.id] = 3;
     });
     saveUserData();
-    setAdminStatus("全" + ALL_CARDS.length + "種類のカードを各3枚ずつ付与しました！");
+    setAdminStatus("通常カード全" + normalCards.length + "種類を各3枚ずつ付与しました！");
   });
+
+  var btnUnlockAdmin = document.getElementById("admin-unlock-admin-cards");
+  if (btnUnlockAdmin) {
+    btnUnlockAdmin.addEventListener("click", function() {
+      var adminCards = ALL_CARDS.filter(function(c) { return c.isAdminOnly; });
+      adminCards.forEach(function(c) {
+        userData.collection[c.id] = 3;
+      });
+      saveUserData();
+      setAdminStatus("👑 管理者専用カード（全" + adminCards.length + "種）を各3枚ずつ付与しました！");
+    });
+  }
 
   document.getElementById("admin-clear-col").addEventListener("click", function() {
     userData.collection = {};
@@ -560,7 +573,7 @@
 
   document.getElementById("tab-pack-1").addEventListener("click", function() { selectPackTab(1); });
   document.getElementById("tab-pack-2").addEventListener("click", function() { selectPackTab(2); });
-  document.getElementById("tab-pack-3").addEventListener("click", function() { selectPackTab(3); });
+  var elTab3 = document.getElementById("tab-pack-3"); if (elTab3) { elTab3.addEventListener("click", function() { selectPackTab(3); }); }
 
   document.getElementById("btn-view-pack-list").addEventListener("click", function() {
     var packCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
@@ -1354,6 +1367,7 @@
     colListEl.innerHTML = "";
     ALL_CARDS.forEach(function(card) {
       var owned = userData.collection[card.id] || 0;
+      if (card.isAdminOnly && owned <= 0) return;
       if (owned <= 0) return;
       var inDeckCount = editingDeckCards.filter(function(id) { return id === card.id; }).length;
       var el = createCardElement(card, function() {
@@ -1416,10 +1430,10 @@
 
   var effectCtx = {
     state: state,
-    drawCard: drawCard,
-    log: log,
-    dealDamageToMeme: dealDamageToMeme,
-    cleanupDeadMemes: cleanupDeadMemes
+    drawCard: function(who) { return drawCard(who); },
+    log: function(msg) { return log(msg); },
+    dealDamageToMeme: function(meme, amount) { return dealDamageToMeme(meme, amount); },
+    cleanupDeadMemes: function() { return cleanupDeadMemes(); }
   };
 
   function populateBattleDeckSelect() {
@@ -1462,7 +1476,10 @@
       ids = RENTAL_DECKS[choice].ids.slice();
       label = RENTAL_DECKS[choice].label;
     }
-    var cards = ids.map(function(id) { return JSON.parse(JSON.stringify(ALL_CARDS.find(function(c) { return c.id === id; }))); }).sort(function() { return Math.random() - 0.5; });
+    var cards = ids.map(function(id) {
+      var found = ALL_CARDS.find(function(c) { return c.id === id; });
+      return found ? JSON.parse(JSON.stringify(found)) : null;
+    }).filter(function(c) { return c !== null; }).sort(function() { return Math.random() - 0.5; });
     return { label: label, cards: cards };
   }
 
@@ -1513,7 +1530,7 @@
         .sort(function() { return Math.random() - 0.5; });
     } else {
       var pool = [];
-      ALL_CARDS.filter(function(c) { return c.rarity !== "GOD"; }).forEach(function(c) { pool.push(c.id, c.id); });
+      ALL_CARDS.filter(function(c) { return c.rarity !== "GOD" && !c.isAdminOnly; }).forEach(function(c) { pool.push(c.id, c.id); });
       pool.sort(function() { return Math.random() - 0.5; });
       cpuCards = pool.slice(0, DECK_SIZE).map(function(id) {
         return JSON.parse(JSON.stringify(ALL_CARDS.find(function(c) { return c.id === id; })));
@@ -1747,8 +1764,16 @@
     render();
   }
 
-  function getViewSelf() { return state.mode === "online" ? state[state.myRole] : state[state.activeSide]; }
-  function getViewOpp() { return state.mode === "online" ? state[state.myRole === "p1" ? "p2" : "p1"] : state[state.activeSide === "p1" ? "p2" : "p1"]; }
+  function getViewSelf() {
+    if (state.mode === "online") return state[state.myRole] || state.p1;
+    if (state.mode === "cpu") return state.p1;
+    return state[state.activeSide] || state.p1;
+  }
+  function getViewOpp() {
+    if (state.mode === "online") return state[state.myRole === "p1" ? "p2" : "p1"] || state.p2;
+    if (state.mode === "cpu") return state.p2;
+    return state[state.activeSide === "p1" ? "p2" : "p1"] || state.p2;
+  }
 
   function drawCard(who) {
     var p = state[who];
@@ -1756,13 +1781,18 @@
     if (p.hand.length < 7) p.hand.push(p.deck.pop());
   }
   function log(msg) { var logBox = document.getElementById("log"); logBox.innerHTML = "<p>> " + msg + "</p>" + logBox.innerHTML; }
+  var cutinTimer = null;
   function showCutin(text, duration) {
-    var overlay = document.getElementById("cutin-overlay"); document.getElementById("cutin-text").innerText = text;
-    overlay.style.display = "flex"; setTimeout(function() { overlay.style.display = "none"; }, duration || 1100);
+    var overlay = document.getElementById("cutin-overlay");
+    if (!overlay) return;
+    document.getElementById("cutin-text").innerText = text;
+    overlay.style.display = "flex";
+    clearTimeout(cutinTimer);
+    cutinTimer = setTimeout(function() { overlay.style.display = "none"; }, duration || 1100);
   }
 
   function showGodSummonCutin(card, summonerName) {
-    if (!card || card.rarity !== "GOD") return;
+    if (!card || (card.rarity !== "GOD" && card.rarity !== "ADMIN")) return;
 
     var overlay = document.getElementById("god-summon-overlay");
     var iconEl = document.getElementById("god-summon-icon");
@@ -1790,6 +1820,10 @@
       god_tomarunja: {
         bg: "radial-gradient(circle at center, #4a0e17 0%, #0a0204 100%)",
         quote: "「" + summonerName + "、お前が止まらない限り…オレたちの道は続くんだからよ…止まるんじゃねぇぞ…！」"
+      },
+      admin_god_dev: {
+        bg: "radial-gradient(circle at center, #004d29 0%, #020805 100%)",
+        quote: "「【SYSTEM OVERRIDE】管理者" + summonerName + "の権限により、ゲームの仕様が書き換えられた――！」"
       }
     };
 
@@ -1838,28 +1872,44 @@
   function playCard(handIndex) {
     if (state.isInputLocked) return;
     var self = getViewSelf(), card = self.hand[handIndex];
+    if (!card) return;
     if (self.giga < card.cost) { log("⚠️ ギガ（コスト）が足りません！"); return; }
     var actionLog = "";
     var summonedGodCard = null;
     var isPlayerAction = (state.mode === "cpu" && state.activeSide === "p1") || (state.mode === "online" && state.activeSide === state.myRole) || (state.mode === "local");
 
-    if (card.type === "meme") {
-      if (self.field.length >= 3) { log("⚠️ タイムラインがいっぱいです（最大3体）。"); return; }
-      self.giga -= card.cost; self.hand.splice(handIndex, 1); card.canAttack = true; card.isBuzz = true; self.field.push(card);
-      if (isPlayerAction) addMissionStat("summons", 1);
-      actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！"; log(actionLog);
-      window.CardEffects.triggerSummonEffect(effectCtx, state.activeSide, card);
-      if (card.rarity === "GOD") {
-        summonedGodCard = card;
-        showGodSummonCutin(card, self.name);
+    try {
+      if (card.type === "meme") {
+        if (self.field.length >= 3) { log("⚠️ タイムラインがいっぱいです（最大3体）。"); return; }
+        self.giga -= card.cost; self.hand.splice(handIndex, 1); card.canAttack = true; card.isBuzz = true; self.field.push(card);
+        if (isPlayerAction) addMissionStat("summons", 1);
+        actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！"; log(actionLog);
+        try {
+          window.CardEffects.triggerSummonEffect(effectCtx, state.activeSide, card);
+        } catch (effErr) {
+          console.error("SummonEffect error:", effErr);
+        }
+        if (card.rarity === "GOD" || card.rarity === "ADMIN") {
+          summonedGodCard = card;
+          showGodSummonCutin(card, self.name);
+        }
+      } else if (card.type === "spell") {
+        self.giga -= card.cost; self.hand.splice(handIndex, 1);
+        self.usedSpellThisTurn = true;
+        if (isPlayerAction) addMissionStat("spells", 1);
+        actionLog = "⚡ " + self.name + "が構文「" + card.name + "」を発動！"; log(actionLog);
+        try {
+          window.CardEffects.executeSpell(effectCtx, state.activeSide, card);
+        } catch (spellErr) {
+          console.error("SpellEffect error:", spellErr);
+        }
       }
-    } else if (card.type === "spell") {
-      self.giga -= card.cost; self.hand.splice(handIndex, 1);
-      if (isPlayerAction) addMissionStat("spells", 1);
-      actionLog = "⚡ " + self.name + "が構文「" + card.name + "」を発動！"; log(actionLog);
-      window.CardEffects.executeSpell(effectCtx, state.activeSide, card);
+    } finally {
+      state.selectedAttackerIndex = null;
+      sendSync(actionLog, null, summonedGodCard, self.name);
+      checkGameOver();
+      render();
     }
-    state.selectedAttackerIndex = null; sendSync(actionLog, null, summonedGodCard, self.name); checkGameOver(); render();
   }
 
   function selectAttacker(index) {
@@ -1899,8 +1949,18 @@
     if (state.isInputLocked) return;
     state.selectedAttackerIndex = null;
     if (state.mode === "cpu") {
-      state.activeSide = "p2"; state.isInputLocked = true; processTurnStart("p2");
-      showCutin("👾 CPUのターン（思考中...）", 1100); render(); setTimeout(cpuAI, 1200);
+      state.activeSide = "p2";
+      state.isInputLocked = true;
+      try {
+        processTurnStart("p2");
+      } catch (tsErr) {
+        console.error("CPU turnStart err:", tsErr);
+      }
+      showCutin("👾 CPUのターン（思考中...）", 1000);
+      render();
+      setTimeout(function() {
+        cpuAI();
+      }, 1050);
     } else if (state.mode === "local") {
       state.activeSide = state.activeSide === "p1" ? "p2" : "p1";
       if (state.activeSide === "p1") state.turn++;
@@ -1919,6 +1979,7 @@
 
   function processTurnStart(who) {
     var p = state[who];
+    p.usedSpellThisTurn = false;
     if (p.maxGiga < 10) p.maxGiga++;
     p.giga = p.maxGiga; drawCard(who);
     p.field.forEach(function(m) { m.isBuzz = false; m.freshness--; m.canAttack = true; });
@@ -1982,39 +2043,69 @@
 
   function cpuAI() {
     var cpu = state.p2, actions = [];
-    for (var i = cpu.hand.length - 1; i >= 0; i--) {
-      var card = cpu.hand[i];
-      if (card.cost <= cpu.giga) {
-        if (card.type === "meme" && cpu.field.length < 3) {
-          cpu.giga -= card.cost; cpu.hand.splice(i, 1); card.isBuzz = true; cpu.field.push(card);
-          actions.push("「" + card.name + "」を召喚"); log("👾 CPUが「" + card.name + "」を召喚！");
-          window.CardEffects.triggerSummonEffect(effectCtx, "p2", card);
-          if (card.rarity === "GOD") {
-            showGodSummonCutin(card, cpu.name);
+    try {
+      for (var i = cpu.hand.length - 1; i >= 0; i--) {
+        var card = cpu.hand[i];
+        if (!card) continue;
+        if (card.cost <= cpu.giga) {
+          if (card.type === "meme" && cpu.field.length < 3) {
+            cpu.giga -= card.cost; cpu.hand.splice(i, 1); card.isBuzz = true; cpu.field.push(card);
+            actions.push("「" + card.name + "」を召喚"); log("👾 CPUが「" + card.name + "」を召喚！");
+            try {
+              window.CardEffects.triggerSummonEffect(effectCtx, "p2", card);
+            } catch (e1) { console.error("CPU summon err:", e1); }
+            if (card.rarity === "GOD" || card.rarity === "ADMIN") {
+              showGodSummonCutin(card, cpu.name);
+            }
+          } else if (card.type === "spell") {
+            cpu.giga -= card.cost; cpu.hand.splice(i, 1);
+            cpu.usedSpellThisTurn = true;
+            actions.push("「" + card.name + "」を発動"); log("👾 CPUが「" + card.name + "」を発動！");
+            try {
+              window.CardEffects.executeSpell(effectCtx, "p2", card);
+            } catch (e2) { console.error("CPU spell err:", e2); }
           }
-        } else if (card.type === "spell") {
-          cpu.giga -= card.cost; cpu.hand.splice(i, 1);
-          actions.push("「" + card.name + "」を発動"); log("👾 CPUが「" + card.name + "」を発動！");
-          window.CardEffects.executeSpell(effectCtx, "p2", card);
         }
       }
+      var attackers = cpu.field.slice();
+      attackers.forEach(function(m) {
+        if (!m || m.hp <= 0) return;
+        var power = m.atk + (m.isBuzz ? 1 : 0);
+        if (state.p1.field.length > 0) {
+          var target = state.p1.field[0];
+          if (target) {
+            dealDamageToMeme(target, power);
+            dealDamageToMeme(m, target.atk + (target.isBuzz ? 1 : 0));
+            actions.push("「" + m.name + "」で攻撃");
+            log("👾 CPUの「" + m.name + "」が「" + target.name + "」を攻撃！");
+            cleanupDeadMemes();
+          }
+        } else {
+          state.p1.hp -= power;
+          actions.push("「" + m.name + "」で直接攻撃");
+          log("👾 CPUの「" + m.name + "」が直接攻撃！メンタルに " + power + " ダメージ！");
+        }
+      });
+    } catch (cpuErr) {
+      console.error("cpuAI error:", cpuErr);
     }
-    cpu.field.forEach(function(m) {
-      var power = m.atk + (m.isBuzz ? 1 : 0);
-      if (state.p1.field.length > 0) {
-        var target = state.p1.field[0];
-        dealDamageToMeme(target, power);
-        dealDamageToMeme(m, target.atk + (target.isBuzz ? 1 : 0));
-        actions.push("「" + m.name + "」で攻撃"); log("👾 CPUの「" + m.name + "」が「" + target.name + "」を攻撃！"); cleanupDeadMemes();
-      } else {
-        state.p1.hp -= power; actions.push("「" + m.name + "」で直接攻撃"); log("👾 CPUの「" + m.name + "」が直接攻撃！メンタルに " + power + " ダメージ！");
-      }
-    });
-    if (checkGameOver()) return;
-    state.turn++; state.activeSide = "p1"; state.isInputLocked = false; processTurnStart("p1");
+
+    var cutinEl = document.getElementById("cutin-overlay");
+    if (cutinEl) cutinEl.style.display = "none";
+
+    if (checkGameOver()) {
+      state.isInputLocked = false;
+      render();
+      return;
+    }
+    state.turn++;
+    state.activeSide = "p1";
+    state.isInputLocked = false;
+    processTurnStart("p1");
     var summary = actions.length > 0 ? "CPUは " + actions.join(" → ") + "！\n" : "CPUは何もしなかった。\n";
     showCutin(summary + "🧑 " + state.p1.name + "のターン（ターン " + state.turn + "）", 1400);
-    log("--- " + state.p1.name + "のターン（ターン " + state.turn + "） ---"); render();
+    log("--- " + state.p1.name + "のターン（ターン " + state.turn + "） ---");
+    render();
   }
 
   function checkGameOver() {
@@ -2083,23 +2174,32 @@
     var oppFieldEl = document.getElementById("opp-field");
     oppFieldEl.innerHTML = opp.field.length === 0 ? '<span class="empty-msg">相手の場にミームはいません</span>' : "";
     opp.field.forEach(function(c, idx) {
-      var action = (!state.isInputLocked && state.selectedAttackerIndex !== null)
-        ? function() { attackMeme(idx); }
-        : null;
-      oppFieldEl.appendChild(createCardElement(c, action, { isTarget: !state.isInputLocked && state.selectedAttackerIndex !== null }));
+      if (!c) return;
+      try {
+        var action = (!state.isInputLocked && state.selectedAttackerIndex !== null)
+          ? function() { attackMeme(idx); }
+          : null;
+        oppFieldEl.appendChild(createCardElement(c, action, { isTarget: !state.isInputLocked && state.selectedAttackerIndex !== null }));
+      } catch (e) { console.error("oppField render err:", e); }
     });
 
     var selfFieldEl = document.getElementById("self-field");
     selfFieldEl.innerHTML = self.field.length === 0 ? '<span class="empty-msg">自分の場にミームはいません</span>' : "";
     self.field.forEach(function(c, idx) {
-      selfFieldEl.appendChild(createCardElement(c, function() { selectAttacker(idx); }, { isSelected: state.selectedAttackerIndex === idx, canAttack: !state.isInputLocked && c.canAttack }));
+      if (!c) return;
+      try {
+        selfFieldEl.appendChild(createCardElement(c, function() { selectAttacker(idx); }, { isSelected: state.selectedAttackerIndex === idx, canAttack: !state.isInputLocked && c.canAttack }));
+      } catch (e) { console.error("selfField render err:", e); }
     });
 
     var handEl = document.getElementById("self-hand");
     handEl.innerHTML = "";
     self.hand.forEach(function(c, idx) {
-      var playable = !state.isInputLocked && c.cost <= self.giga;
-      handEl.appendChild(createCardElement(c, function() { playCard(idx); }, { playable: playable, unplayable: !playable }));
+      if (!c) return;
+      try {
+        var playable = !state.isInputLocked && c.cost <= self.giga;
+        handEl.appendChild(createCardElement(c, function() { playCard(idx); }, { playable: playable, unplayable: !playable }));
+      } catch (e) { console.error("hand render err:", e); }
     });
   }
 
