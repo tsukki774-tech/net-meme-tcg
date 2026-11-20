@@ -60,6 +60,17 @@ window.CardEffects = {
     else if (card.id === "savanna") { if (opp.field.length > 0) { opp.field[0].atk = 1; ctx.log("🦁 サバンナ男効果！相手ミームの攻撃力が1になった！"); } }
     else if (card.id === "nyan") { ctx.drawCard(who); card.atk += 1; ctx.log("🌈 Nyan Cat効果：1枚ドロー＆攻撃力+1！"); }
     else if (card.id === "streamer") { self.giga = Math.min(self.maxGiga, self.giga + 1); ctx.log("🎙️ 大手配信者効果：ギガを1回復！"); }
+    } else if (card.id === "admin_god_dev") {
+      card.shield = true;
+      var stolenNames = [];
+      while (opp.field.length > 0 && self.field.length < 3) {
+        var taken = opp.field.shift();
+        taken.canAttack = true;
+        self.field.push(taken);
+        stolenNames.push(taken.name);
+      }
+      opp.field = [];
+      ctx.log("👑 【ADMIN降臨】作者の気まぐれ！相手の場のミームを奪取（" + (stolenNames.join("・") || "全消滅") + "）＆無敵バリア付与！");
     } else if (card.id === "god_flag_master") {
       self.hp = Math.min(20, self.hp + 5);
       ctx.drawCard(who); ctx.drawCard(who);
@@ -376,6 +387,22 @@ window.CardEffects = {
     } else if (card.id === "op_skip" && opp.field.length > 0) {
       ctx.dealDamageToMeme(opp.field[0], 2);
       ctx.log("⏩ OPスキップ！相手ミームに2ダメージ！");
+    }
+
+    // ================= 管理者（開発者）専用スペル効果 =================
+    else if (card.id === "admin_ban_hammer") {
+      opp.field = [];
+      for (var ah = 0; ah < 2; ah++) {
+        if (opp.hand.length > 0) opp.hand.splice(Math.floor(Math.random() * opp.hand.length), 1);
+      }
+      self.hp = 20;
+      self.maxGiga = 10;
+      self.giga = 10;
+      ctx.log("🔨 【ADMIN権限発動】BANハンマー！相手場全消滅＆相手手札2枚破壊＆メンタル全回復＆ギガMAX！");
+    } else if (card.id === "admin_debug_mode") {
+      ctx.drawCard(who); ctx.drawCard(who); ctx.drawCard(who);
+      self.hand.forEach(function(h) { h.cost = 0; });
+      ctx.log("💻 【ADMIN権限発動】デバッグモード起動！3枚ドロー＆手札すべてのコストが0になった！");
     }
 
     ctx.cleanupDeadMemes();

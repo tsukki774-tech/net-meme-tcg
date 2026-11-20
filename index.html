@@ -536,6 +536,25 @@
       box-shadow: 0 0 16px #ff4757, 0 0 24px #00d2ff;
       animation: god-card-pulse 2s infinite alternate;
     }
+    .card.rarity-ADMIN {
+      border: 3px solid #00ff88;
+      background: linear-gradient(135deg, #050a08 0%, #0d2b1d 50%, #1a0b2e 100%);
+      box-shadow: 0 0 18px #00ff88, 0 0 26px #ffd32a;
+      animation: admin-pulse 2s infinite alternate;
+    }
+    @keyframes admin-pulse {
+      0% { box-shadow: 0 0 14px rgba(0, 255, 136, 0.7), inset 0 0 10px rgba(255, 211, 42, 0.3); }
+      100% { box-shadow: 0 0 26px rgba(0, 255, 136, 1), inset 0 0 18px rgba(0, 210, 255, 0.6); }
+    }
+    .rarity-ADMIN .rarity-tag {
+      background: linear-gradient(90deg, #00ff88, #ffd32a, #00d2ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      font-weight: 900; letter-spacing: 0.5px;
+    }
+    .card-detail-modal-box.rarity-ADMIN {
+      border: 3px solid #00ff88;
+      box-shadow: 0 0 35px rgba(0, 255, 136, 0.75);
+    }
     @keyframes god-card-pulse {
       0% { box-shadow: 0 0 12px #ff4757, 0 0 18px #ffd32a; border-color: #ffd32a; }
       100% { box-shadow: 0 0 20px #00d2ff, 0 0 28px #a55eea; border-color: #fff; }
@@ -821,10 +840,11 @@
       </div>
 
       <div class="admin-section">
-        <h4>🃏 カードコレクション操作</h4>
+        <h4>🃏 カード・コレクション操作</h4>
         <div class="admin-btn-grid">
-          <button id="admin-unlock-all" class="admin-btn">全カード3枚ずつ入手</button>
+          <button id="admin-unlock-all" class="admin-btn">通常カード全種3枚入手</button>
           <button id="admin-clear-col" class="admin-btn">所持カードリセット</button>
+          <button id="admin-unlock-admin-cards" class="admin-btn" style="grid-column: 1 / -1; border-color:#00ff88; background:#0d2b1d; color:#00ff88;">👑 管理者専用カード（全3種）を各3枚入手</button>
         </div>
       </div>
 
@@ -1148,8 +1168,8 @@
   </div>
 
   <!-- 外部JSファイルの読み込み（この順番で読み込む） -->
-  <script src="cards.js?v=1.6.1"></script>
-  <script src="effects.js?v=1.6.1"></script>
-  <script src="game.js?v=1.6.1"></script>
+  <script src="cards.js?v=1.6.2"></script>
+  <script src="effects.js?v=1.6.2"></script>
+  <script src="game.js?v=1.6.2"></script>
 </body>
 </html>

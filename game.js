@@ -244,7 +244,7 @@
     }
 
     document.getElementById("detail-desc").innerText = card.desc || "効果なし";
-    document.getElementById("detail-pack").innerText = "収録: 第" + (card.pack || 1) + "弾パック";
+    document.getElementById("detail-pack").innerText = card.isAdminOnly ? "収録: 👑 管理者専用（非売品）" : ("収録: 第" + (card.pack || 1) + "弾パック");
     document.getElementById("detail-owned").innerText = "所持数: " + (userData.collection[card.id] || 0) + "枚";
 
     modal.style.display = "flex";
@@ -455,12 +455,25 @@
   });
 
   document.getElementById("admin-unlock-all").addEventListener("click", function() {
-    ALL_CARDS.forEach(function(c) {
+    var normalCards = ALL_CARDS.filter(function(c) { return !c.isAdminOnly; });
+    normalCards.forEach(function(c) {
       userData.collection[c.id] = 3;
     });
     saveUserData();
-    setAdminStatus("全" + ALL_CARDS.length + "種類のカードを各3枚ずつ付与しました！");
+    setAdminStatus("通常カード全" + normalCards.length + "種類を各3枚ずつ付与しました！");
   });
+
+  var btnUnlockAdmin = document.getElementById("admin-unlock-admin-cards");
+  if (btnUnlockAdmin) {
+    btnUnlockAdmin.addEventListener("click", function() {
+      var adminCards = ALL_CARDS.filter(function(c) { return c.isAdminOnly; });
+      adminCards.forEach(function(c) {
+        userData.collection[c.id] = 3;
+      });
+      saveUserData();
+      setAdminStatus("👑 管理者専用カード（全" + adminCards.length + "種）を各3枚ずつ付与しました！");
+    });
+  }
 
   document.getElementById("admin-clear-col").addEventListener("click", function() {
     userData.collection = {};
@@ -1354,6 +1367,7 @@
     colListEl.innerHTML = "";
     ALL_CARDS.forEach(function(card) {
       var owned = userData.collection[card.id] || 0;
+      if (card.isAdminOnly && owned <= 0) return;
       if (owned <= 0) return;
       var inDeckCount = editingDeckCards.filter(function(id) { return id === card.id; }).length;
       var el = createCardElement(card, function() {
@@ -1513,7 +1527,7 @@
         .sort(function() { return Math.random() - 0.5; });
     } else {
       var pool = [];
-      ALL_CARDS.filter(function(c) { return c.rarity !== "GOD"; }).forEach(function(c) { pool.push(c.id, c.id); });
+      ALL_CARDS.filter(function(c) { return c.rarity !== "GOD" && !c.isAdminOnly; }).forEach(function(c) { pool.push(c.id, c.id); });
       pool.sort(function() { return Math.random() - 0.5; });
       cpuCards = pool.slice(0, DECK_SIZE).map(function(id) {
         return JSON.parse(JSON.stringify(ALL_CARDS.find(function(c) { return c.id === id; })));
@@ -1762,7 +1776,7 @@
   }
 
   function showGodSummonCutin(card, summonerName) {
-    if (!card || card.rarity !== "GOD") return;
+    if (!card || (card.rarity !== "GOD" && card.rarity !== "ADMIN")) return;
 
     var overlay = document.getElementById("god-summon-overlay");
     var iconEl = document.getElementById("god-summon-icon");
@@ -1790,6 +1804,10 @@
       god_tomarunja: {
         bg: "radial-gradient(circle at center, #4a0e17 0%, #0a0204 100%)",
         quote: "「" + summonerName + "、お前が止まらない限り…オレたちの道は続くんだからよ…止まるんじゃねぇぞ…！」"
+      },
+      admin_god_dev: {
+        bg: "radial-gradient(circle at center, #004d29 0%, #020805 100%)",
+        quote: "「【SYSTEM OVERRIDE】管理者" + summonerName + "の権限により、ゲームの仕様が書き換えられた――！」"
       }
     };
 
@@ -1849,7 +1867,7 @@
       if (isPlayerAction) addMissionStat("summons", 1);
       actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！"; log(actionLog);
       window.CardEffects.triggerSummonEffect(effectCtx, state.activeSide, card);
-      if (card.rarity === "GOD") {
+      if (card.rarity === "GOD" || card.rarity === "ADMIN") {
         summonedGodCard = card;
         showGodSummonCutin(card, self.name);
       }
@@ -1989,7 +2007,7 @@
           cpu.giga -= card.cost; cpu.hand.splice(i, 1); card.isBuzz = true; cpu.field.push(card);
           actions.push("「" + card.name + "」を召喚"); log("👾 CPUが「" + card.name + "」を召喚！");
           window.CardEffects.triggerSummonEffect(effectCtx, "p2", card);
-          if (card.rarity === "GOD") {
+          if (card.rarity === "GOD" || card.rarity === "ADMIN") {
             showGodSummonCutin(card, cpu.name);
           }
         } else if (card.type === "spell") {
