@@ -198,7 +198,7 @@ window.addEventListener("error", function(ev) {
         container.appendChild(card);
       });
     }
-    var _m_news_modal = document.getElementById("news-modal"); if(_m_news_modal) { _m_news_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_news_modal.style.pointerEvents = "auto"; }
+    var _m_news_modal = document.getElementById("news-modal"); if(_m_news_modal) { _m_news_modal.style.display = "flex"; _m_news_modal.style.pointerEvents = "auto"; }
   }
 
   function closeNewsModal() {
@@ -254,7 +254,7 @@ window.addEventListener("error", function(ev) {
     document.getElementById("detail-pack").innerText = card.isAdminOnly ? "収録: 👑 管理者専用（非売品）" : ("収録: 第" + (card.pack || 1) + "弾パック");
     document.getElementById("detail-owned").innerText = "所持数: " + (userData.collection[card.id] || 0) + "枚";
 
-    modal.style.display = "flex"; modal.style.pointerEvents = "auto";
+    modal.style.display = "flex";
   }
 
   _on("btn-close-card-detail", "click", function() {
@@ -269,7 +269,7 @@ window.addEventListener("error", function(ev) {
   // ================= プレイヤー名変更モーダル =================
   _on("btn-edit-player-name", "click", function() {
     document.getElementById("player-name-input").value = userData.playerName || DEFAULT_PLAYER_NAME;
-    var _m_name_edit_modal = document.getElementById("name-edit-modal"); if(_m_name_edit_modal) { _m_name_edit_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_name_edit_modal.style.pointerEvents = "auto"; }
+    var _m_name_edit_modal = document.getElementById("name-edit-modal"); if(_m_name_edit_modal) { _m_name_edit_modal.style.display = "flex"; _m_name_edit_modal.style.pointerEvents = "auto"; }
   });
 
   _on("btn-cancel-name", "click", function() {
@@ -320,7 +320,7 @@ window.addEventListener("error", function(ev) {
     var el = createCardElement(chosen, null, {});
     el.classList.add("card-revealed");
     slot.appendChild(el);
-    var _m_ur_reward_modal = document.getElementById("ur-reward-modal"); if(_m_ur_reward_modal) { _m_ur_reward_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_ur_reward_modal.style.pointerEvents = "auto"; }
+    var _m_ur_reward_modal = document.getElementById("ur-reward-modal"); if(_m_ur_reward_modal) { _m_ur_reward_modal.style.display = "flex"; _m_ur_reward_modal.style.pointerEvents = "auto"; }
   }
 
   _on("btn-close-ur-reward", "click", function() {
@@ -429,7 +429,7 @@ window.addEventListener("error", function(ev) {
   function openAdminPanel() {
     updateRigButtons();
     document.getElementById("admin-status-msg").innerText = "管理者権限でログインしました（全" + ALL_CARDS.length + "種実装済み）";
-    var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_admin_modal.style.pointerEvents = "auto"; }
+    var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "flex"; _m_admin_modal.style.pointerEvents = "auto"; }
   }
 
   function setAdminStatus(msg) {
@@ -547,7 +547,7 @@ window.addEventListener("error", function(ev) {
       var sampleCard = samplePool.length > 0 ? samplePool[Math.floor(Math.random() * samplePool.length)] : ALL_CARDS[0];
       var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "none"; _m_admin_modal.style.pointerEvents = "none"; }
       triggerSpecialCutin(adminPreviewRarity, function() {
-        var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_admin_modal.style.pointerEvents = "auto"; }
+        var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "flex"; _m_admin_modal.style.pointerEvents = "auto"; }
         setAdminStatus("演出「" + btn.innerText + "（" + adminPreviewRarity + "）」の再生が完了しました！");
       }, [sampleCard], cutinType);
     });
@@ -561,7 +561,7 @@ window.addEventListener("error", function(ev) {
       var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "none"; _m_admin_modal.style.pointerEvents = "none"; }
       showGodSummonCutin(pick, userData.playerName || DEFAULT_PLAYER_NAME);
       setTimeout(function() {
-        var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_admin_modal.style.pointerEvents = "auto"; }
+        var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "flex"; _m_admin_modal.style.pointerEvents = "auto"; }
         setAdminStatus("降臨演出「" + pick.name + "」の再生が完了しました！");
       }, 2450);
     });
@@ -652,7 +652,7 @@ window.addEventListener("error", function(ev) {
       grid.appendChild(el);
     });
 
-    var _m_pack_list_modal = document.getElementById("pack-list-modal"); if(_m_pack_list_modal) { _m_pack_list_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_pack_list_modal.style.pointerEvents = "auto"; }
+    var _m_pack_list_modal = document.getElementById("pack-list-modal"); if(_m_pack_list_modal) { _m_pack_list_modal.style.display = "flex"; _m_pack_list_modal.style.pointerEvents = "auto"; }
   });
 
   _on("btn-close-pack-list", "click", function() {
@@ -2222,7 +2222,7 @@ window.addEventListener("error", function(ev) {
         '<div style="font-size:0.78rem; color:#ddd; line-height:1.4;">' + res.desc + '</div>';
       listEl.appendChild(item);
     });
-    var _m_fusion_guide_modal = document.getElementById("fusion-guide-modal"); if(_m_fusion_guide_modal) { _m_fusion_guide_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_fusion_guide_modal.style.pointerEvents = "auto"; }
+    var _m_fusion_guide_modal = document.getElementById("fusion-guide-modal"); if(_m_fusion_guide_modal) { _m_fusion_guide_modal.style.display = "flex"; _m_fusion_guide_modal.style.pointerEvents = "auto"; }
   }
 
   var btnHomeFusion = document.getElementById("btn-open-fusion-guide");
@@ -2704,7 +2704,7 @@ window.addEventListener("error", function(ev) {
   }
 
 
-  // ================= 全モーダル共通・強制クローズハンドラ (v1.8.1) =================
+  // ================= 全モーダル共通・強制クローズハンドラ (v1.8.2) =================
   (function setupGlobalModalCloser() {
     function hideModalById(id) {
       var el = document.getElementById(id);
