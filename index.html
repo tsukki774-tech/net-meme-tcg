@@ -712,6 +712,17 @@
     @keyframes card-reveal { 0% { transform: scale(0.4) rotateY(90deg); opacity: 0; } 100% { transform: scale(1) rotateY(0deg); opacity: 1; } }
     .card-back-mystery { width: 128px; height: 175px; background: #222; border: 2px solid #555; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 2rem; color: #ffd32a; }
     .card-revealed { animation: card-reveal 0.4s ease-out forwards; }
+  
+    button, .menu-btn, .primary-btn, .back-btn, .sub-btn, .action-btn, .admin-btn,
+    .player-name-badge, .currency-box, .pack-tab-btn, .deck-slot-tab, .mode-card, .card {
+      touch-action: manipulation;
+      cursor: pointer;
+      -webkit-tap-highlight-color: rgba(0, 210, 255, 0.25);
+    }
+    #pachinko-overlay:not([style*="display: flex"]):not([style*="display:flex"]) {
+      pointer-events: none !important;
+    }
+
   </style>
 </head>
 <body>
@@ -1244,6 +1255,8 @@
     </div>
   </div>
 
+  </div>
+
   <!-- カットイン演出・端末交代画面 -->
   <div id="cutin-overlay" class="overlay-screen" style="display:none;">
     <div id="cutin-text" class="cutin-box"></div>
@@ -1258,8 +1271,8 @@
   </div>
 
   <!-- 外部JSファイルの読み込み（この順番で読み込む） -->
-  <script src="cards.js?v=1.7.3"></script>
-  <script src="effects.js?v=1.7.3"></script>
-  <script src="game.js?v=1.7.3"></script>
+  <script src="cards.js?v=1.7.4"></script>
+  <script src="effects.js?v=1.7.4"></script>
+  <script src="game.js?v=1.7.4"></script>
 </body>
 </html>

@@ -1,3 +1,6 @@
+window.addEventListener("error", function(ev) {
+  console.error("Game runtime error:", ev.message, ev.filename, ev.lineno);
+});
 // game.js - メインゲームループ・UI・ミッション・セーブデータ・通信処理
 
 (function() {
