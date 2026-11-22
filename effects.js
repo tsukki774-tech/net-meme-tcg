@@ -37,7 +37,7 @@ window.CardEffects = {
       var c2ch = self.field.filter(function(m) { return m.era === "2ch"; }).length;
       card.atk += c2ch; ctx.log("🧑‍💻 VIPPER効果！場の2ch勢の数だけ攻撃力+" + c2ch + "！");
     } else if (card.id === "elshaddai") {
-      if (self.field.length > 0) { self.field[0].shield = true; ctx.log("👖 エルシャダイ「大丈夫だ、問題ない」→「" + self.field[0].name + "」に無敵バリア付与！"); }
+      if (self.field.length > 0) { var tEl = self.field[self.field.length - 1]; tEl.shield = true; ctx.log("👖 エルシャダイ「大丈夫だ、問題ない」→「" + tEl.name + "」に無敵バリア付与！"); }
     } else if (card.id === "billy") {
       self.field.forEach(function(m) { m.atk += 1; }); self.hp = Math.min(20, self.hp + 3);
       ctx.log("💪 歪みねぇな！味方全員攻撃力+1＆メンタル3回復！");
@@ -209,8 +209,8 @@ window.CardEffects = {
       opp.field = opp.field.filter(function(m) { return m.freshness > 0; });
       ctx.log("🔧 仕様変更！相手ミーム全ての鮮度が-1された！");
     } else if (card.id === "bazu_tweet" && self.field.length > 0) {
-      self.field[0].isBuzz = true; self.field[0].shield = true;
-      ctx.log("🚀 万バズ構文！「" + self.field[0].name + "」にバズ＆無敵バリア付与！");
+      var tBz = self.field[self.field.length - 1]; tBz.isBuzz = true; tBz.shield = true;
+      ctx.log("🚀 万バズ構文！「" + tBz.name + "」にバズ＆無敵バリア付与！");
     } else if (card.id === "danmaku") { self.field.forEach(function(m) { m.atk += 1; }); ctx.drawCard(who); ctx.log("💬 弾幕展開！味方全員の攻撃力+1＆1枚ドロー！"); }
     else if (card.id === "kaiko") {
       var newEras = ["令和", "配信者", "X炎上"];
@@ -281,7 +281,7 @@ window.CardEffects = {
 
     // ================= 第3弾：アニメミーム構文効果 =================
     else if (card.id === "daga_kotowaru") {
-      if (self.field.length > 0) self.field[0].shield = true;
+      if (self.field.length > 0) self.field[self.field.length - 1].shield = true;
       if (opp.field.length > 0) {
         var maxTarget = opp.field.reduce(function(a, b) { return a.atk >= b.atk ? a : b; });
         maxTarget.atk = 0;

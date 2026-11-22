@@ -268,6 +268,7 @@ window.addEventListener("error", function(ev) {
     document.getElementById("detail-owned").innerText = "所持数: " + (userData.collection[card.id] || 0) + "枚";
 
     modal.style.display = "flex";
+    modal.style.pointerEvents = "auto";
   }
 
   _on("btn-close-card-detail", "click", function() {
