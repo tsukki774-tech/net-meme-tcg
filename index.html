@@ -737,6 +737,7 @@
           🎯 ミッション・実績
           <span id="home-mission-badge" class="notif-badge" style="display:none;">0</span>
         </button>
+        <button id="btn-open-fusion-guide" class="menu-btn" style="border-color:#00ff88; color:#00ff88; padding:12px; font-size:1rem;">🧬 ミーム合体・進化レシピ図鑑（全10種）</button>
         <button id="nav-news" class="menu-btn" style="padding:12px; font-size:1rem;">
           📢 お知らせ・更新情報
           <span id="home-news-badge" class="notif-badge" style="display:none; background:#00d2ff; color:#000;">NEW</span>
@@ -1039,6 +1040,57 @@
         </div>
       </div>
     </div>
+<!-- 演出7: ブルースクリーン（BSoD）→ 強制再起動演出 -->
+    <div id="scene-bsod" class="effect-scene bsod-bg">
+      <div id="bsod-error-view" style="max-width:520px; width:100%;">
+        <div style="font-size:4.2rem; font-weight:300; margin-bottom:14px;">:(</div>
+        <div style="font-size:1.1rem; line-height:1.55; margin-bottom:16px;">
+          問題が発生したため、パック開封を再起動する必要があります。<br>
+          エラー情報を収集しています。自動的に再起動します。
+        </div>
+        <div id="bsod-percent" style="font-size:1.35rem; font-weight:bold; margin-bottom:14px;">0% 完了</div>
+        <div style="font-size:0.75rem; opacity:0.85;">停止コード: CRITICAL_GOD_RARITY_OVERFLOW</div>
+      </div>
+      <div id="bsod-override-view" style="display:none; flex-direction:column; align-items:center; gap:12px;">
+        <div style="font-size:3.2rem;">💻⚡🌈</div>
+        <div id="bsod-override-text" class="pachi-main-text god-text">
+          【SYSTEM OVERRIDE】<br>GOD権限で強制復旧!!
+        </div>
+      </div>
+    </div>
+
+    <!-- 演出8: 通知爆発＆万バズカウンター演出 -->
+    <div id="scene-notif" class="effect-scene notif-bg">
+      <div id="notif-banner-stack" class="notif-banner-stack"></div>
+      <div class="buzz-counter-box">
+        <div style="font-size:0.8rem; color:#ff6b81; font-weight:bold; margin-bottom:4px;">❤️ リアルタイム拡散カウンター</div>
+        <div id="notif-like-count" style="font-size:2.1rem; font-weight:900; color:#fff; font-variant-numeric: tabular-nums;">0</div>
+        <div id="notif-rank-label" style="font-size:0.95rem; font-weight:900; color:#ffd32a; margin-top:4px;">拡散開始…！</div>
+      </div>
+    </div>
+
+    <!-- 演出9: パチンコ風・次回予告演出 -->
+    <div id="scene-jikai" class="effect-scene jikai-bg">
+      <div class="jikai-title-badge">次 回 予 告</div>
+      <div id="jikai-main-text" class="jikai-main-text"></div>
+      <div id="jikai-sub-badge" style="margin-top:16px; font-size:1.1rem; font-weight:900; color:#ffd32a; opacity:0; transition: opacity 0.25s;"></div>
+    </div>
+
+    <!-- 演出10: ぬるぽ → ガッ！（文字打ち込み逆転）演出 -->
+    <div id="scene-nurupo" class="effect-scene nurupo-bg">
+      <div id="nurupo-phase1" class="nurupo-board">
+        <div style="font-size:0.8rem; color:#666; margin-bottom:6px;">1 ：名無しさん＠お腹いっぱい。</div>
+        <div style="font-size:2.2rem; font-weight:900; letter-spacing:2px;">ぬるぽ</div>
+        <div style="font-size:0.85rem; color:#888; margin-top:6px;">（……ハズレ演出か？）</div>
+      </div>
+      <div id="nurupo-phase2" style="display:none; flex-direction:column; align-items:center; gap:10px;">
+        <div class="gatsu-hammer-drop">🔨💥</div>
+        <div style="font-size:3.2rem; font-weight:900; color:#ffd32a; text-shadow: 0 0 20px #ff4757;">ガッ！！</div>
+        <div id="nurupo-revive-text" class="pachi-main-text">強制昇格!! UR確定!!</div>
+      </div>
+    </div>
+
+  
 
   </div>
 
@@ -1163,59 +1215,7 @@
     <div id="self-hand" class="hand-area"></div>
     <div id="log" class="log-box"></div>
   
-    <!-- 演出7: ブルースクリーン（BSoD）→ 強制再起動演出 -->
-    <div id="scene-bsod" class="effect-scene bsod-bg">
-      <div id="bsod-error-view" style="max-width:520px; width:100%;">
-        <div style="font-size:4.2rem; font-weight:300; margin-bottom:14px;">:(</div>
-        <div style="font-size:1.1rem; line-height:1.55; margin-bottom:16px;">
-          問題が発生したため、パック開封を再起動する必要があります。<br>
-          エラー情報を収集しています。自動的に再起動します。
-        </div>
-        <div id="bsod-percent" style="font-size:1.35rem; font-weight:bold; margin-bottom:14px;">0% 完了</div>
-        <div style="font-size:0.75rem; opacity:0.85;">停止コード: CRITICAL_GOD_RARITY_OVERFLOW</div>
-      </div>
-      <div id="bsod-override-view" style="display:none; flex-direction:column; align-items:center; gap:12px;">
-        <div style="font-size:3.2rem;">💻⚡🌈</div>
-        <div id="bsod-override-text" class="pachi-main-text god-text">
-          【SYSTEM OVERRIDE】<br>GOD権限で強制復旧!!
-        </div>
-      </div>
-    </div>
-
-    <!-- 演出8: 通知爆発＆万バズカウンター演出 -->
-    <div id="scene-notif" class="effect-scene notif-bg">
-      <div id="notif-banner-stack" class="notif-banner-stack"></div>
-      <div class="buzz-counter-box">
-        <div style="font-size:0.8rem; color:#ff6b81; font-weight:bold; margin-bottom:4px;">❤️ リアルタイム拡散カウンター</div>
-        <div id="notif-like-count" style="font-size:2.1rem; font-weight:900; color:#fff; font-variant-numeric: tabular-nums;">0</div>
-        <div id="notif-rank-label" style="font-size:0.95rem; font-weight:900; color:#ffd32a; margin-top:4px;">拡散開始…！</div>
-      </div>
-    </div>
-
-    <!-- 演出9: パチンコ風・次回予告演出 -->
-    <div id="scene-jikai" class="effect-scene jikai-bg">
-      <div class="jikai-title-badge">次 回 予 告</div>
-      <div id="jikai-main-text" class="jikai-main-text"></div>
-      <div id="jikai-sub-badge" style="margin-top:16px; font-size:1.1rem; font-weight:900; color:#ffd32a; opacity:0; transition: opacity 0.25s;"></div>
-    </div>
-
-    <!-- 演出10: ぬるぽ → ガッ！（文字打ち込み逆転）演出 -->
-    <div id="scene-nurupo" class="effect-scene nurupo-bg">
-      <div id="nurupo-phase1" class="nurupo-board">
-        <div style="font-size:0.8rem; color:#666; margin-bottom:6px;">1 ：名無しさん＠お腹いっぱい。</div>
-        <div style="font-size:2.2rem; font-weight:900; letter-spacing:2px;">ぬるぽ</div>
-        <div style="font-size:0.85rem; color:#888; margin-top:6px;">（……ハズレ演出か？）</div>
-      </div>
-      <div id="nurupo-phase2" style="display:none; flex-direction:column; align-items:center; gap:10px;">
-        <div class="gatsu-hammer-drop">🔨💥</div>
-        <div style="font-size:3.2rem; font-weight:900; color:#ffd32a; text-shadow: 0 0 20px #ff4757;">ガッ！！</div>
-        <div id="nurupo-revive-text" class="pachi-main-text">強制昇格!! UR確定!!</div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- GOD召喚専用フルスクリーン演出オーバーレイ -->
+    <!-- GOD召喚専用フルスクリーン演出オーバーレイ -->
   <div id="god-summon-overlay">
     <div id="god-summon-rays" class="god-summon-rays"></div>
     <div class="god-summon-ring"></div>
@@ -1258,8 +1258,8 @@
   </div>
 
   <!-- 外部JSファイルの読み込み（この順番で読み込む） -->
-  <script src="cards.js?v=1.7.2"></script>
-  <script src="effects.js?v=1.7.2"></script>
-  <script src="game.js?v=1.7.2"></script>
+  <script src="cards.js?v=1.7.3"></script>
+  <script src="effects.js?v=1.7.3"></script>
+  <script src="game.js?v=1.7.3"></script>
 </body>
 </html>

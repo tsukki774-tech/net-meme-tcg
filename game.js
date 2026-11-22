@@ -1,6 +1,10 @@
 // game.js - メインゲームループ・UI・ミッション・セーブデータ・通信処理
 
 (function() {
+  function _on(id, evt, fn, opts) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener(evt, fn, opts);
+  }
   // Firebase Realtime Database 初期化
   var FIREBASE_DB_URL = "https://tcgnet-bf199-default-rtdb.firebaseio.com";
   if (typeof firebase !== "undefined" && !firebase.apps.length) {
@@ -202,10 +206,10 @@
     document.getElementById("news-modal").style.display = "none";
   }
 
-  document.getElementById("nav-news").addEventListener("click", openNewsModal);
-  document.getElementById("btn-close-news").addEventListener("click", closeNewsModal);
-  document.getElementById("btn-confirm-news").addEventListener("click", closeNewsModal);
-  document.getElementById("news-modal").addEventListener("click", function(e) {
+  _on("nav-news", "click", openNewsModal);
+  _on("btn-close-news", "click", closeNewsModal);
+  _on("btn-confirm-news", "click", closeNewsModal);
+  _on("news-modal", "click", function(e) {
     if (e.target === this) closeNewsModal();
   });
 
@@ -250,26 +254,26 @@
     modal.style.display = "flex";
   }
 
-  document.getElementById("btn-close-card-detail").addEventListener("click", function() {
+  _on("btn-close-card-detail", "click", function() {
     document.getElementById("card-detail-modal").style.display = "none";
   });
-  document.getElementById("card-detail-modal").addEventListener("click", function(e) {
+  _on("card-detail-modal", "click", function(e) {
     if (e.target === this) {
       this.style.display = "none";
     }
   });
 
   // ================= プレイヤー名変更モーダル =================
-  document.getElementById("btn-edit-player-name").addEventListener("click", function() {
+  _on("btn-edit-player-name", "click", function() {
     document.getElementById("player-name-input").value = userData.playerName || DEFAULT_PLAYER_NAME;
     document.getElementById("name-edit-modal").style.display = "flex";
   });
 
-  document.getElementById("btn-cancel-name").addEventListener("click", function() {
+  _on("btn-cancel-name", "click", function() {
     document.getElementById("name-edit-modal").style.display = "none";
   });
 
-  document.getElementById("btn-save-name").addEventListener("click", function() {
+  _on("btn-save-name", "click", function() {
     var newName = document.getElementById("player-name-input").value.trim();
     userData.playerName = newName || DEFAULT_PLAYER_NAME;
     saveUserData();
@@ -281,21 +285,21 @@
   updateMissionBadges();
 
   // ================= ミッション画面の描画・受け取り処理 =================
-  document.getElementById("nav-mission").addEventListener("click", function() {
+  _on("nav-mission", "click", function() {
     checkDailyReset();
     renderMissionScreen();
     showScreen("mission-screen");
   });
-  document.getElementById("back-from-mission").addEventListener("click", function() {
+  _on("back-from-mission", "click", function() {
     showScreen("home-screen");
   });
-  document.getElementById("tab-mission-daily").addEventListener("click", function() {
+  _on("tab-mission-daily", "click", function() {
     currentMissionTab = "daily";
     document.getElementById("tab-mission-daily").classList.add("active");
     document.getElementById("tab-mission-total").classList.remove("active");
     renderMissionScreen();
   });
-  document.getElementById("tab-mission-total").addEventListener("click", function() {
+  _on("tab-mission-total", "click", function() {
     currentMissionTab = "total";
     document.getElementById("tab-mission-total").classList.add("active");
     document.getElementById("tab-mission-daily").classList.remove("active");
@@ -316,7 +320,7 @@
     document.getElementById("ur-reward-modal").style.display = "flex";
   }
 
-  document.getElementById("btn-close-ur-reward").addEventListener("click", function() {
+  _on("btn-close-ur-reward", "click", function() {
     document.getElementById("ur-reward-modal").style.display = "none";
   });
 
@@ -409,7 +413,7 @@
   }
 
   // ================= 隠しコマンド：管理者パネル起動 =================
-  document.getElementById("secret-admin-trigger").addEventListener("click", function() {
+  _on("secret-admin-trigger", "click", function() {
     adminTapCount++;
     clearTimeout(adminTapTimer);
     adminTapTimer = setTimeout(function() { adminTapCount = 0; }, 1800);
@@ -438,23 +442,23 @@
     if (rigNextRarity === "UR") btnUr.classList.add("active-rig"); else btnUr.classList.remove("active-rig");
   }
 
-  document.getElementById("btn-close-admin").addEventListener("click", function() {
+  _on("btn-close-admin", "click", function() {
     document.getElementById("admin-modal").style.display = "none";
   });
 
-  document.getElementById("admin-add-points").addEventListener("click", function() {
+  _on("admin-add-points", "click", function() {
     userData.points += 10000;
     saveUserData();
     setAdminStatus("10,000 バズP を付与しました！");
   });
 
-  document.getElementById("admin-zero-points").addEventListener("click", function() {
+  _on("admin-zero-points", "click", function() {
     userData.points = 0;
     saveUserData();
     setAdminStatus("バズPを 0 に設定しました。");
   });
 
-  document.getElementById("admin-unlock-all").addEventListener("click", function() {
+  _on("admin-unlock-all", "click", function() {
     var normalCards = ALL_CARDS.filter(function(c) { return !c.isAdminOnly; });
     normalCards.forEach(function(c) {
       userData.collection[c.id] = 3;
@@ -475,7 +479,7 @@
     });
   }
 
-  document.getElementById("admin-clear-col").addEventListener("click", function() {
+  _on("admin-clear-col", "click", function() {
     userData.collection = {};
     userData.decks = createDefaultDecks([]);
     editingDeckCards = [];
@@ -483,7 +487,7 @@
     setAdminStatus("所持カードと全デッキを空にしました。");
   });
 
-  document.getElementById("admin-boost-missions").addEventListener("click", function() {
+  _on("admin-boost-missions", "click", function() {
     userData.missions.totalStats.wins += 10;
     userData.missions.totalStats.packs += 15;
     userData.missions.totalStats.summons += 50;
@@ -496,20 +500,20 @@
     setAdminStatus("ミッション達成カウントを大幅に加算しました！");
   });
 
-  document.getElementById("admin-reset-daily").addEventListener("click", function() {
+  _on("admin-reset-daily", "click", function() {
     userData.missions.dailyStats = { login: 1, battles: 0, wins: 0, summons: 0, spells: 0 };
     userData.missions.dailyClaimed = {};
     saveUserData();
     setAdminStatus("デイリーミッションをリセットしました。");
   });
 
-  document.getElementById("admin-rig-god").addEventListener("click", function() {
+  _on("admin-rig-god", "click", function() {
     rigNextRarity = (rigNextRarity === "GOD") ? null : "GOD";
     updateRigButtons();
     setAdminStatus(rigNextRarity ? "次のパック開封でGODレア確定！" : "GOD確定モードを解除しました。");
   });
 
-  document.getElementById("admin-rig-ur").addEventListener("click", function() {
+  _on("admin-rig-ur", "click", function() {
     rigNextRarity = (rigNextRarity === "UR") ? null : "UR";
     updateRigButtons();
     setAdminStatus(rigNextRarity ? "次のパック開封でURレア確定！" : "UR確定モードを解除しました。");
@@ -560,7 +564,7 @@
     });
   }
 
-  document.getElementById("admin-reset-all").addEventListener("click", function() {
+  _on("admin-reset-all", "click", function() {
     if (confirm("本当にセーブデータを完全に初期化しますか？")) {
       localStorage.removeItem(SAVE_KEY);
       userData = loadUserData();
@@ -616,11 +620,11 @@
     }
   }
 
-  document.getElementById("tab-pack-1").addEventListener("click", function() { selectPackTab(1); });
-  document.getElementById("tab-pack-2").addEventListener("click", function() { selectPackTab(2); });
+  _on("tab-pack-1", "click", function() { selectPackTab(1); });
+  _on("tab-pack-2", "click", function() { selectPackTab(2); });
   var elTab3 = document.getElementById("tab-pack-3"); if (elTab3) { elTab3.addEventListener("click", function() { selectPackTab(3); }); }
 
-  document.getElementById("btn-view-pack-list").addEventListener("click", function() {
+  _on("btn-view-pack-list", "click", function() {
     var packCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
     var rarityOrder = { GOD: 0, UR: 1, SR: 2, R: 3, N: 4 };
     packCards.sort(function(a, b) { return rarityOrder[a.rarity] - rarityOrder[b.rarity]; });
@@ -648,29 +652,29 @@
     document.getElementById("pack-list-modal").style.display = "flex";
   });
 
-  document.getElementById("btn-close-pack-list").addEventListener("click", function() {
+  _on("btn-close-pack-list", "click", function() {
     document.getElementById("pack-list-modal").style.display = "none";
   });
 
-  document.getElementById("nav-battle").addEventListener("click", function() {
+  _on("nav-battle", "click", function() {
     populateBattleDeckSelect();
     document.getElementById("step-mode").style.display = "block";
     document.getElementById("step-boss").style.display = "none";
     document.getElementById("step-online").style.display = "none";
     showScreen("setup-screen");
   });
-  document.getElementById("nav-pack").addEventListener("click", function() {
+  _on("nav-pack", "click", function() {
     selectPackTab(selectedPackNo);
     showScreen("pack-screen");
   });
-  document.getElementById("nav-deck").addEventListener("click", function() {
+  _on("nav-deck", "click", function() {
     switchDeckSlot(currentDeckSlot);
     showScreen("deck-screen");
   });
 
-  document.getElementById("back-from-pack").addEventListener("click", function() { showScreen("home-screen"); });
-  document.getElementById("back-from-deck").addEventListener("click", function() { showScreen("home-screen"); });
-  document.getElementById("back-from-setup").addEventListener("click", function() {
+  _on("back-from-pack", "click", function() { showScreen("home-screen"); });
+  _on("back-from-deck", "click", function() { showScreen("home-screen"); });
+  _on("back-from-setup", "click", function() {
     cancelRandomMatch();
     showScreen("home-screen");
   });
@@ -929,9 +933,9 @@
   };
 
   // ================= パック開封ステージ =================
-  document.getElementById("btn-open-pack").addEventListener("click", enterPackOpenStage);
-  document.getElementById("btn-stage-again").addEventListener("click", enterPackOpenStage);
-  document.getElementById("btn-stage-back").addEventListener("click", function() {
+  _on("btn-open-pack", "click", enterPackOpenStage);
+  _on("btn-stage-again", "click", enterPackOpenStage);
+  _on("btn-stage-back", "click", function() {
     document.getElementById("pack-open-stage").style.display = "none";
   });
 
@@ -1634,7 +1638,7 @@
     });
   }
 
-  document.getElementById("btn-auto-deck").addEventListener("click", function() {
+  _on("btn-auto-deck", "click", function() {
     var available = [];
     Object.keys(userData.collection).forEach(function(id) {
       var count = Math.min(3, userData.collection[id]);
@@ -1645,12 +1649,12 @@
     renderDeckBuilder();
   });
 
-  document.getElementById("btn-clear-deck").addEventListener("click", function() {
+  _on("btn-clear-deck", "click", function() {
     editingDeckCards = [];
     renderDeckBuilder();
   });
 
-  document.getElementById("btn-save-deck").addEventListener("click", function() {
+  _on("btn-save-deck", "click", function() {
     if (editingDeckCards.length !== DECK_SIZE) {
       alert("デッキはちょうど" + DECK_SIZE + "枚にしてください！（現在 " + editingDeckCards.length + " 枚）");
       return;
@@ -1733,7 +1737,7 @@
     return { label: label, cards: cards };
   }
 
-  document.getElementById("btn-back-to-mode").addEventListener("click", function() {
+  _on("btn-back-to-mode", "click", function() {
     document.getElementById("step-boss").style.display = "none";
     document.getElementById("step-mode").style.display = "block";
   });
@@ -1790,21 +1794,21 @@
     startMatch(p1Deck, { label: boss.deckLabel, cards: cpuCards }, boss.name, boss.startHp, boss.introQuote);
   }
 
-  document.getElementById("btn-mode-cpu").addEventListener("click", function() {
+  _on("btn-mode-cpu", "click", function() {
     var p1Deck = getSelectedDeckCards(); if (!p1Deck) return;
     renderBossList();
     document.getElementById("step-mode").style.display = "none";
     document.getElementById("step-boss").style.display = "block";
   });
 
-  document.getElementById("btn-mode-local").addEventListener("click", function() {
+  _on("btn-mode-local", "click", function() {
     var p1Deck = getSelectedDeckCards(); if (!p1Deck) return;
     state.mode = "local"; state.currentBoss = null;
     var p2Cards = RENTAL_DECKS.rental_yaju.ids.map(function(id) { return JSON.parse(JSON.stringify(ALL_CARDS.find(function(c) { return c.id === id; }))); }).sort(function() { return Math.random() - 0.5; });
     startMatch(p1Deck, { label: "プレイヤー2デッキ", cards: p2Cards }, "プレイヤー2");
   });
 
-  document.getElementById("btn-mode-online").addEventListener("click", function() {
+  _on("btn-mode-online", "click", function() {
     var myDeck = getSelectedDeckCards(); if (!myDeck) return;
     state.mode = "online"; state.currentBoss = null; p1OnlineDeck = myDeck;
     document.getElementById("step-mode").style.display = "none";
@@ -1829,9 +1833,9 @@
     document.getElementById("btn-random-match").disabled = false;
   }
 
-  document.getElementById("btn-cancel-random").addEventListener("click", cancelRandomMatch);
+  _on("btn-cancel-random", "click", cancelRandomMatch);
 
-  document.getElementById("btn-random-match").addEventListener("click", function() {
+  _on("btn-random-match", "click", function() {
     if (typeof firebase === "undefined") {
       alert("Firebase SDKの読み込みに失敗しています。ネットワーク接続を確認してください。");
       return;
@@ -1928,7 +1932,7 @@
   }
 
   // ================= 従来の合言葉対戦処理 =================
-  document.getElementById("btn-create-room").addEventListener("click", function() {
+  _on("btn-create-room", "click", function() {
     var code = Math.floor(1000 + Math.random() * 9000).toString();
     document.getElementById("btn-create-room").disabled = true;
     document.getElementById("host-info").style.display = "block";
@@ -1938,7 +1942,7 @@
     peer.on("error", function() { alert("通信エラーが発生しました。再読み込みしてください。"); });
   });
 
-  document.getElementById("btn-join-room").addEventListener("click", function() {
+  _on("btn-join-room", "click", function() {
     var code = document.getElementById("join-room-input").value.trim();
     if (code.length !== 4) { document.getElementById("join-status").innerText = "4桁の番号を入力してください"; return; }
     document.getElementById("join-status").innerText = "接続中...";
@@ -2116,12 +2120,12 @@
     meme.hp -= amount;
   }
 
-  document.getElementById("btn-resume").addEventListener("click", function() {
+  _on("btn-resume", "click", function() {
     document.getElementById("pass-screen").style.display = "none";
     log("--- " + getViewSelf().name + "のターン（ターン " + state.turn + "） ---"); render();
   });
-  document.getElementById("direct-attack-btn").addEventListener("click", directAttack);
-  document.getElementById("end-turn-btn").addEventListener("click", endTurn);
+  _on("direct-attack-btn", "click", directAttack);
+  _on("end-turn-btn", "click", endTurn);
 
 
   // ================= ミーム合体・派生進化システム =================
