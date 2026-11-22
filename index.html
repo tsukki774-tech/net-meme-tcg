@@ -737,7 +737,7 @@
     }
 
   
-    /* v1.8.7 iPadOS Chrome/Safari 完全互換タッチ・スクロールCSS */
+    /* v1.8.8 iPadOS Chrome/Safari 完全互換タッチ・スクロールCSS */
     html, body {
       overflow-y: auto !important;
       overflow-x: hidden !important;
@@ -765,6 +765,641 @@
       pointer-events: none;
     }
 
+  
+    /* v1.8.8 ホーム画面・カオスネット掲示板＆弾幕タイムライン背景 */
+    #home-chaos-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none !important;
+      z-index: 0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(0, 210, 255, 0.14) 0%, transparent 45%),
+        radial-gradient(circle at 82% 75%, rgba(255, 71, 87, 0.14) 0%, transparent 48%),
+        radial-gradient(circle at 50% 50%, #151924 0%, #0b0d13 100%);
+    }
+    #home-chaos-bg::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 210, 255, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 210, 255, 0.045) 1px, transparent 1px);
+      background-size: 36px 36px;
+      pointer-events: none !important;
+    }
+    .chaos-danmaku-item {
+      position: absolute;
+      white-space: nowrap;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.09);
+      text-shadow: 0 0 8px rgba(0, 210, 255, 0.18);
+      font-family: "Hiragino Kaku Gothic ProN", "Meiryo", monospace;
+      pointer-events: none !important;
+      animation: chaosDanmakuFlow linear infinite;
+      will-change: transform;
+    }
+    .chaos-danmaku-item.aa-art {
+      font-size: 0.78rem;
+      line-height: 1.15;
+      color: rgba(0, 255, 136, 0.10);
+      white-space: pre;
+    }
+    .chaos-danmaku-item.hot-tag {
+      color: rgba(255, 71, 87, 0.13);
+      border: 1px solid rgba(255, 71, 87, 0.16);
+      background: rgba(255, 71, 87, 0.04);
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+    .chaos-danmaku-item.sns-card {
+      white-space: normal;
+      width: 230px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: rgba(226, 232, 240, 0.11);
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(0, 210, 255, 0.12);
+      border-radius: 10px;
+      padding: 7px 10px;
+      line-height: 1.35;
+    }
+    @keyframes chaosDanmakuFlow {
+      0% { transform: translateX(105vw); }
+      100% { transform: translateX(-120%); }
+    }
+    /* ホーム画面のUIをガラスモーフィズム調に引き立てて背景と調和させる */
+    #home-screen .top-bar {
+      background: rgba(20, 24, 34, 0.82);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-color: rgba(0, 210, 255, 0.35);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    }
+    #home-screen .home-center h1 {
+      text-shadow: 0 0 18px rgba(0, 210, 255, 0.55), 0 2px 6px rgba(0, 0, 0, 0.9);
+      letter-spacing: 0.04em;
+    }
+    #home-screen .subtitle {
+      color: #7bed9f;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(46, 213, 115, 0.45);
+    }
+    #home-screen .menu-btn {
+      background: rgba(24, 28, 38, 0.86);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+    #home-screen .menu-btn.primary-btn {
+      background: linear-gradient(135deg, #ff4757, #ff6b81);
+      box-shadow: 0 4px 18px rgba(255, 71, 87, 0.45);
+    }
+
+
+    /* ============================================================
+       v1.9.0 新サイバー・ネオン3カラム・ホーム画面UI
+       ============================================================ */
+    #home-screen {
+      max-width: none !important;
+      width: 100vw;
+      min-height: 100dvh;
+      padding: 12px 16px !important;
+      margin: 0 !important;
+      box-sizing: border-box;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* 背景レトロウィンドウ群 */
+    .cyber-retro-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .retro-win-card {
+      position: absolute;
+      background: rgba(192, 192, 192, 0.16);
+      border: 1.5px solid rgba(0, 229, 255, 0.35);
+      border-radius: 3px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(2px);
+      font-family: "MS PGothic", monospace;
+      color: #cfe8ff;
+      opacity: 0.72;
+    }
+    .retro-win-bar {
+      background: linear-gradient(90deg, rgba(0, 0, 128, 0.85), rgba(16, 132, 208, 0.85));
+      color: #fff;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 2px 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .retro-win-content {
+      padding: 6px 8px;
+      font-size: 11px;
+      line-height: 1.3;
+    }
+    .retro-visitor-box {
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid #00ff88;
+      color: #00ff88;
+      padding: 3px 6px;
+      text-align: center;
+      font-weight: bold;
+      font-family: monospace;
+    }
+    .retro-error-box {
+      background: rgba(185, 192, 204, 0.88);
+      color: #111;
+      text-align: center;
+      padding: 8px 12px;
+    }
+    .retro-error-title {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #1e293b;
+    }
+    .retro-ok-btn {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 1px 16px;
+      background: #d1d5db;
+      border: 1.5px outset #fff;
+      font-size: 10px;
+      color: #000;
+    }
+    .floating-meme-sticker {
+      position: absolute;
+      font-size: 28px;
+      opacity: 0.55;
+      filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.5));
+      animation: stickerFloat 5s ease-in-out infinite alternate;
+    }
+    @keyframes stickerFloat {
+      from { transform: translateY(0) rotate(-3deg); }
+      to { transform: translateY(-10px) rotate(3deg); }
+    }
+
+    /* 3カラムグリッド本体 */
+    .cyber-home-grid {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      min-height: calc(100dvh - 24px);
+      display: grid;
+      grid-template-columns: 275px 1fr 245px;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .cyber-panel-cyan {
+      background: linear-gradient(160deg, rgba(14, 28, 54, 0.88), rgba(7, 15, 32, 0.94));
+      border: 2px solid #00e5ff;
+      border-radius: 10px;
+      box-shadow: 0 0 14px rgba(0, 229, 255, 0.45), inset 0 0 12px rgba(0, 229, 255, 0.18);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    /* --- 左カラム --- */
+    .cyber-col-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .cyber-profile-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+    }
+    .cyber-avatar {
+      width: 54px;
+      height: 62px;
+      border-radius: 7px;
+      background: linear-gradient(180deg, #1d4ed8, #0f172a);
+      border: 2px solid #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      flex-shrink: 0;
+    }
+    .cyber-profile-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .cyber-name-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 900;
+      text-shadow: 0 0 8px rgba(0, 229, 255, 0.75);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      max-width: 100%;
+      text-align: left;
+    }
+    .cyber-name-btn span#display-player-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cyber-rank-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #bae6fd;
+      margin-top: 3px;
+    }
+    .cyber-exp-track {
+      width: 100%;
+      height: 6px;
+      background: #091124;
+      border-radius: 4px;
+      border: 1px solid #1e3a8a;
+      margin: 3px 0 6px;
+      overflow: hidden;
+    }
+    .cyber-exp-fill {
+      width: 68%;
+      height: 100%;
+      background: linear-gradient(90deg, #00e5ff, #3b82f6);
+      box-shadow: 0 0 6px #00e5ff;
+    }
+    .cyber-stat-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+    }
+    .cyber-bp-tag {
+      background: linear-gradient(90deg, #d946ef, #9333ea);
+      color: #fff;
+      font-weight: 900;
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .cyber-bp-track {
+      flex: 1;
+      height: 6px;
+      background: #1e1b4b;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .cyber-bp-fill {
+      width: 80%;
+      height: 100%;
+      background: linear-gradient(90deg, #ec4899, #8b5cf6);
+    }
+    .cyber-points-trigger {
+      color: #fde047;
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+      text-shadow: 0 0 6px rgba(253, 224, 71, 0.5);
+    }
+
+    /* Quick Access (左) */
+    .cyber-qa-box {
+      width: 168px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .cyber-qa-title {
+      background: linear-gradient(90deg, #0284c7, #0369a1);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      text-align: center;
+      padding: 3px 0;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+    .cyber-qa-card-btn {
+      position: relative;
+      width: 100%;
+      background: linear-gradient(180deg, #172554, #0f172a);
+      border: 1.5px solid #38bdf8;
+      border-radius: 7px;
+      padding: 8px 6px;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .cyber-qa-card-btn:hover, .cyber-qa-card-btn:active {
+      transform: scale(1.03);
+      box-shadow: 0 0 12px #00e5ff;
+    }
+    .cyber-qa-ribbon {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: #0ea5e9;
+      color: #fff;
+      font-size: 9px;
+      font-weight: bold;
+      padding: 1px 6px;
+      border-bottom-right-radius: 6px;
+    }
+    .cyber-qa-icon {
+      font-size: 26px;
+      margin: 5px 0 3px;
+      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.85));
+    }
+    .cyber-qa-label {
+      font-size: 12.5px;
+      font-weight: 900;
+      text-shadow: 0 2px 4px #000;
+    }
+
+    /* --- 中央カラム --- */
+    .cyber-col-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 4px 0;
+    }
+
+    .cyber-battle-btn {
+      width: 100%;
+      max-width: 390px;
+      height: 82px;
+      background: linear-gradient(135deg, #ff007f 0%, #ff5500 50%, #ffaa00 100%);
+      border: 3px solid #fff0f5;
+      border-radius: 14px;
+      box-shadow:
+        0 0 20px rgba(255, 0, 127, 0.85),
+        0 0 38px rgba(255, 102, 0, 0.6),
+        inset 0 0 14px rgba(255, 255, 255, 0.6);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      transition: transform 0.12s, filter 0.12s;
+    }
+    .cyber-battle-btn:hover { transform: scale(1.03); filter: brightness(1.08); }
+    .cyber-battle-btn:active { transform: scale(0.97); }
+    .cyber-sword { font-size: 34px; filter: drop-shadow(0 0 8px #fff); }
+    .cyber-battle-labels {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.08;
+    }
+    .cyber-battle-main {
+      font-size: 33px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      text-shadow: 0 3px 0 #880033, 0 0 14px #fff;
+    }
+    .cyber-battle-sub {
+      font-size: 13px;
+      font-weight: bold;
+      color: #fffbeb;
+    }
+
+    .cyber-sub-stack {
+      width: 100%;
+      max-width: 335px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .cyber-menu-item {
+      position: relative;
+      width: 100%;
+      height: 50px;
+      background: linear-gradient(90deg, rgba(15, 28, 63, 0.92) 0%, rgba(30, 58, 110, 0.92) 50%, rgba(15, 28, 63, 0.92) 100%);
+      border: 2px solid #00e5ff;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.45), inset 0 0 10px rgba(168, 85, 247, 0.35);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 11px;
+      padding: 0 18px;
+      transition: transform 0.1s, box-shadow 0.1s, border-color 0.1s;
+    }
+    .cyber-menu-item:hover {
+      transform: translateY(-2px) scale(1.02);
+      border-color: #f472b6;
+      box-shadow: 0 0 18px rgba(0, 229, 255, 0.8), 0 0 10px rgba(244, 114, 182, 0.6);
+    }
+    .cyber-menu-item:active { transform: scale(0.98); }
+
+    .cyber-menu-pack {
+      height: 56px;
+      border-color: #38bdf8;
+      background: linear-gradient(90deg, #172554, #1d4ed8, #172554);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.75);
+    }
+
+    .cyber-menu-icon {
+      font-size: 23px;
+      filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.8));
+    }
+    .cyber-menu-text {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85);
+    }
+    .cyber-menu-text-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.05;
+    }
+    .cyber-menu-subtext {
+      font-size: 11px;
+      color: #bae6fd;
+    }
+
+    .cyber-pill-badge {
+      position: absolute;
+      top: -8px;
+      right: 12px;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 2px 8px;
+      border-radius: 10px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
+      z-index: 3;
+    }
+    .cyber-pill-new {
+      background: linear-gradient(90deg, #ef4444, #f97316);
+      color: #fff;
+      border: 1px solid #fecaca;
+    }
+    .cyber-pill-event {
+      background: linear-gradient(90deg, #ec4899, #8b5cf6);
+      color: #fff;
+      border: 1px solid #fbcfe8;
+    }
+
+    /* --- 右カラム --- */
+    .cyber-col-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+    }
+    .cyber-right-top {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 9px;
+      width: 100%;
+    }
+    .cyber-audio-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .cyber-mini-btn {
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: transform 0.1s;
+    }
+    .cyber-mini-btn:active { transform: scale(0.95); }
+
+    .cyber-event-card {
+      position: relative;
+      width: 215px;
+      padding: 10px 12px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #1e1b4b, #311042);
+      text-align: center;
+      transition: transform 0.12s;
+    }
+    .cyber-event-card:hover { transform: scale(1.03); }
+    .cyber-event-hint {
+      font-size: 9px;
+      color: #38bdf8;
+      text-align: left;
+      margin-bottom: 2px;
+    }
+    .cyber-event-title {
+      font-size: 13.5px;
+      font-weight: 900;
+      color: #fde047;
+      text-shadow: 0 0 8px rgba(253, 224, 71, 0.6);
+    }
+    .cyber-event-desc {
+      font-size: 11px;
+      color: #e0f2fe;
+      margin-top: 2px;
+    }
+
+    .cyber-friend-box {
+      width: 172px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .cyber-friend-header {
+      font-size: 11px;
+      font-weight: bold;
+      color: #bae6fd;
+      text-align: center;
+    }
+    .cyber-friend-avatars {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      padding: 3px 0;
+    }
+    .cyber-friend-node {
+      position: relative;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 2px solid #38bdf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .cyber-friend-dot {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid #0f172a;
+      background: #22c55e;
+      box-shadow: 0 0 6px #22c55e;
+    }
+    .cyber-friend-dot.off {
+      background: #64748b;
+      box-shadow: none;
+    }
+
+    @media (max-width: 820px) {
+      .cyber-home-grid {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+      .cyber-col-left, .cyber-col-right {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+      }
+      .cyber-qa-box, .cyber-friend-box {
+        width: auto;
+        flex-direction: row;
+        align-items: center;
+      }
+      .cyber-friend-avatars {
+        flex-direction: row;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -787,33 +1422,191 @@
 
 
   <!-- 1. ホーム画面 -->
+    <!-- ホーム画面専用：カオスネット掲示板＆弾幕タイムライン背景 -->
+  <div id="home-chaos-bg" aria-hidden="true">
+    <div class="chaos-danmaku-item" style="top:8%; font-size:1.25rem; animation-duration:22s; animation-delay:-4s;">ｗｗｗｗｗｗｗｗｗｗｗｗｗｗｗ</div>
+    <div class="chaos-danmaku-item hot-tag" style="top:14%; font-size:0.85rem; animation-duration:28s; animation-delay:-11s;">🔥 トレンド1位：#レスバ大戦</div>
+    <div class="chaos-danmaku-item aa-art" style="top:19%; animation-duration:34s; animation-delay:-7s;">　 ∧＿∧
+　（　´∀｀）＜ オマエモナー</div>
+    <div class="chaos-danmaku-item sns-card" style="top:26%; animation-duration:31s; animation-delay:-18s;">💬 @nanashi_resuba<br>それってあなたの感想ですよね？ｗｗｗ<br>❤️ 1.2万   🔁 4,510</div>
+    <div class="chaos-danmaku-item" style="top:34%; font-size:1.1rem; animation-duration:19s; animation-delay:-2s;">ぬるぽ　→　ｶﾞｯ!! ( ﾟдﾟ)つ)ﾟДﾟ)</div>
+    <div class="chaos-danmaku-item hot-tag" style="top:41%; font-size:0.82rem; animation-duration:26s; animation-delay:-15s;">🚨 速報：GODレア降臨確率UP中</div>
+    <div class="chaos-danmaku-item aa-art" style="top:47%; animation-duration:36s; animation-delay:-21s;">　 ＿＿_
+　／　　 ＼
+（　・∀・ ）＜ ｷﾀ━━━━━━(ﾟ∀ﾟ)━━━━━━!!</div>
+    <div class="chaos-danmaku-item" style="top:55%; font-size:1.35rem; animation-duration:24s; animation-delay:-9s;">草生える　大草原不可避ｗｗｗ</div>
+    <div class="chaos-danmaku-item sns-card" style="top:61%; animation-duration:29s; animation-delay:-5s;">📢 5ch VIP速報スレ ★999<br>1: 以下、名無しにかわりましてVIPがお送りします<br>最強のミームデッキ組めたんだがｗｗ</div>
+    <div class="chaos-danmaku-item" style="top:69%; font-size:1.05rem; animation-duration:21s; animation-delay:-13s;">現場猫「ヨシ！👉🐱」</div>
+    <div class="chaos-danmaku-item hot-tag" style="top:76%; font-size:0.85rem; animation-duration:27s; animation-delay:-19s;">⚡ 万バズ達成！ +10,000インプレッション</div>
+    <div class="chaos-danmaku-item aa-art" style="top:81%; animation-duration:33s; animation-delay:-10s;">　　∧_∧
+　 ( ´･ω･)　＜ 止まるんじゃねぇぞ…</div>
+    <div class="chaos-danmaku-item" style="top:89%; font-size:1.15rem; animation-duration:23s; animation-delay:-6s;">88888888888888888888</div>
+  </div>
+
   <div id="home-screen" class="screen">
-    <div class="top-bar">
-      <span class="game-logo">🌐 ネットミームTCG <small style="font-size:0.7rem; color:#00ff88; border:1px solid #00ff88; border-radius:6px; padding:1px 5px; margin-left:4px;">v1.8.7</small></span>
-      <div class="top-right-group">
-        <button type="button" id="btn-toggle-bgm" class="player-name-badge" title="ホームBGM ON/OFF 切替" style="border-color:#00ff88; background:rgba(0,0,0,0.45); color:#fff;">🎵 BGM ON</button>
-        <button type="button" id="btn-toggle-sound" class="player-name-badge" title="効果音 ON/OFF 切替" style="border-color:#ffd32a; background:rgba(0,0,0,0.45); color:#fff;">🔊 音ON</button>
-        <button type="button" id="btn-edit-player-name" class="player-name-badge" title="タップして名前を変更" style="background:rgba(0,0,0,0.45); color:#fff;">🧑 <span id="display-player-name">名無しのレスバ民</span> ✏️</button>
-        <span id="secret-admin-trigger" class="currency-box" title="バズポイント">💎 <span id="user-points">1500</span> バズP</span>
+    <!-- カオスネット・レトロウィンドウ装飾レイヤー -->
+    <div class="cyber-retro-layer" aria-hidden="true">
+      <div class="retro-win-card" style="top: 6%; left: 21%; width: 205px;">
+        <div class="retro-win-bar"><span>Internet Explorer</span><span>_ □ ×</span></div>
+        <div class="retro-win-content">
+          <div class="retro-visitor-box">YOU ARE VISITOR<br>NO. 999,999</div>
+          <div style="text-align:center; margin-top:3px; color:#fff;">ｷﾀ━━━━(ﾟ∀ﾟ)━━━━!!</div>
+        </div>
       </div>
+
+      <div class="retro-win-card" style="top: 23%; left: 1.5%; width: 175px; transform: rotate(-2deg);">
+        <div class="retro-win-bar"><span>Doge_Meme.exe</span><span>_ □ ×</span></div>
+        <div class="retro-win-content" style="text-align:center;">
+          <div style="font-size:30px;">🐕</div>
+          <div style="color:#fde047; font-weight:bold;">Such Card. Very Resuba.</div>
+        </div>
+      </div>
+
+      <div class="retro-win-card" style="bottom: 10%; left: 19%; width: 225px;">
+        <div class="retro-win-bar"><span>2ch_thread.log</span><span>_ □ ×</span></div>
+        <div class="retro-win-content" style="color:#7fffd4;">
+          ｷﾀ━━━━(ﾟ∀ﾟ)━━━━!!<br>
+          wwwwwwwwwwww<br>
+          それってあなたの感想ですよね？ｗ
+        </div>
+      </div>
+
+      <div class="retro-win-card" style="top: 15%; right: 20%; width: 195px; transform: rotate(2deg);">
+        <div class="retro-win-bar"><span>Stonks_Chart.exe</span><span>_ □ ×</span></div>
+        <div class="retro-win-content" style="text-align:center;">
+          <div style="font-size:28px;">📈😎</div>
+          <div style="color:#00ffcc; font-weight:bold;">STONKS ↗↗↗</div>
+        </div>
+      </div>
+
+      <div class="retro-win-card" style="bottom: 6%; right: 2%; width: 235px;">
+        <div class="retro-win-bar"><span>System Error</span><span>×</span></div>
+        <div class="retro-error-box">
+          <div class="retro-error-title">Error 404</div>
+          <div style="font-size:10px;">論破耐性が見つかりません</div>
+          <span class="retro-ok-btn">OK</span>
+        </div>
+      </div>
+
+      <div class="floating-meme-sticker" style="top: 47%; left: 26%;">🐸☕</div>
+      <div class="floating-meme-sticker" style="top: 39%; right: 26%;">👍</div>
+      <div class="floating-meme-sticker" style="bottom: 26%; left: 31%;">😱👉🐱</div>
     </div>
-    <div class="home-center">
-      <h1>ネットミームTCG</h1>
-      <p class="subtitle">- レスバ大戦 -</p>
-      <div class="menu-buttons">
-        <button id="nav-battle" class="menu-btn primary-btn">⚔️ 対戦する</button>
-        <button id="nav-pack" class="menu-btn">📦 パック開封・カードリスト</button>
-        <button id="nav-deck" class="menu-btn">🗂️ デッキ編成（最大5個保存）</button>
-        <button id="nav-mission" class="menu-btn">
-          🎯 ミッション・実績
-          <span id="home-mission-badge" class="notif-badge" style="display:none;">0</span>
+
+    <!-- 3カラム・メインUI -->
+    <div class="cyber-home-grid">
+      <!-- 左カラム：プロフィール＆Quick Access -->
+      <aside class="cyber-col-left">
+        <div class="cyber-profile-card cyber-panel-cyan">
+          <div class="cyber-avatar">👤</div>
+          <div class="cyber-profile-body">
+            <button type="button" id="btn-edit-player-name" class="cyber-name-btn" title="タップして名前を変更">
+              <span id="display-player-name">名無しのレスバ民</span>
+              <span style="font-size:11px;">✏️</span>
+            </button>
+            <div class="cyber-rank-row">
+              <span>Rank <strong>15</strong> <small style="color:#00ff88;">v1.8.8</small></span>
+              <span>EXP: 28 / 100</span>
+            </div>
+            <div class="cyber-exp-track"><div class="cyber-exp-fill"></div></div>
+            <div class="cyber-stat-row">
+              <span class="cyber-bp-tag">BP</span>
+              <div class="cyber-bp-track"><div class="cyber-bp-fill"></div></div>
+              <span id="secret-admin-trigger" class="cyber-points-trigger" title="バズポイント">💎 <span id="user-points">1500</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cyber-qa-box cyber-panel-cyan">
+          <div class="cyber-qa-title">Quick Access</div>
+
+          <button type="button" class="cyber-qa-card-btn" onclick="document.getElementById('nav-pack').click(); setTimeout(function(){ var b=document.getElementById('btn-view-pack-list'); if(b) b.click(); }, 50);">
+            <div class="cyber-qa-icon">🃏🌀</div>
+            <div class="cyber-qa-label">カードリスト</div>
+          </button>
+
+          <button type="button" id="btn-open-fusion-guide" class="cyber-qa-card-btn">
+            <span class="cyber-qa-ribbon">ミーム進化</span>
+            <div class="cyber-qa-icon">🐸➡👑</div>
+            <div class="cyber-qa-label">ミーム進化</div>
+          </button>
+        </div>
+      </aside>
+
+      <!-- 中央カラム：対戦＆メインメニュー -->
+      <main class="cyber-col-center">
+        <button type="button" id="nav-battle" class="cyber-battle-btn">
+          <span class="cyber-sword">⚔️</span>
+          <div class="cyber-battle-labels">
+            <span class="cyber-battle-main">対戦</span>
+            <span class="cyber-battle-sub">（バトル）</span>
+          </div>
+          <span class="cyber-sword">⚔️</span>
         </button>
-        <button id="btn-open-fusion-guide" class="menu-btn" style="border-color:#00ff88; color:#00ff88; padding:12px; font-size:1rem;">🧬 ミーム合体・進化レシピ図鑑（全10種）</button>
-        <button id="nav-news" class="menu-btn" style="padding:12px; font-size:1rem;">
-          📢 お知らせ・更新情報
-          <span id="home-news-badge" class="notif-badge" style="display:none; background:#00d2ff; color:#000;">NEW</span>
-        </button>
-      </div>
+
+        <div class="cyber-sub-stack">
+          <button type="button" id="nav-deck" class="cyber-menu-item">
+            <span class="cyber-pill-badge cyber-pill-new">NEW</span>
+            <span class="cyber-menu-icon">🗂️</span>
+            <span class="cyber-menu-text">デッキ編成</span>
+          </button>
+
+          <button type="button" id="nav-pack" class="cyber-menu-item cyber-menu-pack">
+            <span class="cyber-menu-icon">🎴</span>
+            <div class="cyber-menu-text-col">
+              <span class="cyber-menu-text">パック開封</span>
+              <span class="cyber-menu-subtext">（ガチャ）</span>
+            </div>
+            <span style="font-size:19px;">✨</span>
+          </button>
+
+          <button type="button" class="cyber-menu-item" onclick="document.getElementById('nav-pack').click();">
+            <span class="cyber-pill-badge cyber-pill-new">NEW</span>
+            <span class="cyber-menu-icon">🛒</span>
+            <span class="cyber-menu-text">ショップ</span>
+          </button>
+
+          <button type="button" id="nav-mission" class="cyber-menu-item">
+            <span id="home-mission-badge" class="cyber-pill-badge cyber-pill-new" style="display:none;">0</span>
+            <span class="cyber-menu-icon">🎯</span>
+            <span class="cyber-menu-text">ミッション</span>
+          </button>
+
+          <button type="button" id="nav-news" class="cyber-menu-item">
+            <span id="home-news-badge" class="cyber-pill-badge cyber-pill-event" style="display:none;">EVENT</span>
+            <span class="cyber-menu-icon">📢</span>
+            <span class="cyber-menu-text">お知らせ</span>
+          </button>
+        </div>
+      </main>
+
+      <!-- 右カラム：BGM/SE・イベント・フレンドリスト -->
+      <aside class="cyber-col-right">
+        <div class="cyber-right-top">
+          <div class="cyber-audio-row">
+            <button type="button" id="btn-toggle-bgm" class="cyber-mini-btn cyber-panel-cyan" title="ホームBGM ON/OFF 切替">🎵 BGM ON</button>
+            <button type="button" id="btn-toggle-sound" class="cyber-mini-btn cyber-panel-cyan" title="効果音 ON/OFF 切替">🔊 音ON</button>
+          </div>
+
+          <div class="cyber-event-card cyber-panel-cyan" onclick="document.getElementById('nav-pack').click(); setTimeout(function(){ var t3=document.getElementById('tab-pack-3'); if(t3) t3.click(); }, 50);">
+            <span class="cyber-pill-badge cyber-pill-event">EVENT</span>
+            <div class="cyber-event-hint">◀ スワイプ / タップ</div>
+            <div class="cyber-event-title">🎬 第3弾アニメミーム</div>
+            <div class="cyber-event-desc">名言＆フラグGOD収録！</div>
+          </div>
+        </div>
+
+        <div class="cyber-friend-box cyber-panel-cyan">
+          <div class="cyber-qa-title">Quick Access</div>
+          <div class="cyber-friend-header">👥 フレンドリスト</div>
+          <div class="cyber-friend-avatars">
+            <div class="cyber-friend-node" title="オンライン対戦へ" onclick="document.getElementById('nav-battle').click();">😎<span class="cyber-friend-dot"></span></div>
+            <div class="cyber-friend-node" title="オンライン対戦へ" onclick="document.getElementById('nav-battle').click();">🤖<span class="cyber-friend-dot"></span></div>
+            <div class="cyber-friend-node" title="オフライン" onclick="document.getElementById('nav-battle').click();">🐱<span class="cyber-friend-dot off"></span></div>
+            <div class="cyber-friend-node" title="オンライン対戦へ" onclick="document.getElementById('nav-battle').click();">👾<span class="cyber-friend-dot"></span></div>
+          </div>
+        </div>
+      </aside>
     </div>
   </div>
 
@@ -1334,7 +2127,7 @@
     </div>
   </div>
 
-  <div id="ver-stamp-badge">v1.8.7</div>
+  <div id="ver-stamp-badge">v1.8.8</div>
   <!-- インライン統合スクリプト（キャッシュ完全回避・即時実行版） -->
   <script>
 // cards.js - カード一覧・レンタルデッキ・ミッションデータ定義
@@ -3166,6 +3959,10 @@ window.addEventListener("error", function(ev) {
       document.getElementById(s).style.display = (s === id) ? (id === "game-screen" ? "flex" : "block") : "none";
     }
     updateAllSoundButtonsUI();
+    var chaosBg = document.getElementById("home-chaos-bg");
+    if (chaosBg) {
+      chaosBg.style.display = (id === "game-screen") ? "none" : "block";
+    }
     if (id === "game-screen") {
       stopHomeBgm();
       startBattleBgm();
@@ -3215,7 +4012,7 @@ window.addEventListener("error", function(ev) {
 
   _on("tab-pack-1", "click", function() { selectPackTab(1); });
   _on("tab-pack-2", "click", function() { selectPackTab(2); });
-  var elTab3 = document.getElementById("tab-pack-3"); if (elTab3) { elTab3.addEventListener("click", function() { selectPackTab(3); }); }
+  _on("tab-pack-3", "click", function() { selectPackTab(3); });
 
   _on("btn-view-pack-list", "click", function() {
     var packCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
@@ -3837,6 +4634,7 @@ window.addEventListener("error", function(ev) {
     hint.innerText = "✂️ ここを右へスワイプ！";
     slit.className = "pack-slit-glow";
 
+    stage.style.pointerEvents = "auto";
     stage.style.display = "flex";
   }
 
@@ -5537,7 +6335,7 @@ window.addEventListener("error", function(ev) {
   }
 
 
-  // ================= 全モーダル共通・強制クローズハンドラ (v1.8.7) =================
+  // ================= 全モーダル共通・強制クローズハンドラ (v1.8.8) =================
   (function setupGlobalModalCloser() {
     function hideModalById(id) {
       var el = document.getElementById(id);
@@ -5580,7 +6378,7 @@ window.addEventListener("error", function(ev) {
   })();
 
 
-  // ================= iPadOS Chrome タッチ反応確実化パッチ (v1.8.7) =================
+  // ================= iPadOS Chrome タッチ反応確実化パッチ (v1.8.8) =================
   (function ensureReliableTouchTap() {
     var touchStartX = 0, touchStartY = 0, touchStartTime = 0, touchTarget = null;
     document.addEventListener("touchstart", function(e) {

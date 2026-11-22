@@ -836,6 +836,10 @@ window.addEventListener("error", function(ev) {
       document.getElementById(s).style.display = (s === id) ? (id === "game-screen" ? "flex" : "block") : "none";
     }
     updateAllSoundButtonsUI();
+    var chaosBg = document.getElementById("home-chaos-bg");
+    if (chaosBg) {
+      chaosBg.style.display = (id === "game-screen") ? "none" : "block";
+    }
     if (id === "game-screen") {
       stopHomeBgm();
       startBattleBgm();
@@ -885,7 +889,7 @@ window.addEventListener("error", function(ev) {
 
   _on("tab-pack-1", "click", function() { selectPackTab(1); });
   _on("tab-pack-2", "click", function() { selectPackTab(2); });
-  var elTab3 = document.getElementById("tab-pack-3"); if (elTab3) { elTab3.addEventListener("click", function() { selectPackTab(3); }); }
+  _on("tab-pack-3", "click", function() { selectPackTab(3); });
 
   _on("btn-view-pack-list", "click", function() {
     var packCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
@@ -1507,6 +1511,7 @@ window.addEventListener("error", function(ev) {
     hint.innerText = "✂️ ここを右へスワイプ！";
     slit.className = "pack-slit-glow";
 
+    stage.style.pointerEvents = "auto";
     stage.style.display = "flex";
   }
 
@@ -3207,7 +3212,7 @@ window.addEventListener("error", function(ev) {
   }
 
 
-  // ================= 全モーダル共通・強制クローズハンドラ (v1.8.7) =================
+  // ================= 全モーダル共通・強制クローズハンドラ (v1.8.8) =================
   (function setupGlobalModalCloser() {
     function hideModalById(id) {
       var el = document.getElementById(id);
@@ -3250,7 +3255,7 @@ window.addEventListener("error", function(ev) {
   })();
 
 
-  // ================= iPadOS Chrome タッチ反応確実化パッチ (v1.8.7) =================
+  // ================= iPadOS Chrome タッチ反応確実化パッチ (v1.8.8) =================
   (function ensureReliableTouchTap() {
     var touchStartX = 0, touchStartY = 0, touchStartTime = 0, touchTarget = null;
     document.addEventListener("touchstart", function(e) {
