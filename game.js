@@ -10,8 +10,12 @@ window.addEventListener("error", function(ev) {
   }
   // Firebase Realtime Database 初期化
   var FIREBASE_DB_URL = "https://tcgnet-bf199-default-rtdb.firebaseio.com";
-  if (typeof firebase !== "undefined" && !firebase.apps.length) {
-    firebase.initializeApp({ databaseURL: FIREBASE_DB_URL });
+  try {
+    if (typeof firebase !== "undefined" && firebase.apps && !firebase.apps.length) {
+      firebase.initializeApp({ databaseURL: FIREBASE_DB_URL });
+    }
+  } catch (fbInitErr) {
+    console.warn("Firebase init skipped:", fbInitErr);
   }
 
   var SAVE_KEY = "netmeme_tcg_save_v2";
@@ -216,11 +220,8 @@ window.addEventListener("error", function(ev) {
     if (e.target === this) closeNewsModal();
   });
 
-  // 未読の新バージョンがある場合は起動時に自動ポップアップ
+  // 起動時は自動ポップアップを出さず未読バッジのみ点灯（iPad Chrome操作ブロック防止）
   updateNewsBadge();
-  if (typeof APP_VERSION !== "undefined" && localStorage.getItem(SEEN_VERSION_KEY) !== APP_VERSION) {
-    openNewsModal();
-  }
 
   // ================= カード詳細拡大モーダル ================= 
   function showCardDetail(card) {
@@ -1139,25 +1140,29 @@ window.addEventListener("error", function(ev) {
     if (gameScreen && gameScreen.style.display !== "none") return; // バトル中は停止
     bgmIsPlaying = true;
     var audioEl = document.getElementById("home-bgm-audio");
-    if (audioEl && !bgmUsingMp3) {
-      audioEl.volume = 0.42;
+    if (audioEl) {
+      audioEl.volume = 0.55;
       var p = audioEl.play();
       if (p && typeof p.then === "function") {
         p.then(function() {
           bgmUsingMp3 = true;
           if (bgmSynthTimer) { clearInterval(bgmSynthTimer); bgmSynthTimer = null; }
         }).catch(function() {
-          // home_bgm.mp3 が未配置、またはユーザー操作前なら内蔵シンセBGMを起動
-          bgmUsingMp3 = false;
-          if (!bgmSynthTimer) {
-            bgmSynthTimer = setInterval(playSynthBgmStep, 130); // ~115 BPM 16分音符
+          // 外部 home_bgm.mp3 が見つからない場合は内蔵埋め込み『進化の最前線』データへ切替
+          if (window.__EMBEDDED_HOME_BGM__ && audioEl.src !== window.__EMBEDDED_HOME_BGM__) {
+            audioEl.src = window.__EMBEDDED_HOME_BGM__;
+            audioEl.load();
+            audioEl.play().then(function() {
+              bgmUsingMp3 = true;
+              if (bgmSynthTimer) { clearInterval(bgmSynthTimer); bgmSynthTimer = null; }
+            }).catch(function() {
+              bgmIsPlaying = false;
+            });
+          } else {
+            bgmIsPlaying = false;
           }
         });
       }
-    } else if (bgmUsingMp3 && audioEl) {
-      audioEl.play().catch(function() {});
-    } else if (!bgmSynthTimer) {
-      bgmSynthTimer = setInterval(playSynthBgmStep, 130);
     }
   }
 
@@ -1188,15 +1193,36 @@ window.addEventListener("error", function(ev) {
     });
   }
 
-  // ブラウザの自動再生制限対策：画面の最初のタップ／クリックでホームBGMを自動スタート
-  document.addEventListener("pointerdown", function unlockHomeBgmOnFirstTap() {
-    if (isBgmEnabled && !bgmIsPlaying) {
+  // iOS/iPadOS Chrome対応：最初のタップ同期処理内でAudioContextを即座にunlockしてBGM開始
+  function unlockAudioAndStartBgmSync() {
+    try {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) {
+        if (!audioCtx) audioCtx = new Ctx();
+        if (audioCtx.state === "suspended") {
+          audioCtx.resume();
+        }
+        // 無音バッファを1サンプル再生してiOS WebKitのオーディオロックを確実に解除
+        var silentBuf = audioCtx.createBuffer(1, 1, 22050);
+        var src = audioCtx.createBufferSource();
+        src.buffer = silentBuf;
+        src.connect(audioCtx.destination);
+        if (src.start) src.start(0);
+      }
+    } catch (e) {}
+
+    if (isBgmEnabled) {
       var gs = document.getElementById("game-screen");
-      if (!gs || gs.style.display === "none") {
-        startHomeBgm();
+      if (gs && gs.style.display !== "none") {
+        if (!battleBgmIsPlaying) startBattleBgm();
+      } else {
+        if (!bgmIsPlaying) startHomeBgm();
       }
     }
-  }, { passive: true });
+  }
+  ["touchstart", "pointerdown", "click"].forEach(function(evtName) {
+    document.addEventListener(evtName, unlockAudioAndStartBgmSync, { passive: true });
+  });
 
   var PackSFX = {
     tone: function(freq, type, duration, vol, delay, slideToFreq) {
@@ -3181,7 +3207,7 @@ window.addEventListener("error", function(ev) {
   }
 
 
-  // ================= 全モーダル共通・強制クローズハンドラ (v1.8.5) =================
+  // ================= 全モーダル共通・強制クローズハンドラ (v1.8.7) =================
   (function setupGlobalModalCloser() {
     function hideModalById(id) {
       var el = document.getElementById(id);
@@ -3219,6 +3245,47 @@ window.addEventListener("error", function(ev) {
       // オーバーレイの暗い背景自体をタップした場合も閉じる
       if (target.classList && target.classList.contains("overlay-screen") && target.id && target.id !== "pass-screen") {
         hideModalById(target.id);
+      }
+    }, true);
+  })();
+
+
+  // ================= iPadOS Chrome タッチ反応確実化パッチ (v1.8.7) =================
+  (function ensureReliableTouchTap() {
+    var touchStartX = 0, touchStartY = 0, touchStartTime = 0, touchTarget = null;
+    document.addEventListener("touchstart", function(e) {
+      if (e.touches && e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchStartTime = Date.now();
+        touchTarget = e.target;
+      }
+    }, { passive: true });
+    document.addEventListener("touchend", function(e) {
+      if (!touchTarget) return;
+      var t = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : null;
+      if (!t) return;
+      var dx = Math.abs(t.clientX - touchStartX);
+      var dy = Math.abs(t.clientY - touchStartY);
+      var dt = Date.now() - touchStartTime;
+      // スクロールではなくタップ（移動12px以内・500ms以内）の場合、標準clickが発火しなければ補完
+      if (dx < 12 && dy < 12 && dt < 500) {
+        var clickable = touchTarget.closest ? touchTarget.closest("button, .menu-btn, .primary-btn, .back-btn, .sub-btn, .action-btn, .admin-btn, .player-name-badge, .currency-box, .pack-tab-btn, .deck-slot-tab, .mode-card, .card, .secondary-btn") : null;
+        if (clickable && !clickable.disabled) {
+          clickable.dataset.lastTouchTap = String(Date.now());
+          setTimeout(function() {
+            if (clickable && Number(clickable.dataset.lastClicked || 0) < Number(clickable.dataset.lastTouchTap || 0)) {
+              clickable.click();
+            }
+          }, 60);
+        }
+      }
+      touchTarget = null;
+    }, { passive: true });
+    document.addEventListener("click", function(e) {
+      var clickable = e.target && e.target.closest ? e.target.closest("button, .menu-btn, .primary-btn, .back-btn, .sub-btn, .action-btn, .admin-btn, .player-name-badge, .currency-box, .pack-tab-btn, .deck-slot-tab, .mode-card, .card, .secondary-btn") : null;
+      if (clickable) {
+        clickable.dataset.lastClicked = String(Date.now());
       }
     }, true);
   })();
