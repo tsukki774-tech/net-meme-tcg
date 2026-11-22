@@ -2703,6 +2703,49 @@ window.addEventListener("error", function(ev) {
     return div;
   }
 
+
+  // ================= 全モーダル共通・強制クローズハンドラ (v1.8.1) =================
+  (function setupGlobalModalCloser() {
+    function hideModalById(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.style.display = "none";
+        el.style.pointerEvents = "none";
+      }
+      if (id === "news-modal" && typeof APP_VERSION !== "undefined") {
+        try { localStorage.setItem("netmeme_tcg_seen_ver_v1", APP_VERSION); } catch(e) {}
+        var badge = document.getElementById("news-unread-badge");
+        if (badge) badge.style.display = "none";
+      }
+    }
+    var closeBtnMap = {
+      "btn-close-news": "news-modal",
+      "btn-confirm-news": "news-modal",
+      "btn-close-fusion-guide": "fusion-guide-modal",
+      "btn-close-card-detail": "card-detail-modal",
+      "btn-close-pack-list": "pack-list-modal",
+      "btn-close-admin": "admin-modal",
+      "btn-close-ur-reward": "ur-reward-modal",
+      "btn-cancel-name": "name-edit-modal"
+    };
+    document.addEventListener("click", function(e) {
+      var target = e.target;
+      if (!target) return;
+      // ボタンまたはボタン内の子要素クリック判定
+      var btn = target.closest ? target.closest("button") : target;
+      if (btn && btn.id && closeBtnMap[btn.id]) {
+        e.preventDefault();
+        e.stopPropagation();
+        hideModalById(closeBtnMap[btn.id]);
+        return;
+      }
+      // オーバーレイの暗い背景自体をタップした場合も閉じる
+      if (target.classList && target.classList.contains("overlay-screen") && target.id && target.id !== "pass-screen") {
+        hideModalById(target.id);
+      }
+    }, true);
+  })();
+
   // ================= 起動時タッチ遮断防止・強制クリーンアップ =================
   (function ensureCleanInteractiveBoot() {
     var overlays = [
