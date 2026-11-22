@@ -580,269 +580,10 @@ window.addEventListener("error", function(ev) {
 
   // ================= 画面遷移＆パック選択 =================
   var screens = ["home-screen", "mission-screen", "pack-screen", "deck-screen", "setup-screen", "game-screen"];
-
-  // ================= バトル中BGMエンジン (138BPM サイバー・レスバロック + battle_bgm.mp3対応) =================
-  var battleBgmTimer = null;
-  var battleBgmStep = 0;
-  var battleBgmUsingMp3 = false;
-  var battleBgmIsPlaying = false;
-
-  function updateAllSoundButtonsUI() {
-    updateAllSoundButtonsUI();
-    updateAllSoundButtonsUI();
-    var bBgmBtn = document.getElementById("btn-battle-bgm-toggle");
-    if (bBgmBtn) {
-      bBgmBtn.innerText = isBgmEnabled ? "🔥 戦BGM ON" : "🔇 戦BGM OFF";
-      bBgmBtn.style.borderColor = isBgmEnabled ? "#ff4757" : "#666";
-      bBgmBtn.style.opacity = isBgmEnabled ? "1" : "0.7";
-    }
-    var bSfxBtn = document.getElementById("btn-battle-sfx-toggle");
-    if (bSfxBtn) {
-      bSfxBtn.innerText = isSoundEnabled ? "🔊 効果音ON" : "🔇 効果音OFF";
-      bSfxBtn.style.borderColor = isSoundEnabled ? "#ffd32a" : "#666";
-      bSfxBtn.style.opacity = isSoundEnabled ? "1" : "0.7";
-    }
-  }
-
-  function playBattleSynthStep() {
-    if (!isBgmEnabled || !battleBgmIsPlaying || battleBgmUsingMp3) return;
-    var ctx = getAudioCtx();
-    if (!ctx) {
-      var Ctx = window.AudioContext || window.webkitAudioContext;
-      if (Ctx) {
-        if (!audioCtx) audioCtx = new Ctx();
-        if (audioCtx.state === "suspended") audioCtx.resume().catch(function(){});
-        ctx = audioCtx;
-      }
-    }
-    if (!ctx || ctx.state !== "running") return;
-
-    var now = ctx.currentTime;
-    var step = battleBgmStep % 16;
-    var bar = Math.floor(battleBgmStep / 16) % 4;
-
-    if (step % 4 === 0 || (bar % 2 === 1 && step === 14)) {
-      var kOsc = ctx.createOscillator();
-      var kGain = ctx.createGain();
-      kOsc.type = "sine";
-      kOsc.frequency.setValueAtTime(160, now);
-      kOsc.frequency.exponentialRampToValueAtTime(38, now + 0.095);
-      kGain.gain.setValueAtTime(0.16, now);
-      kGain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
-      kOsc.connect(kGain); kGain.connect(ctx.destination);
-      kOsc.start(now); kOsc.stop(now + 0.12);
-    }
-
-    if (step === 4 || step === 12) {
-      var sSize = Math.floor(ctx.sampleRate * 0.10);
-      var sBuf = ctx.createBuffer(1, sSize, ctx.sampleRate);
-      var sData = sBuf.getChannelData(0);
-      for (var i = 0; i < sSize; i++) sData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sSize * 0.3));
-      var sSrc = ctx.createBufferSource();
-      sSrc.buffer = sBuf;
-      var sFilter = ctx.createBiquadFilter();
-      sFilter.type = "bandpass";
-      sFilter.frequency.value = 1400;
-      var sGain = ctx.createGain();
-      sGain.gain.setValueAtTime(0.095, now);
-      sGain.gain.exponentialRampToValueAtTime(0.001, now + 0.10);
-      sSrc.connect(sFilter); sFilter.connect(sGain); sGain.connect(ctx.destination);
-      sSrc.start(now);
-    }
-
-    if (step % 2 === 1) {
-      var hSize = Math.floor(ctx.sampleRate * 0.03);
-      var hBuf = ctx.createBuffer(1, hSize, ctx.sampleRate);
-      var hData = hBuf.getChannelData(0);
-      for (var j = 0; j < hSize; j++) hData[j] = (Math.random() * 2 - 1) * Math.exp(-j / (hSize * 0.2));
-      var hSrc = ctx.createBufferSource();
-      hSrc.buffer = hBuf;
-      var hFilter = ctx.createBiquadFilter();
-      hFilter.type = "highpass";
-      hFilter.frequency.value = 6500;
-      var hGain = ctx.createGain();
-      hGain.gain.setValueAtTime(step % 4 === 2 ? 0.042 : 0.022, now);
-      hGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
-      hSrc.connect(hFilter); hFilter.connect(hGain); hGain.connect(ctx.destination);
-      hSrc.start(now);
-    }
-
-    var rootFreqs = [73.42, 58.27, 65.41, 55.00];
-    var r = rootFreqs[bar];
-    var bFreq = (step % 2 === 0) ? r : r * 2;
-    var bOsc = ctx.createOscillator();
-    var bFilter = ctx.createBiquadFilter();
-    var bGain = ctx.createGain();
-    bOsc.type = "sawtooth";
-    bOsc.frequency.setValueAtTime(bFreq, now);
-    bFilter.type = "lowpass";
-    bFilter.frequency.setValueAtTime(920, now);
-    bFilter.frequency.exponentialRampToValueAtTime(260, now + 0.09);
-    bGain.gain.setValueAtTime(0.068, now);
-    bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.10);
-    bOsc.connect(bFilter); bFilter.connect(bGain); bGain.connect(ctx.destination);
-    bOsc.start(now); bOsc.stop(now + 0.105);
-
-    var melodies = [
-      [587.33, 0, 587.33, 698.46, 880.00, 0, 783.99, 698.46, 659.25, 0, 587.33, 659.25, 698.46, 659.25, 587.33, 523.25],
-      [466.16, 0, 587.33, 698.46, 932.33, 0, 880.00, 698.46, 783.99, 0, 698.46, 587.33, 698.46, 783.99, 880.00, 932.33],
-      [523.25, 0, 659.25, 783.99, 1046.50, 0, 987.77, 783.99, 880.00, 0, 783.99, 659.25, 783.99, 880.00, 987.77, 1046.50],
-      [880.00, 0, 830.61, 880.00, 1108.73, 0, 987.77, 880.00, 783.99, 0, 698.46, 659.25, 587.33, 659.25, 698.46, 880.00]
-    ];
-    var mFreq = melodies[bar][step];
-    if (mFreq > 0) {
-      var mOsc = ctx.createOscillator();
-      var mGain = ctx.createGain();
-      mOsc.type = "square";
-      mOsc.frequency.setValueAtTime(mFreq, now);
-      mGain.gain.setValueAtTime(0.024, now);
-      mGain.gain.exponentialRampToValueAtTime(0.0008, now + 0.11);
-      mOsc.connect(mGain); mGain.connect(ctx.destination);
-      mOsc.start(now); mOsc.stop(now + 0.12);
-    }
-
-    battleBgmStep++;
-  }
-
-  function startBattleBgm() {
-    stopHomeBgm();
-    if (!isBgmEnabled) return;
-    battleBgmIsPlaying = true;
-    var bAudio = document.getElementById("battle-bgm-audio");
-    if (bAudio && !battleBgmUsingMp3) {
-      bAudio.volume = 0.40;
-      var p = bAudio.play();
-      if (p && typeof p.then === "function") {
-        p.then(function() {
-          battleBgmUsingMp3 = true;
-          if (battleBgmTimer) { clearInterval(battleBgmTimer); battleBgmTimer = null; }
-        }).catch(function() {
-          battleBgmUsingMp3 = false;
-          if (!battleBgmTimer) {
-            battleBgmTimer = setInterval(playBattleSynthStep, 108);
-          }
-        });
-      }
-    } else if (battleBgmUsingMp3 && bAudio) {
-      bAudio.play().catch(function() {});
-    } else if (!battleBgmTimer) {
-      battleBgmTimer = setInterval(playBattleSynthStep, 108);
-    }
-  }
-
-  function stopBattleBgm() {
-    battleBgmIsPlaying = false;
-    var bAudio = document.getElementById("battle-bgm-audio");
-    if (bAudio) {
-      try { bAudio.pause(); } catch(e) {}
-    }
-    if (battleBgmTimer) {
-      clearInterval(battleBgmTimer);
-      battleBgmTimer = null;
-    }
-  }
-
-  var btnBattleBgm = document.getElementById("btn-battle-bgm-toggle");
-  if (btnBattleBgm) {
-    btnBattleBgm.addEventListener("click", function() {
-      isBgmEnabled = !isBgmEnabled;
-      localStorage.setItem(BGM_KEY, isBgmEnabled ? "true" : "false");
-      updateAllSoundButtonsUI();
-      if (isBgmEnabled) {
-        startBattleBgm();
-      } else {
-        stopBattleBgm();
-      }
-    });
-  }
-  var btnBattleSfx = document.getElementById("btn-battle-sfx-toggle");
-  if (btnBattleSfx) {
-    btnBattleSfx.addEventListener("click", function() {
-      isSoundEnabled = !isSoundEnabled;
-      localStorage.setItem(SOUND_KEY, isSoundEnabled ? "true" : "false");
-      updateAllSoundButtonsUI();
-      if (isSoundEnabled) PackSFX.tap();
-    });
-  }
-
-  // ================= バトル専用・効果音エンジン (BattleSFX) =================
-  var BattleSFX = {
-    select: function() {
-      PackSFX.tone(660, "triangle", 0.06, 0.09, 0, 880);
-    },
-    summon: function(rarity) {
-      if (rarity === "GOD" || rarity === "ADMIN") {
-        PackSFX.tone(110, "sawtooth", 0.45, 0.14, 0, 55);
-        PackSFX.tone(523.25, "triangle", 0.18, 0.12, 0.04);
-        PackSFX.tone(659.25, "triangle", 0.18, 0.12, 0.14);
-        PackSFX.tone(783.99, "triangle", 0.22, 0.13, 0.24);
-        PackSFX.tone(1046.50, "sine", 0.45, 0.15, 0.34);
-      } else if (rarity === "UR" || rarity === "SR") {
-        PackSFX.tone(440, "triangle", 0.12, 0.11, 0, 660);
-        PackSFX.tone(880, "sine", 0.24, 0.12, 0.08);
-      } else {
-        PackSFX.tone(320, "sine", 0.08, 0.11, 0, 580);
-        PackSFX.tone(580, "triangle", 0.09, 0.08, 0.05);
-      }
-    },
-    fusion: function() {
-      var notes = [440, 554.37, 659.25, 880, 1108.73, 1318.51];
-      notes.forEach(function(f, idx) {
-        PackSFX.tone(f, "sawtooth", 0.12, 0.08, idx * 0.05);
-      });
-    },
-    spell: function() {
-      PackSFX.tone(783.99, "sine", 0.10, 0.10, 0, 1174.66);
-      PackSFX.tone(1046.50, "triangle", 0.18, 0.10, 0.07, 1567.98);
-    },
-    attackMeme: function() {
-      PackSFX.tone(520, "sawtooth", 0.09, 0.12, 0, 140);
-      PackSFX.tone(130, "square", 0.14, 0.13, 0.05, 48);
-    },
-    directAttack: function() {
-      PackSFX.tone(180, "sawtooth", 0.24, 0.16, 0, 42);
-      PackSFX.tone(95, "square", 0.28, 0.15, 0.04, 35);
-      PackSFX.tone(880, "sine", 0.10, 0.09, 0.10, 620);
-    },
-    shieldBlock: function() {
-      PackSFX.tone(1200, "sine", 0.10, 0.11, 0, 1800);
-      PackSFX.tone(1600, "triangle", 0.18, 0.09, 0.06);
-    },
-    destroy: function() {
-      PackSFX.tone(300, "sawtooth", 0.22, 0.10, 0, 65);
-    },
-    turnEnd: function() {
-      PackSFX.tone(480, "triangle", 0.09, 0.08, 0, 320);
-    },
-    win: function() {
-      var fanfare = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
-      var times = [0, 0.11, 0.22, 0.34, 0.50, 0.62];
-      fanfare.forEach(function(f, i) {
-        PackSFX.tone(f, "triangle", i === 5 ? 0.45 : 0.13, 0.13, times[i]);
-      });
-    },
-    lose: function() {
-      PackSFX.tone(392.00, "sawtooth", 0.18, 0.09, 0);
-      PackSFX.tone(369.99, "sawtooth", 0.18, 0.09, 0.18);
-      PackSFX.tone(349.23, "sawtooth", 0.18, 0.09, 0.36);
-      PackSFX.tone(329.63, "sawtooth", 0.42, 0.10, 0.54, 240);
-    }
-  };
-
   function showScreen(id) {
     for (var i = 0; i < screens.length; i++) {
       var s = screens[i];
       document.getElementById(s).style.display = (s === id) ? (id === "game-screen" ? "flex" : "block") : "none";
-    }
-    updateAllSoundButtonsUI();
-    if (id === "game-screen") {
-      stopHomeBgm();
-      startBattleBgm();
-    } else {
-      stopBattleBgm();
-      if (id === "home-screen") {
-        startHomeBgm();
-      }
     }
   }
 
@@ -974,229 +715,14 @@ window.addEventListener("error", function(ev) {
 
   var btnSoundToggle = document.getElementById("btn-toggle-sound");
   if (btnSoundToggle) {
-    updateAllSoundButtonsUI();
+    updateSoundBtnUI();
     btnSoundToggle.addEventListener("click", function() {
       isSoundEnabled = !isSoundEnabled;
       localStorage.setItem(SOUND_KEY, isSoundEnabled ? "true" : "false");
-      updateAllSoundButtonsUI();
+      updateSoundBtnUI();
       if (isSoundEnabled) PackSFX.tap();
     });
   }
-
-
-  // ================= ホーム画面BGMエンジン (MP3 + Future Funk 115BPM 自動シンセフォールバック) =================
-  var BGM_KEY = "netmeme_tcg_bgm_on";
-  var isBgmEnabled = (localStorage.getItem(BGM_KEY) !== "false");
-  var bgmSynthTimer = null;
-  var bgmStep = 0;
-  var bgmUsingMp3 = false;
-  var bgmIsPlaying = false;
-
-  function updateBgmBtnUI() {
-    var btn = document.getElementById("btn-toggle-bgm");
-    if (!btn) return;
-    if (isBgmEnabled) {
-      btn.innerText = "🎵 BGM ON";
-      btn.style.borderColor = "#00ff88";
-      btn.style.opacity = "1";
-    } else {
-      btn.innerText = "🔇 BGM OFF";
-      btn.style.borderColor = "#666";
-      btn.style.opacity = "0.7";
-    }
-  }
-
-  function playSynthBgmStep() {
-    if (!isBgmEnabled || !bgmIsPlaying || bgmUsingMp3) return;
-    var ctx = getAudioCtx();
-    if (!ctx) {
-      var Ctx = window.AudioContext || window.webkitAudioContext;
-      if (Ctx) {
-        if (!audioCtx) audioCtx = new Ctx();
-        if (audioCtx.state === "suspended") audioCtx.resume().catch(function(){});
-        ctx = audioCtx;
-      }
-    }
-    if (!ctx || ctx.state !== "running") return;
-
-    var now = ctx.currentTime;
-    var step = bgmStep % 16;
-
-    // 1. 4つ打ちキック (Step 0, 4, 8, 12)
-    if (step % 4 === 0) {
-      var kOsc = ctx.createOscillator();
-      var kGain = ctx.createGain();
-      kOsc.type = "sine";
-      kOsc.frequency.setValueAtTime(135, now);
-      kOsc.frequency.exponentialRampToValueAtTime(42, now + 0.11);
-      kGain.gain.setValueAtTime(0.14, now);
-      kGain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
-      kOsc.connect(kGain); kGain.connect(ctx.destination);
-      kOsc.start(now); kOsc.stop(now + 0.14);
-    }
-
-    // 2. スネア＆クラップ (Step 4, 12)
-    if (step === 4 || step === 12) {
-      var bufSize = Math.floor(ctx.sampleRate * 0.09);
-      var buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-      var data = buf.getChannelData(0);
-      for (var i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.35));
-      var noise = ctx.createBufferSource();
-      noise.buffer = buf;
-      var filter = ctx.createBiquadFilter();
-      filter.type = "highpass";
-      filter.frequency.value = 900;
-      var sGain = ctx.createGain();
-      sGain.gain.setValueAtTime(0.075, now);
-      sGain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-      noise.connect(filter); filter.connect(sGain); sGain.connect(ctx.destination);
-      noise.start(now);
-    }
-
-    // 3. 裏打ちハイハット (Step 2, 6, 10, 14)
-    if (step % 4 === 2) {
-      var hSize = Math.floor(ctx.sampleRate * 0.04);
-      var hBuf = ctx.createBuffer(1, hSize, ctx.sampleRate);
-      var hData = hBuf.getChannelData(0);
-      for (var j = 0; j < hSize; j++) hData[j] = (Math.random() * 2 - 1) * Math.exp(-j / (hSize * 0.25));
-      var hSrc = ctx.createBufferSource();
-      hSrc.buffer = hBuf;
-      var hFilter = ctx.createBiquadFilter();
-      hFilter.type = "highpass";
-      hFilter.frequency.value = 5500;
-      var hGain = ctx.createGain();
-      hGain.gain.setValueAtTime(0.035, now);
-      hGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-      hSrc.connect(hFilter); hFilter.connect(hGain); hGain.connect(ctx.destination);
-      hSrc.start(now);
-    }
-
-    // 4. Future Funk スラップベースライン (115BPM / Fmaj7 -> Em7 -> Dm7 -> G13)
-    var bar = Math.floor(bgmStep / 16) % 4;
-    var bassPatterns = [
-      [87.31, 0, 87.31, 130.81, 0, 87.31, 110.00, 130.81, 87.31, 0, 130.81, 0, 146.83, 130.81, 110.00, 98.00], // F
-      [82.41, 0, 82.41, 123.47, 0, 82.41, 98.00, 123.47, 82.41, 0, 123.47, 0, 146.83, 123.47, 98.00, 87.31],  // Em
-      [73.42, 0, 73.42, 110.00, 0, 73.42, 87.31, 110.00, 73.42, 0, 110.00, 0, 130.81, 110.00, 87.31, 98.00],  // Dm
-      [98.00, 0, 98.00, 146.83, 0, 98.00, 123.47, 146.83, 98.00, 0, 146.83, 0, 164.81, 146.83, 123.47, 110.00] // G
-    ];
-    var bFreq = bassPatterns[bar][step];
-    if (bFreq > 0) {
-      var bOsc = ctx.createOscillator();
-      var bFilter = ctx.createBiquadFilter();
-      var bGain = ctx.createGain();
-      bOsc.type = "sawtooth";
-      bOsc.frequency.setValueAtTime(bFreq, now);
-      bFilter.type = "lowpass";
-      bFilter.frequency.setValueAtTime(780, now);
-      bFilter.frequency.exponentialRampToValueAtTime(220, now + 0.11);
-      bGain.gain.setValueAtTime(0.065, now);
-      bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-      bOsc.connect(bFilter); bFilter.connect(bGain); bGain.connect(ctx.destination);
-      bOsc.start(now); bOsc.stop(now + 0.13);
-    }
-
-    // 5. キラキラ・シンセコードスタブ＆グリッチチャップ風メロディ
-    var chordNotes = [
-      [349.23, 440.00, 523.25, 659.25], // Fmaj7
-      [329.63, 392.00, 493.88, 587.33], // Em7
-      [293.66, 349.23, 440.00, 523.25], // Dm7
-      [392.00, 493.88, 587.33, 659.25]  // G13
-    ];
-    if (step === 0 || step === 6 || step === 10 || step === 14) {
-      var notes = chordNotes[bar];
-      notes.forEach(function(freq) {
-        var cOsc = ctx.createOscillator();
-        var cGain = ctx.createGain();
-        cOsc.type = "triangle";
-        cOsc.frequency.setValueAtTime(freq, now);
-        cGain.gain.setValueAtTime(0.022, now);
-        cGain.gain.exponentialRampToValueAtTime(0.0008, now + 0.24);
-        cOsc.connect(cGain); cGain.connect(ctx.destination);
-        cOsc.start(now); cOsc.stop(now + 0.25);
-      });
-    }
-
-    // リードチャップ風アクセント
-    var leadNotes = [659.25, 0, 783.99, 659.25, 880.00, 0, 783.99, 659.25, 587.33, 0, 659.25, 783.99, 880.00, 1046.50, 880.00, 783.99];
-    var lFreq = leadNotes[step];
-    if (lFreq > 0 && (bar % 2 === 1 || step % 4 === 0)) {
-      var lOsc = ctx.createOscillator();
-      var lGain = ctx.createGain();
-      lOsc.type = "sine";
-      lOsc.frequency.setValueAtTime(lFreq, now);
-      lGain.gain.setValueAtTime(0.028, now);
-      lGain.gain.exponentialRampToValueAtTime(0.0008, now + 0.14);
-      lOsc.connect(lGain); lGain.connect(ctx.destination);
-      lOsc.start(now); lOsc.stop(now + 0.15);
-    }
-
-    bgmStep++;
-  }
-
-  function startHomeBgm() {
-    if (!isBgmEnabled) return;
-    var gameScreen = document.getElementById("game-screen");
-    if (gameScreen && gameScreen.style.display !== "none") return; // バトル中は停止
-    bgmIsPlaying = true;
-    var audioEl = document.getElementById("home-bgm-audio");
-    if (audioEl && !bgmUsingMp3) {
-      audioEl.volume = 0.42;
-      var p = audioEl.play();
-      if (p && typeof p.then === "function") {
-        p.then(function() {
-          bgmUsingMp3 = true;
-          if (bgmSynthTimer) { clearInterval(bgmSynthTimer); bgmSynthTimer = null; }
-        }).catch(function() {
-          // home_bgm.mp3 が未配置、またはユーザー操作前なら内蔵シンセBGMを起動
-          bgmUsingMp3 = false;
-          if (!bgmSynthTimer) {
-            bgmSynthTimer = setInterval(playSynthBgmStep, 130); // ~115 BPM 16分音符
-          }
-        });
-      }
-    } else if (bgmUsingMp3 && audioEl) {
-      audioEl.play().catch(function() {});
-    } else if (!bgmSynthTimer) {
-      bgmSynthTimer = setInterval(playSynthBgmStep, 130);
-    }
-  }
-
-  function stopHomeBgm() {
-    bgmIsPlaying = false;
-    var audioEl = document.getElementById("home-bgm-audio");
-    if (audioEl) {
-      try { audioEl.pause(); } catch(e) {}
-    }
-    if (bgmSynthTimer) {
-      clearInterval(bgmSynthTimer);
-      bgmSynthTimer = null;
-    }
-  }
-
-  var btnBgmToggle = document.getElementById("btn-toggle-bgm");
-  if (btnBgmToggle) {
-    updateAllSoundButtonsUI();
-    btnBgmToggle.addEventListener("click", function() {
-      isBgmEnabled = !isBgmEnabled;
-      localStorage.setItem(BGM_KEY, isBgmEnabled ? "true" : "false");
-      updateAllSoundButtonsUI();
-      if (isBgmEnabled) {
-        startHomeBgm();
-      } else {
-        stopHomeBgm();
-      }
-    });
-  }
-
-  // ブラウザの自動再生制限対策：画面の最初のタップ／クリックでホームBGMを自動スタート
-  document.addEventListener("pointerdown", function unlockHomeBgmOnFirstTap() {
-    if (isBgmEnabled && !bgmIsPlaying) {
-      var gs = document.getElementById("game-screen");
-      if (!gs || gs.style.display === "none") {
-        startHomeBgm();
-      }
-    }
-  }, { passive: true });
 
   var PackSFX = {
     tone: function(freq, type, duration, vol, delay, slideToFreq) {
@@ -2589,7 +2115,7 @@ window.addEventListener("error", function(ev) {
     if (amount <= 0) return;
     if (meme.shield) {
       meme.shield = false;
-      BattleSFX.shieldBlock(); log("🛡️ 「" + meme.name + "」の無敵バリアがダメージを無効化した！");
+      log("🛡️ 「" + meme.name + "」の無敵バリアがダメージを無効化した！");
       return;
     }
     meme.hp -= amount;
@@ -2732,7 +2258,7 @@ window.addEventListener("error", function(ev) {
           self.field.splice(fusionMatch.fieldIndex, 1, fusedCard);
           actionLog = "🧬 【合体進化】「" + fusionMatch.partnerName + "」＋「" + card.name + "」➔ 『" + fusedCard.name + "』が降臨！";
           log(actionLog);
-          BattleSFX.fusion(); showCutin("🧬 ミーム合体進化！\n" + fusedCard.name, 1400);
+          showCutin("🧬 ミーム合体進化！\n" + fusedCard.name, 1400);
           try {
             triggerFusionEffect(state.activeSide, fusedCard);
           } catch (fErr) {
@@ -2744,7 +2270,7 @@ window.addEventListener("error", function(ev) {
           }
         } else {
           card.canAttack = true; card.isBuzz = true; self.field.push(card);
-          BattleSFX.summon(card.rarity); actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！"; log(actionLog);
+          actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！"; log(actionLog);
           try {
             window.CardEffects.triggerSummonEffect(effectCtx, state.activeSide, card);
           } catch (effErr) {
@@ -2759,7 +2285,7 @@ window.addEventListener("error", function(ev) {
         self.giga -= card.cost; self.hand.splice(handIndex, 1);
         self.usedSpellThisTurn = true;
         if (isPlayerAction) addMissionStat("spells", 1);
-        BattleSFX.spell(); actionLog = "⚡ " + self.name + "が構文「" + card.name + "」を発動！"; log(actionLog);
+        actionLog = "⚡ " + self.name + "が構文「" + card.name + "」を発動！"; log(actionLog);
         try {
           window.CardEffects.executeSpell(effectCtx, state.activeSide, card);
         } catch (spellErr) {
@@ -2778,7 +2304,7 @@ window.addEventListener("error", function(ev) {
     if (state.isInputLocked) return;
     var meme = getViewSelf().field[index];
     if (!meme.canAttack) { log("⚠️ このミームは既に行動済みです。"); return; }
-    state.selectedAttackerIndex = (state.selectedAttackerIndex === index) ? null : index; if (state.selectedAttackerIndex !== null) BattleSFX.select();
+    state.selectedAttackerIndex = (state.selectedAttackerIndex === index) ? null : index;
     render();
   }
 
@@ -2789,7 +2315,7 @@ window.addEventListener("error", function(ev) {
     dealDamageToMeme(target, attacker.atk + (attacker.isBuzz ? 1 : 0));
     dealDamageToMeme(attacker, target.atk + (target.isBuzz ? 1 : 0));
     attacker.canAttack = false;
-    BattleSFX.attackMeme(); var actionLog = "⚔️ 「" + attacker.name + "」が「" + target.name + "」とレスバ！";
+    var actionLog = "⚔️ 「" + attacker.name + "」が「" + target.name + "」とレスバ！";
     log(actionLog); state.selectedAttackerIndex = null; cleanupDeadMemes(); sendSync(actionLog); checkGameOver(); render();
   }
 
@@ -2798,20 +2324,17 @@ window.addEventListener("error", function(ev) {
     var self = getViewSelf(), opp = getViewOpp(), attacker = self.field[state.selectedAttackerIndex];
     var atkPower = attacker.atk + (attacker.isBuzz ? 1 : 0);
     opp.hp -= atkPower; attacker.canAttack = false;
-    BattleSFX.directAttack(); var actionLog = "🔥 「" + attacker.name + "」の直接攻撃！メンタルに " + atkPower + " ダメージ！";
+    var actionLog = "🔥 「" + attacker.name + "」の直接攻撃！メンタルに " + atkPower + " ダメージ！";
     log(actionLog); state.selectedAttackerIndex = null; sendSync(actionLog); checkGameOver(); render();
   }
 
   function cleanupDeadMemes() {
-    var hadDead = state.p1.field.some(function(m) { return m.hp <= 0; }) || state.p2.field.some(function(m) { return m.hp <= 0; });
-    if (hadDead) BattleSFX.destroy();
     state.p1.field = state.p1.field.filter(function(m) { return m.hp > 0; });
     state.p2.field = state.p2.field.filter(function(m) { return m.hp > 0; });
   }
 
   function endTurn() {
     if (state.isInputLocked) return;
-    BattleSFX.turnEnd();
     state.selectedAttackerIndex = null;
     if (state.mode === "cpu") {
       state.activeSide = "p2";
@@ -2995,7 +2518,7 @@ window.addEventListener("error", function(ev) {
     var didPlayerLose = (state.mode === "online" && state.myRole === "p2") ? (state.p2.hp <= 0) : (state.p1.hp <= 0);
 
     if (state.p2.hp <= 0) {
-      if (didPlayerWin) { addMissionStat("wins", 1); BattleSFX.win(); } else { BattleSFX.lose(); }
+      if (didPlayerWin) addMissionStat("wins", 1);
       var boss = (state.mode === "cpu" && state.currentBoss) ? state.currentBoss : null;
       var winReward = boss ? boss.reward : 300;
       var quoteLine = (boss && boss.winQuote) ? "\n\n" + boss.name + "：" + boss.winQuote : "";
@@ -3181,7 +2704,7 @@ window.addEventListener("error", function(ev) {
   }
 
 
-  // ================= 全モーダル共通・強制クローズハンドラ (v1.8.4) =================
+  // ================= 全モーダル共通・強制クローズハンドラ (v1.8.2) =================
   (function setupGlobalModalCloser() {
     function hideModalById(id) {
       var el = document.getElementById(id);
