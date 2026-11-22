@@ -714,13 +714,26 @@
     .card-revealed { animation: card-reveal 0.4s ease-out forwards; }
   
     button, .menu-btn, .primary-btn, .back-btn, .sub-btn, .action-btn, .admin-btn,
-    .player-name-badge, .currency-box, .pack-tab-btn, .deck-slot-tab, .mode-card, .card {
+    .player-name-badge, .currency-box, .pack-tab-btn, .deck-slot-tab, .mode-card, .card, .secondary-btn {
       touch-action: manipulation;
       cursor: pointer;
       -webkit-tap-highlight-color: rgba(0, 210, 255, 0.25);
+      position: relative;
     }
-    #pachinko-overlay:not([style*="display: flex"]):not([style*="display:flex"]) {
+    #home-screen, #mission-screen, #pack-screen, #deck-screen, #setup-screen, #game-screen {
+      position: relative;
+      z-index: 1;
+      pointer-events: auto;
+    }
+    #pachinko-overlay[style*="display: none"],
+    #pachinko-overlay[style*="display:none"],
+    #god-summon-overlay[style*="display: none"],
+    #god-summon-overlay[style*="display:none"],
+    .overlay-screen[style*="display: none"],
+    .overlay-screen[style*="display:none"] {
+      display: none !important;
       pointer-events: none !important;
+      visibility: hidden !important;
     }
 
   </style>
@@ -758,7 +771,7 @@
   </div>
 
   <!-- お知らせ・更新履歴モーダル -->
-  <div id="news-modal" class="overlay-screen" style="display:none; z-index: 3100;">
+  <div id="news-modal" class="overlay-screen" style="display:none; pointer-events:none; z-index: 3100;">
     <div class="news-modal-box">
       <div class="modal-header">
         <h3 style="color:#00d2ff;">📢 アップデート・お知らせ</h3>
@@ -770,7 +783,7 @@
   </div>
 
   <!-- プレイヤー名変更モーダル -->
-  <div id="name-edit-modal" class="overlay-screen" style="display:none; z-index: 2900;">
+  <div id="name-edit-modal" class="overlay-screen" style="display:none; pointer-events:none; z-index: 2900;">
     <div class="name-edit-box">
       <h3 style="color:#00d2ff;">🧑 プレイヤー名の設定</h3>
       <p style="font-size:0.8rem; color:#aaa;">対戦画面やログに表示される名前（最大12文字）</p>
@@ -783,7 +796,7 @@
   </div>
 
   <!-- カード詳細拡大モーダル -->
-  <div id="card-detail-modal" class="overlay-screen" style="display:none; z-index: 3200;">
+  <div id="card-detail-modal" class="overlay-screen" style="display:none; pointer-events:none; z-index: 3200;">
     <div id="card-detail-box" class="card-detail-modal-box">
       <div class="detail-top-meta">
         <span id="detail-cost" class="detail-cost-pill">コスト 1</span>
@@ -824,7 +837,7 @@
   </div>
 
   <!-- UR報酬受け取り時の特別演出モーダル -->
-  <div id="ur-reward-modal" class="overlay-screen" style="display:none; z-index: 2800;">
+  <div id="ur-reward-modal" class="overlay-screen" style="display:none; pointer-events:none; z-index: 2800;">
     <div class="ur-reward-popup">
       <div style="font-size: 1.3rem; font-weight: 900; color: #ffd32a; text-shadow: 0 0 10px #ff4757;">
         🚨 実績達成！UR確定GET!! 🚨
@@ -836,7 +849,7 @@
   </div>
 
   <!-- 管理者パネルモーダル -->
-  <div id="admin-modal" class="overlay-screen" style="display:none; z-index: 3000;">
+  <div id="admin-modal" class="overlay-screen" style="display:none; pointer-events:none; z-index: 3000;">
     <div class="admin-box">
       <div class="modal-header" style="border-bottom-color: #2ed573;">
         <h3 style="color:#2ed573;">🛠️ 管理者パネル（DEV CONSOLE）</h3>
@@ -972,7 +985,7 @@
   <!-- ============================================================
        激アツ脳汁演出オーバーレイ（全6種類シーン内包）
        ============================================================ -->
-  <div id="pachinko-overlay">
+  <div id="pachinko-overlay" style="display:none; pointer-events:none;">
 
     <!-- 演出1: 定番パチンコ・キュイン演出 -->
     <div id="scene-pachinko" class="effect-scene">
@@ -1106,7 +1119,7 @@
   </div>
 
   <!-- パック収録カード一覧モーダル -->
-  <div id="pack-list-modal" class="overlay-screen" style="display:none;">
+  <div id="pack-list-modal" class="overlay-screen" style="display:none; pointer-events:none;">
     <div class="modal-box">
       <div class="modal-header">
         <h3 id="modal-pack-title">📋 収録カード一覧</h3>
@@ -1227,7 +1240,7 @@
     <div id="log" class="log-box"></div>
   
     <!-- GOD召喚専用フルスクリーン演出オーバーレイ -->
-  <div id="god-summon-overlay">
+  <div id="god-summon-overlay" style="display:none; pointer-events:none;">
     <div id="god-summon-rays" class="god-summon-rays"></div>
     <div class="god-summon-ring"></div>
     <div class="god-summon-content">
@@ -1241,7 +1254,7 @@
 
   
   <!-- ミーム合体・進化レシピモーダル -->
-  <div id="fusion-guide-modal" class="overlay-screen" style="display:none; z-index: 3150;">
+  <div id="fusion-guide-modal" class="overlay-screen" style="display:none; pointer-events:none; z-index: 3150;">
     <div class="modal-box" style="max-width: 560px; max-height: 85vh; overflow-y: auto; border: 2px solid #00ff88;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <h2 style="margin:0; color:#00ff88; font-size:1.15rem;">🧬 ミーム合体・派生進化レシピ</h2>
@@ -1258,11 +1271,11 @@
   </div>
 
   <!-- カットイン演出・端末交代画面 -->
-  <div id="cutin-overlay" class="overlay-screen" style="display:none;">
+  <div id="cutin-overlay" class="overlay-screen" style="display:none; pointer-events:none;">
     <div id="cutin-text" class="cutin-box"></div>
   </div>
 
-  <div id="pass-screen" class="overlay-screen" style="display:none;">
+  <div id="pass-screen" class="overlay-screen" style="display:none; pointer-events:none;">
     <div class="pass-box">
       <h2 id="pass-title">📱 次のプレイヤーのターンです</h2>
       <p>端末を渡してからボタンを押してください</p>
@@ -1271,8 +1284,8 @@
   </div>
 
   <!-- 外部JSファイルの読み込み（この順番で読み込む） -->
-  <script src="cards.js?v=1.7.4"></script>
-  <script src="effects.js?v=1.7.4"></script>
-  <script src="game.js?v=1.7.4"></script>
+  <script src="cards.js?v=1.7.6"></script>
+  <script src="effects.js?v=1.7.6"></script>
+  <script src="game.js?v=1.7.6"></script>
 </body>
 </html>

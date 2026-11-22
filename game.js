@@ -198,7 +198,7 @@ window.addEventListener("error", function(ev) {
         container.appendChild(card);
       });
     }
-    document.getElementById("news-modal").style.display = "flex";
+    var _m_news_modal = document.getElementById("news-modal"); if(_m_news_modal) { _m_news_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_news_modal.style.pointerEvents = "auto"; }
   }
 
   function closeNewsModal() {
@@ -206,7 +206,7 @@ window.addEventListener("error", function(ev) {
       localStorage.setItem(SEEN_VERSION_KEY, APP_VERSION);
     }
     updateNewsBadge();
-    document.getElementById("news-modal").style.display = "none";
+    var _m_news_modal = document.getElementById("news-modal"); if(_m_news_modal) { _m_news_modal.style.display = "none"; _m_news_modal.style.pointerEvents = "none"; }
   }
 
   _on("nav-news", "click", openNewsModal);
@@ -254,33 +254,33 @@ window.addEventListener("error", function(ev) {
     document.getElementById("detail-pack").innerText = card.isAdminOnly ? "収録: 👑 管理者専用（非売品）" : ("収録: 第" + (card.pack || 1) + "弾パック");
     document.getElementById("detail-owned").innerText = "所持数: " + (userData.collection[card.id] || 0) + "枚";
 
-    modal.style.display = "flex";
+    modal.style.display = "flex"; modal.style.pointerEvents = "auto";
   }
 
   _on("btn-close-card-detail", "click", function() {
-    document.getElementById("card-detail-modal").style.display = "none";
+    var _m_card_detail_modal = document.getElementById("card-detail-modal"); if(_m_card_detail_modal) { _m_card_detail_modal.style.display = "none"; _m_card_detail_modal.style.pointerEvents = "none"; }
   });
   _on("card-detail-modal", "click", function(e) {
     if (e.target === this) {
-      this.style.display = "none";
+      this.style.display = "none"; this.style.pointerEvents = "none";
     }
   });
 
   // ================= プレイヤー名変更モーダル =================
   _on("btn-edit-player-name", "click", function() {
     document.getElementById("player-name-input").value = userData.playerName || DEFAULT_PLAYER_NAME;
-    document.getElementById("name-edit-modal").style.display = "flex";
+    var _m_name_edit_modal = document.getElementById("name-edit-modal"); if(_m_name_edit_modal) { _m_name_edit_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_name_edit_modal.style.pointerEvents = "auto"; }
   });
 
   _on("btn-cancel-name", "click", function() {
-    document.getElementById("name-edit-modal").style.display = "none";
+    var _m_name_edit_modal = document.getElementById("name-edit-modal"); if(_m_name_edit_modal) { _m_name_edit_modal.style.display = "none"; _m_name_edit_modal.style.pointerEvents = "none"; }
   });
 
   _on("btn-save-name", "click", function() {
     var newName = document.getElementById("player-name-input").value.trim();
     userData.playerName = newName || DEFAULT_PLAYER_NAME;
     saveUserData();
-    document.getElementById("name-edit-modal").style.display = "none";
+    var _m_name_edit_modal = document.getElementById("name-edit-modal"); if(_m_name_edit_modal) { _m_name_edit_modal.style.display = "none"; _m_name_edit_modal.style.pointerEvents = "none"; }
   });
 
   checkDailyReset();
@@ -320,11 +320,11 @@ window.addEventListener("error", function(ev) {
     var el = createCardElement(chosen, null, {});
     el.classList.add("card-revealed");
     slot.appendChild(el);
-    document.getElementById("ur-reward-modal").style.display = "flex";
+    var _m_ur_reward_modal = document.getElementById("ur-reward-modal"); if(_m_ur_reward_modal) { _m_ur_reward_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_ur_reward_modal.style.pointerEvents = "auto"; }
   }
 
   _on("btn-close-ur-reward", "click", function() {
-    document.getElementById("ur-reward-modal").style.display = "none";
+    var _m_ur_reward_modal = document.getElementById("ur-reward-modal"); if(_m_ur_reward_modal) { _m_ur_reward_modal.style.display = "none"; _m_ur_reward_modal.style.pointerEvents = "none"; }
   });
 
   function renderMissionScreen() {
@@ -429,7 +429,7 @@ window.addEventListener("error", function(ev) {
   function openAdminPanel() {
     updateRigButtons();
     document.getElementById("admin-status-msg").innerText = "管理者権限でログインしました（全" + ALL_CARDS.length + "種実装済み）";
-    document.getElementById("admin-modal").style.display = "flex";
+    var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_admin_modal.style.pointerEvents = "auto"; }
   }
 
   function setAdminStatus(msg) {
@@ -446,7 +446,7 @@ window.addEventListener("error", function(ev) {
   }
 
   _on("btn-close-admin", "click", function() {
-    document.getElementById("admin-modal").style.display = "none";
+    var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "none"; _m_admin_modal.style.pointerEvents = "none"; }
   });
 
   _on("admin-add-points", "click", function() {
@@ -545,9 +545,9 @@ window.addEventListener("error", function(ev) {
       var cutinType = btn.getAttribute("data-cutin");
       var samplePool = ALL_CARDS.filter(function(c) { return c.rarity === adminPreviewRarity; });
       var sampleCard = samplePool.length > 0 ? samplePool[Math.floor(Math.random() * samplePool.length)] : ALL_CARDS[0];
-      document.getElementById("admin-modal").style.display = "none";
+      var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "none"; _m_admin_modal.style.pointerEvents = "none"; }
       triggerSpecialCutin(adminPreviewRarity, function() {
-        document.getElementById("admin-modal").style.display = "flex";
+        var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_admin_modal.style.pointerEvents = "auto"; }
         setAdminStatus("演出「" + btn.innerText + "（" + adminPreviewRarity + "）」の再生が完了しました！");
       }, [sampleCard], cutinType);
     });
@@ -558,10 +558,10 @@ window.addEventListener("error", function(ev) {
     btnPrevGodSummon.addEventListener("click", function() {
       var godPool = ALL_CARDS.filter(function(c) { return c.rarity === "GOD" || c.rarity === "ADMIN"; });
       var pick = godPool[Math.floor(Math.random() * godPool.length)];
-      document.getElementById("admin-modal").style.display = "none";
+      var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "none"; _m_admin_modal.style.pointerEvents = "none"; }
       showGodSummonCutin(pick, userData.playerName || DEFAULT_PLAYER_NAME);
       setTimeout(function() {
-        document.getElementById("admin-modal").style.display = "flex";
+        var _m_admin_modal = document.getElementById("admin-modal"); if(_m_admin_modal) { _m_admin_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_admin_modal.style.pointerEvents = "auto"; }
         setAdminStatus("降臨演出「" + pick.name + "」の再生が完了しました！");
       }, 2450);
     });
@@ -652,11 +652,11 @@ window.addEventListener("error", function(ev) {
       grid.appendChild(el);
     });
 
-    document.getElementById("pack-list-modal").style.display = "flex";
+    var _m_pack_list_modal = document.getElementById("pack-list-modal"); if(_m_pack_list_modal) { _m_pack_list_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_pack_list_modal.style.pointerEvents = "auto"; }
   });
 
   _on("btn-close-pack-list", "click", function() {
-    document.getElementById("pack-list-modal").style.display = "none";
+    var _m_pack_list_modal = document.getElementById("pack-list-modal"); if(_m_pack_list_modal) { _m_pack_list_modal.style.display = "none"; _m_pack_list_modal.style.pointerEvents = "none"; }
   });
 
   _on("nav-battle", "click", function() {
@@ -939,7 +939,7 @@ window.addEventListener("error", function(ev) {
   _on("btn-open-pack", "click", enterPackOpenStage);
   _on("btn-stage-again", "click", enterPackOpenStage);
   _on("btn-stage-back", "click", function() {
-    document.getElementById("pack-open-stage").style.display = "none";
+    var _m_pack_open_stage = document.getElementById("pack-open-stage"); if(_m_pack_open_stage) { _m_pack_open_stage.style.display = "none"; _m_pack_open_stage.style.pointerEvents = "none"; }
   });
 
   function enterPackOpenStage() {
@@ -1163,7 +1163,7 @@ window.addEventListener("error", function(ev) {
       if (el) el.classList.remove("active");
     });
     overlay.classList.remove("quake-anim");
-    overlay.style.display = "flex";
+    overlay.style.display = "flex"; overlay.style.pointerEvents = "auto";
 
     var isGod = (rarity === "GOD");
     var type = forceType || pickCutinType(rarity);
@@ -1197,7 +1197,7 @@ window.addEventListener("error", function(ev) {
       }, 950);
       setTimeout(function() {
         overlay.classList.remove("quake-anim");
-        overlay.style.display = "none";
+        overlay.style.display = "none"; overlay.style.pointerEvents = "none";
         onComplete();
       }, 2350);
       return;
@@ -1243,7 +1243,7 @@ window.addEventListener("error", function(ev) {
 
       setTimeout(function() {
         overlay.classList.remove("quake-anim");
-        overlay.style.display = "none";
+        overlay.style.display = "none"; overlay.style.pointerEvents = "none";
         onComplete();
       }, 2250);
       return;
@@ -1266,10 +1266,8 @@ window.addEventListener("error", function(ev) {
         : null;
 
       var fullScript = isGod
-        ? "次回、
-『" + (topCard ? topCard.name : "伝説のGOD降臨") + "』"
-        : "次回、
-『" + (topCard ? topCard.name : "激アツUR覚醒") + "』";
+        ? "次回、\n『" + (topCard ? topCard.name : "伝説のGOD降臨") + "』"
+        : "次回、\n『" + (topCard ? topCard.name : "激アツUR覚醒") + "』";
 
       var charIdx = 0;
       var typeTimer = setInterval(function() {
@@ -1295,7 +1293,7 @@ window.addEventListener("error", function(ev) {
       setTimeout(function() {
         clearInterval(typeTimer);
         overlay.classList.remove("quake-anim");
-        overlay.style.display = "none";
+        overlay.style.display = "none"; overlay.style.pointerEvents = "none";
         onComplete();
       }, 2400);
       return;
@@ -1325,7 +1323,7 @@ window.addEventListener("error", function(ev) {
 
       setTimeout(function() {
         overlay.classList.remove("quake-anim");
-        overlay.style.display = "none";
+        overlay.style.display = "none"; overlay.style.pointerEvents = "none";
         onComplete();
       }, 2250);
       return;
@@ -1352,7 +1350,7 @@ window.addEventListener("error", function(ev) {
 
       setTimeout(function() {
         overlay.classList.remove("quake-anim");
-        overlay.style.display = "none";
+        overlay.style.display = "none"; overlay.style.pointerEvents = "none";
         onComplete();
       }, isGod ? 2100 : 1700);
 
@@ -1386,7 +1384,7 @@ window.addEventListener("error", function(ev) {
 
       setTimeout(function() {
         overlay.classList.remove("quake-anim");
-        overlay.style.display = "none";
+        overlay.style.display = "none"; overlay.style.pointerEvents = "none";
         onComplete();
       }, 2350);
 
@@ -1443,7 +1441,7 @@ window.addEventListener("error", function(ev) {
       setTimeout(function() {
         clearInterval(spinTimer);
         overlay.classList.remove("quake-anim");
-        overlay.style.display = "none";
+        overlay.style.display = "none"; overlay.style.pointerEvents = "none";
         onComplete();
       }, 2450);
 
@@ -1483,7 +1481,7 @@ window.addEventListener("error", function(ev) {
 
       setTimeout(function() {
         overlay.classList.remove("quake-anim");
-        overlay.style.display = "none";
+        overlay.style.display = "none"; overlay.style.pointerEvents = "none";
         onComplete();
       }, 2100);
 
@@ -1512,7 +1510,7 @@ window.addEventListener("error", function(ev) {
 
       setTimeout(function() {
         overlay.classList.remove("quake-anim");
-        overlay.style.display = "none";
+        overlay.style.display = "none"; overlay.style.pointerEvents = "none";
         onComplete();
       }, 2400);
 
@@ -1542,7 +1540,7 @@ window.addEventListener("error", function(ev) {
 
       setTimeout(function() {
         overlay.classList.remove("quake-anim");
-        overlay.style.display = "none";
+        overlay.style.display = "none"; overlay.style.pointerEvents = "none";
         onComplete();
       }, 2350);
     }
@@ -2043,9 +2041,9 @@ window.addEventListener("error", function(ev) {
     var overlay = document.getElementById("cutin-overlay");
     if (!overlay) return;
     document.getElementById("cutin-text").innerText = text;
-    overlay.style.display = "flex";
+    overlay.style.display = "flex"; overlay.style.pointerEvents = "auto";
     clearTimeout(cutinTimer);
-    cutinTimer = setTimeout(function() { overlay.style.display = "none"; }, duration || 1100);
+    cutinTimer = setTimeout(function() { overlay.style.display = "none"; overlay.style.pointerEvents = "none"; }, duration || 1100);
   }
 
   function showGodSummonCutin(card, summonerName) {
@@ -2105,11 +2103,11 @@ window.addEventListener("error", function(ev) {
     setTimeout(function() { flash.remove(); }, 850);
 
     overlay.classList.add("quake-anim");
-    overlay.style.display = "flex";
+    overlay.style.display = "flex"; overlay.style.pointerEvents = "auto";
 
     setTimeout(function() {
       overlay.classList.remove("quake-anim");
-      overlay.style.display = "none";
+      overlay.style.display = "none"; overlay.style.pointerEvents = "none";
     }, 2400);
   }
 
@@ -2124,7 +2122,7 @@ window.addEventListener("error", function(ev) {
   }
 
   _on("btn-resume", "click", function() {
-    document.getElementById("pass-screen").style.display = "none";
+    var _m_pass_screen = document.getElementById("pass-screen"); if(_m_pass_screen) { _m_pass_screen.style.display = "none"; _m_pass_screen.style.pointerEvents = "none"; }
     log("--- " + getViewSelf().name + "のターン（ターン " + state.turn + "） ---"); render();
   });
   _on("direct-attack-btn", "click", directAttack);
@@ -2224,7 +2222,7 @@ window.addEventListener("error", function(ev) {
         '<div style="font-size:0.78rem; color:#ddd; line-height:1.4;">' + res.desc + '</div>';
       listEl.appendChild(item);
     });
-    document.getElementById("fusion-guide-modal").style.display = "flex";
+    var _m_fusion_guide_modal = document.getElementById("fusion-guide-modal"); if(_m_fusion_guide_modal) { _m_fusion_guide_modal.style.display = "flex"; modal.style.pointerEvents = "auto"; _m_fusion_guide_modal.style.pointerEvents = "auto"; }
   }
 
   var btnHomeFusion = document.getElementById("btn-open-fusion-guide");
@@ -2233,7 +2231,7 @@ window.addEventListener("error", function(ev) {
   if (btnBattleFusion) btnBattleFusion.addEventListener("click", openFusionGuideModal);
   var btnCloseFusion = document.getElementById("btn-close-fusion-guide");
   if (btnCloseFusion) btnCloseFusion.addEventListener("click", function() {
-    document.getElementById("fusion-guide-modal").style.display = "none";
+    var _m_fusion_guide_modal = document.getElementById("fusion-guide-modal"); if(_m_fusion_guide_modal) { _m_fusion_guide_modal.style.display = "none"; _m_fusion_guide_modal.style.pointerEvents = "none"; }
   });
 
   function playCard(handIndex) {
@@ -2356,7 +2354,7 @@ window.addEventListener("error", function(ev) {
       if (state.activeSide === "p1") state.turn++;
       processTurnStart(state.activeSide);
       document.getElementById("pass-title").innerText = "📱 " + getViewSelf().name + "のターンです";
-      document.getElementById("pass-screen").style.display = "flex";
+      var _m_pass_screen = document.getElementById("pass-screen"); if(_m_pass_screen) { _m_pass_screen.style.display = "flex"; _m_pass_screen.style.pointerEvents = "auto"; }
     } else if (state.mode === "online") {
       state.activeSide = state.activeSide === "p1" ? "p2" : "p1";
       if (state.activeSide === "p1") state.turn++;
@@ -2704,4 +2702,30 @@ window.addEventListener("error", function(ev) {
       '<span class="detail-zoom-hint">🔍</span>' + statsHtml;
     return div;
   }
+
+  // ================= 起動時タッチ遮断防止・強制クリーンアップ =================
+  (function ensureCleanInteractiveBoot() {
+    var overlays = [
+      "pachinko-overlay", "god-summon-overlay", "news-modal", "name-edit-modal",
+      "card-detail-modal", "ur-reward-modal", "admin-modal", "pack-list-modal",
+      "fusion-guide-modal", "cutin-overlay", "pass-screen"
+    ];
+    overlays.forEach(function(oid) {
+      var el = document.getElementById(oid);
+      if (el) {
+        // 未読お知らせが自動表示されている場合を除き全て閉じる
+        if (oid === "news-modal" && el.style.display === "flex") {
+          el.style.pointerEvents = "auto";
+          return;
+        }
+        el.style.display = "none";
+        el.style.pointerEvents = "none";
+      }
+    });
+    var home = document.getElementById("home-screen");
+    if (home && home.style.display === "none") {
+      home.style.display = "block";
+    }
+  })();
+
 })();
