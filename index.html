@@ -1129,6 +1129,7 @@
     <div id="opp-field" class="field-area"></div>
     <div class="center-actions">
       <button id="direct-attack-btn" class="action-btn" disabled>💥 相手本体に直接攻撃</button>
+      <button id="btn-battle-fusion-guide" class="action-btn" style="background:#0d3b26; border-color:#00ff88; color:#00ff88;">🧬 合体レシピ</button>
       <button id="end-turn-btn" class="action-btn">⏭️ ターン終了</button>
     </div>
     <div id="self-field" class="field-area"></div>
@@ -1155,6 +1156,22 @@
     </div>
   </div>
 
+  
+  <!-- ミーム合体・進化レシピモーダル -->
+  <div id="fusion-guide-modal" class="overlay-screen" style="display:none; z-index: 3150;">
+    <div class="modal-box" style="max-width: 560px; max-height: 85vh; overflow-y: auto; border: 2px solid #00ff88;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h2 style="margin:0; color:#00ff88; font-size:1.15rem;">🧬 ミーム合体・派生進化レシピ</h2>
+        <button id="btn-close-fusion-guide" class="secondary-btn" style="padding:5px 12px;">✕ 閉じる</button>
+      </div>
+      <p style="font-size:0.8rem; color:#ccc; margin-top:0; margin-bottom:10px; line-height:1.45;">
+        自分の場に<strong>素材ミームA</strong>がいる状態で、手札から<strong>素材ミームB</strong>を場に出すと自動的に合体進化！<br>
+        合体後は<strong>鮮度全回復＆即攻撃可能＆超強力な合体時効果</strong>が発動します！（手札の合体可能カードは<span style="color:#00ff88; font-weight:bold;">緑金枠</span>で光ります）
+      </p>
+      <div id="fusion-recipe-list"></div>
+    </div>
+  </div>
+
   <!-- カットイン演出・端末交代画面 -->
   <div id="cutin-overlay" class="overlay-screen" style="display:none;">
     <div id="cutin-text" class="cutin-box"></div>
@@ -1169,8 +1186,8 @@
   </div>
 
   <!-- 外部JSファイルの読み込み（この順番で読み込む） -->
-  <script src="cards.js?v=1.6.4"></script>
-  <script src="effects.js?v=1.6.4"></script>
-  <script src="game.js?v=1.6.4"></script>
+  <script src="cards.js?v=1.7.0"></script>
+  <script src="effects.js?v=1.7.0"></script>
+  <script src="game.js?v=1.7.0"></script>
 </body>
 </html>

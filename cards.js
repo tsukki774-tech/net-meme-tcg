@@ -329,14 +329,199 @@ const CPU_BOSSES = {
   }
 };
 
-const APP_VERSION = "v1.6";
+
+const FUSION_RECIPES = [
+  {
+    id: "fusion_aa_legion",
+    materials: ["mona", "giko"],
+    result: {
+      id: "fused_aa_legion",
+      name: "【合体】伝説のAA軍団",
+      type: "meme",
+      era: "2ch",
+      rarity: "SR",
+      cost: 0,
+      atk: 5,
+      hp: 6,
+      freshness: 5,
+      icon: "🏛️",
+      desc: "【合体進化】モナー×ギコ猫の奇跡！即攻撃可能＆召喚時に相手ミーム全体に2ダメージ！"
+    }
+  },
+  {
+    id: "fusion_yaruo_yaranaio",
+    materials: ["yaruo", "yaranaio"],
+    result: {
+      id: "fused_yaruo_duo",
+      name: "【合体】やる夫＆やらない夫・黄金コンビ",
+      type: "meme",
+      era: "2ch",
+      rarity: "UR",
+      cost: 0,
+      atk: 7,
+      hp: 8,
+      freshness: 5,
+      icon: "🍻",
+      desc: "【合体進化】やる夫×やらない夫！即攻撃可能＆無敵バリア付与＆山札から2枚ドロー！"
+    }
+  },
+  {
+    id: "fusion_nico_gosanke",
+    materials: ["donald", "shuzo"],
+    result: {
+      id: "fused_nico_festival",
+      name: "【合体】ニコニコ組曲・超熱血祭",
+      type: "meme",
+      era: "ニコニコ",
+      rarity: "UR",
+      cost: 0,
+      atk: 7,
+      hp: 7,
+      freshness: 5,
+      icon: "🎪",
+      desc: "【合体進化】ドナルド×松岡修造！即攻撃可能＆相手本体に3ダメ＆味方全体の攻撃+2！"
+    }
+  },
+  {
+    id: "fusion_cat_overload",
+    materials: ["neko", "nekokoubun"],
+    result: {
+      id: "fused_cat_god",
+      name: "【合体】宇宙猫＆チピチャパ超バズ神",
+      type: "meme",
+      era: "令和",
+      rarity: "SR",
+      cost: 0,
+      atk: 5,
+      hp: 5,
+      freshness: 4,
+      icon: "😼",
+      desc: "【合体進化】猫ミーム×猫構文！即攻撃可能＆2枚ドロー＆自分のギガを2回復！"
+    }
+  },
+  {
+    id: "fusion_yaju_trio",
+    materials: ["kmr", "mur"],
+    result: {
+      id: "fused_yaju_trio",
+      name: "【合体】真夏の夜の三銃士（KMR＆MUR）",
+      type: "meme",
+      era: "例のアレ",
+      rarity: "SR",
+      cost: 0,
+      atk: 5,
+      hp: 6,
+      freshness: 5,
+      icon: "🦁",
+      desc: "【合体進化】KMR×MUR！即攻撃可能＆無敵バリア付与＆1枚ドロー！"
+    }
+  },
+  {
+    id: "fusion_doge_cheems",
+    materials: ["doge", "cheems"],
+    result: {
+      id: "fused_buff_doge",
+      name: "【合体】Swole Doge（ムキムキ柴犬神）",
+      type: "meme",
+      era: "海外",
+      rarity: "UR",
+      cost: 0,
+      atk: 7,
+      hp: 8,
+      freshness: 5,
+      icon: "🐕",
+      desc: "【合体進化】Doge×Cheems！即攻撃可能＆無敵バリア付与＆メンタル4回復！"
+    }
+  },
+  {
+    id: "fusion_streamer_empire",
+    materials: ["kirinuki", "streamer"],
+    result: {
+      id: "fused_streamer_king",
+      name: "【合体】同接10万・伝説の配信王",
+      type: "meme",
+      era: "配信者",
+      rarity: "UR",
+      cost: 0,
+      atk: 6,
+      hp: 7,
+      freshness: 5,
+      icon: "👑",
+      desc: "【合体進化】切り抜き職人×大手配信者！即攻撃可能＆ギガ全回復＆2枚ドロー！"
+    }
+  },
+  {
+    id: "fusion_x_chaos",
+    materials: ["zombie", "kusoripu"],
+    result: {
+      id: "fused_x_trend",
+      name: "【合体】トレンド1位・大炎上インプレ軍団",
+      type: "meme",
+      era: "X炎上",
+      rarity: "SR",
+      cost: 0,
+      atk: 5,
+      hp: 4,
+      freshness: 4,
+      icon: "🔥",
+      desc: "【合体進化】インプレゾンビ×クソリプ製造機！即攻撃可能＆相手全体＆本体に2ダメージ！"
+    }
+  },
+  {
+    id: "fusion_anime_awakening",
+    materials: ["nigecha_dame", "aibou_kaerou"],
+    result: {
+      id: "fused_anime_god",
+      name: "【合体】暴走覚醒・闇のデュエリスト",
+      type: "meme",
+      era: "アニメ",
+      rarity: "GOD",
+      cost: 0,
+      atk: 9,
+      hp: 9,
+      freshness: 5,
+      icon: "⚡",
+      desc: "【神合体進化】逃げちゃダメだ×もう一人のボク！無敵バリア付与＆相手ミーム1体消滅＆相手本体に3ダメージ！"
+    }
+  },
+  {
+    id: "fusion_isekai_slime_truck",
+    materials: ["mob_chara", "isekai_slime"],
+    result: {
+      id: "fused_demon_lord_slime",
+      name: "【合体】異世界転生・魔王スライム覚醒",
+      type: "meme",
+      era: "アニメ",
+      rarity: "UR",
+      cost: 0,
+      atk: 6,
+      hp: 7,
+      freshness: 5,
+      icon: "🔮",
+      desc: "【合体進化】異世界転生トラック×転生スライム！即攻撃可能＆無敵バリア付与＆2枚ドロー！"
+    }
+  }
+];
+
+const APP_VERSION = "v1.7";
 
 const UPDATE_LOGS = [
   {
-    version: "v1.6",
+    version: "v1.7",
     date: "最新アップデート",
-    title: "第3弾パック「アニメミーム＆名言編（全44種）」実装！",
+    title: "新バトルシステム「ミーム合体・派生進化」実装！",
     isLatest: true,
+    items: [
+      { tag: "新システム", color: "#00ff88", text: "特定のミームが場にいる状態で相方のミームを出すと、超強力な上位ミームへ『合体・進化』する新ルールを実装！" },
+      { tag: "合体特典", color: "#ffd32a", text: "合体進化したミームは鮮度全回復＆即攻撃可能（召喚酔いなし）＆強力な合体時スキルが炸裂！" },
+      { tag: "ガイドUI", color: "#00d2ff", text: "バトル中に合体可能な手札は虹色枠で光り、ホーム・バトル画面からいつでも「合体レシピ図鑑」を確認可能！" }
+    ]
+  },
+  {
+    version: "v1.6",
+    date: "過去アップデート",
+    title: "第3弾パック「アニメミーム＆名言編（全44種）」実装！",
+    isLatest: false,
     items: [
       { tag: "新パック", color: "#a55eea", text: "第3弾パック「🎬 VOL.3 ANIME（伝説のアニメミーム＆名言編）」全44種を追加！" },
       { tag: "GOD降臨", color: "#ffd32a", text: "新GODレア『「勝ったな、ガハハ！」のフラグ建築士』＆『止まるんじゃねぇぞ…』を収録（専用降臨セリフ演出付き）！" },

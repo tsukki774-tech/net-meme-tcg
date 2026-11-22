@@ -1824,6 +1824,10 @@
       admin_god_dev: {
         bg: "radial-gradient(circle at center, #004d29 0%, #020805 100%)",
         quote: "「【SYSTEM OVERRIDE】管理者" + summonerName + "の権限により、ゲームの仕様が書き換えられた――！」"
+      },
+      fused_anime_god: {
+        bg: "radial-gradient(circle at center, #2c003e 0%, #020005 100%)",
+        quote: "「逃げちゃダメだ…！もう一人のボクと心が一つになった時、闇のゲームが幕を開ける――！」"
       }
     };
 
@@ -1869,6 +1873,112 @@
   document.getElementById("direct-attack-btn").addEventListener("click", directAttack);
   document.getElementById("end-turn-btn").addEventListener("click", endTurn);
 
+
+  // ================= ミーム合体・派生進化システム =================
+  function findAvailableFusion(field, handCard) {
+    if (!handCard || handCard.type !== "meme" || typeof FUSION_RECIPES === "undefined") return null;
+    for (var i = 0; i < FUSION_RECIPES.length; i++) {
+      var rec = FUSION_RECIPES[i];
+      var m0 = rec.materials[0];
+      var m1 = rec.materials[1];
+      if (handCard.id === m0) {
+        var idx1 = field.findIndex(function(f) { return f && f.id === m1; });
+        if (idx1 !== -1) return { recipe: rec, fieldIndex: idx1, partnerName: field[idx1].name };
+      }
+      if (handCard.id === m1) {
+        var idx0 = field.findIndex(function(f) { return f && f.id === m0; });
+        if (idx0 !== -1) return { recipe: rec, fieldIndex: idx0, partnerName: field[idx0].name };
+      }
+    }
+    return null;
+  }
+
+  function triggerFusionEffect(sideKey, fusedCard) {
+    var self = state[sideKey];
+    var opp = state[sideKey === "p1" ? "p2" : "p1"];
+    if (!self || !opp) return;
+
+    if (fusedCard.id === "fused_aa_legion") {
+      opp.field.forEach(function(m) { dealDamageToMeme(m, 2); });
+      cleanupDeadMemes();
+      log("🏛️ 【合体効果】伝説のAA軍団！相手ミーム全体に2ダメージ！");
+    } else if (fusedCard.id === "fused_yaruo_duo") {
+      fusedCard.shield = true;
+      drawCard(sideKey); drawCard(sideKey);
+      log("🍻 【合体効果】やる夫＆やらない夫！無敵バリア付与＆2枚ドロー！");
+    } else if (fusedCard.id === "fused_nico_festival") {
+      opp.hp -= 3;
+      self.field.forEach(function(m) { m.atk += 2; });
+      log("🎪 【合体効果】ニコニコ組曲・超熱血祭！相手本体に3ダメ＆味方全体の攻撃+2！");
+    } else if (fusedCard.id === "fused_cat_god") {
+      drawCard(sideKey); drawCard(sideKey);
+      self.giga = Math.min(self.maxGiga, self.giga + 2);
+      log("😼 【合体効果】宇宙猫＆チピチャパ超バズ神！2枚ドロー＆ギガ2回復！");
+    } else if (fusedCard.id === "fused_yaju_trio") {
+      fusedCard.shield = true;
+      drawCard(sideKey);
+      log("🦁 【合体効果】真夏の夜の三銃士！無敵バリア付与＆1枚ドロー！");
+    } else if (fusedCard.id === "fused_buff_doge") {
+      fusedCard.shield = true;
+      self.hp += 4;
+      log("🐕 【合体効果】Swole Doge！無敵バリア付与＆メンタル4回復！");
+    } else if (fusedCard.id === "fused_streamer_king") {
+      self.giga = self.maxGiga;
+      drawCard(sideKey); drawCard(sideKey);
+      log("👑 【合体効果】伝説の配信王！ギガ全回復＆2枚ドロー！");
+    } else if (fusedCard.id === "fused_x_trend") {
+      opp.field.forEach(function(m) { dealDamageToMeme(m, 2); });
+      opp.hp -= 2;
+      cleanupDeadMemes();
+      log("🔥 【合体効果】大炎上インプレ軍団！相手全体＆本体に2ダメージ！");
+    } else if (fusedCard.id === "fused_anime_god") {
+      fusedCard.shield = true;
+      if (opp.field.length > 0) {
+        var removed = opp.field.shift();
+        log("⚡ 【神合体効果】闇のデュエリストが「" + removed.name + "」を闇へ葬った！");
+      }
+      opp.hp -= 3;
+      log("⚡ 【神合体効果】無敵バリア付与＆相手本体に3ダメージ！");
+    } else if (fusedCard.id === "fused_demon_lord_slime") {
+      fusedCard.shield = true;
+      drawCard(sideKey); drawCard(sideKey);
+      log("🔮 【合体効果】魔王スライム覚醒！無敵バリア付与＆2枚ドロー！");
+    }
+  }
+
+  function openFusionGuideModal() {
+    var listEl = document.getElementById("fusion-recipe-list");
+    if (!listEl || typeof FUSION_RECIPES === "undefined") return;
+    listEl.innerHTML = "";
+    FUSION_RECIPES.forEach(function(rec) {
+      var c0 = ALL_CARDS.find(function(c) { return c.id === rec.materials[0]; });
+      var c1 = ALL_CARDS.find(function(c) { return c.id === rec.materials[1]; });
+      var res = rec.result;
+      var item = document.createElement("div");
+      item.className = "fusion-recipe-item";
+      item.innerHTML =
+        '<div class="fusion-recipe-formula">' +
+          '<span class="fusion-mat-pill">' + (c0 ? c0.icon + " " + c0.name : rec.materials[0]) + '</span>' +
+          '<span style="color:#ffd32a;">＋</span>' +
+          '<span class="fusion-mat-pill">' + (c1 ? c1.icon + " " + c1.name : rec.materials[1]) + '</span>' +
+          '<span style="color:#00ff88;">➔</span>' +
+          '<span class="fusion-res-pill">' + res.icon + " " + res.name + '（⚔️' + res.atk + '/❤️' + res.hp + '）</span>' +
+        '</div>' +
+        '<div style="font-size:0.78rem; color:#ddd; line-height:1.4;">' + res.desc + '</div>';
+      listEl.appendChild(item);
+    });
+    document.getElementById("fusion-guide-modal").style.display = "flex";
+  }
+
+  var btnHomeFusion = document.getElementById("btn-open-fusion-guide");
+  if (btnHomeFusion) btnHomeFusion.addEventListener("click", openFusionGuideModal);
+  var btnBattleFusion = document.getElementById("btn-battle-fusion-guide");
+  if (btnBattleFusion) btnBattleFusion.addEventListener("click", openFusionGuideModal);
+  var btnCloseFusion = document.getElementById("btn-close-fusion-guide");
+  if (btnCloseFusion) btnCloseFusion.addEventListener("click", function() {
+    document.getElementById("fusion-guide-modal").style.display = "none";
+  });
+
   function playCard(handIndex) {
     if (state.isInputLocked) return;
     var self = getViewSelf(), card = self.hand[handIndex];
@@ -1880,18 +1990,41 @@
 
     try {
       if (card.type === "meme") {
-        if (self.field.length >= 3) { log("⚠️ タイムラインがいっぱいです（最大3体）。"); return; }
-        self.giga -= card.cost; self.hand.splice(handIndex, 1); card.canAttack = true; card.isBuzz = true; self.field.push(card);
+        var fusionMatch = findAvailableFusion(self.field, card);
+        if (!fusionMatch && self.field.length >= 3) { log("⚠️ タイムラインがいっぱいです（最大3体）。"); return; }
+        self.giga -= card.cost;
+        self.hand.splice(handIndex, 1);
         if (isPlayerAction) addMissionStat("summons", 1);
-        actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！"; log(actionLog);
-        try {
-          window.CardEffects.triggerSummonEffect(effectCtx, state.activeSide, card);
-        } catch (effErr) {
-          console.error("SummonEffect error:", effErr);
-        }
-        if (card.rarity === "GOD" || card.rarity === "ADMIN") {
-          summonedGodCard = card;
-          showGodSummonCutin(card, self.name);
+
+        if (fusionMatch) {
+          var fusedCard = JSON.parse(JSON.stringify(fusionMatch.recipe.result));
+          fusedCard.canAttack = true;
+          fusedCard.isBuzz = true;
+          self.field.splice(fusionMatch.fieldIndex, 1, fusedCard);
+          actionLog = "🧬 【合体進化】「" + fusionMatch.partnerName + "」＋「" + card.name + "」➔ 『" + fusedCard.name + "』が降臨！";
+          log(actionLog);
+          showCutin("🧬 ミーム合体進化！\n" + fusedCard.name, 1400);
+          try {
+            triggerFusionEffect(state.activeSide, fusedCard);
+          } catch (fErr) {
+            console.error("FusionEffect error:", fErr);
+          }
+          if (fusedCard.rarity === "GOD" || fusedCard.rarity === "ADMIN") {
+            summonedGodCard = fusedCard;
+            showGodSummonCutin(fusedCard, self.name);
+          }
+        } else {
+          card.canAttack = true; card.isBuzz = true; self.field.push(card);
+          actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！"; log(actionLog);
+          try {
+            window.CardEffects.triggerSummonEffect(effectCtx, state.activeSide, card);
+          } catch (effErr) {
+            console.error("SummonEffect error:", effErr);
+          }
+          if (card.rarity === "GOD" || card.rarity === "ADMIN") {
+            summonedGodCard = card;
+            showGodSummonCutin(card, self.name);
+          }
         }
       } else if (card.type === "spell") {
         self.giga -= card.cost; self.hand.splice(handIndex, 1);
@@ -2048,14 +2181,31 @@
         var card = cpu.hand[i];
         if (!card) continue;
         if (card.cost <= cpu.giga) {
-          if (card.type === "meme" && cpu.field.length < 3) {
-            cpu.giga -= card.cost; cpu.hand.splice(i, 1); card.isBuzz = true; cpu.field.push(card);
-            actions.push("「" + card.name + "」を召喚"); log("👾 CPUが「" + card.name + "」を召喚！");
-            try {
-              window.CardEffects.triggerSummonEffect(effectCtx, "p2", card);
-            } catch (e1) { console.error("CPU summon err:", e1); }
-            if (card.rarity === "GOD" || card.rarity === "ADMIN") {
-              showGodSummonCutin(card, cpu.name);
+          if (card.type === "meme") {
+            var cpuFusion = findAvailableFusion(cpu.field, card);
+            if (cpuFusion || cpu.field.length < 3) {
+              cpu.giga -= card.cost; cpu.hand.splice(i, 1);
+              if (cpuFusion) {
+                var cpuFused = JSON.parse(JSON.stringify(cpuFusion.recipe.result));
+                cpuFused.isBuzz = true;
+                cpuFused.canAttack = true;
+                cpu.field.splice(cpuFusion.fieldIndex, 1, cpuFused);
+                actions.push("【合体】" + cpuFused.name + "に進化");
+                log("🧬👾 CPUが合体進化！『" + cpuFused.name + "』を降臨させた！");
+                try { triggerFusionEffect("p2", cpuFused); } catch (fe) { console.error(fe); }
+                if (cpuFused.rarity === "GOD" || cpuFused.rarity === "ADMIN") {
+                  showGodSummonCutin(cpuFused, cpu.name);
+                }
+              } else {
+                card.isBuzz = true; cpu.field.push(card);
+                actions.push("「" + card.name + "」を召喚"); log("👾 CPUが「" + card.name + "」を召喚！");
+                try {
+                  window.CardEffects.triggerSummonEffect(effectCtx, "p2", card);
+                } catch (e1) { console.error("CPU summon err:", e1); }
+                if (card.rarity === "GOD" || card.rarity === "ADMIN") {
+                  showGodSummonCutin(card, cpu.name);
+                }
+              }
             }
           } else if (card.type === "spell") {
             cpu.giga -= card.cost; cpu.hand.splice(i, 1);
@@ -2146,7 +2296,9 @@
       banner.innerText = opp.field.length > 0 ? "🎯 「" + attacker.name + "」で攻撃！赤く点滅している相手のミームをタップしよう" : "🔥 相手の場が空です！「💥 相手本体に直接攻撃」ボタンを押そう！";
       return;
     }
+    var canFuseAny = self.hand.some(function(c) { return c.cost <= self.giga && !!findAvailableFusion(self.field, c); });
     var canPlayAny = self.hand.some(function(c) { return c.cost <= self.giga; }), canAttackAny = self.field.some(function(m) { return m.canAttack; });
+    if (canFuseAny) { banner.innerText = "🧬 合体チャンス！緑金に光る手札をタップして合体進化させよう！"; return; }
     if (canPlayAny && canAttackAny) banner.innerText = "💡 " + self.name + "のターン：手札を出すか、場のミームで攻撃！（長押しで詳細）";
     else if (canPlayAny) banner.innerText = "💡 " + self.name + "のターン：手札の緑枠カードをタップして投稿しよう！";
     else if (canAttackAny) banner.innerText = "⚔️ 場の緑枠ミームをタップして攻撃しよう！";
@@ -2197,8 +2349,9 @@
     self.hand.forEach(function(c, idx) {
       if (!c) return;
       try {
-        var playable = !state.isInputLocked && c.cost <= self.giga;
-        handEl.appendChild(createCardElement(c, function() { playCard(idx); }, { playable: playable, unplayable: !playable }));
+        var canFuse = !state.isInputLocked && c.cost <= self.giga && !!findAvailableFusion(self.field, c);
+        var playable = !state.isInputLocked && c.cost <= self.giga && (c.type === "spell" || self.field.length < 3 || canFuse);
+        handEl.appendChild(createCardElement(c, function() { playCard(idx); }, { playable: playable, unplayable: !playable, fusionReady: canFuse }));
       } catch (e) { console.error("hand render err:", e); }
     });
   }
@@ -2213,6 +2366,7 @@
     if (flags.isTarget) classes.push("targetable");
     if (flags.playable) classes.push("playable");
     if (flags.unplayable) classes.push("unplayable");
+    if (flags.fusionReady) classes.push("fusion-ready");
     div.className = classes.join(" ");
 
     if (typeof onClick === "function") {
@@ -2278,7 +2432,7 @@
     }
 
     var displayAtk = card.atk + (card.isBuzz ? 1 : 0);
-    var buzzBadge = card.isBuzz ? '<div class="buzz-badge">🔥バズ中(+1)</div>' : "";
+    var buzzBadge = flags.fusionReady ? '<div class="fusion-badge">🧬合体可能！</div>' : (card.isBuzz ? '<div class="buzz-badge">🔥バズ中(+1)</div>' : "");
     var shieldBadge = card.shield ? '<div class="shield-badge">🛡️無敵</div>' : "";
     var artHtml = card.img ? '<img src="' + card.img + '" alt="' + card.name + '">' : card.icon;
     var statsHtml = card.type === "meme"
