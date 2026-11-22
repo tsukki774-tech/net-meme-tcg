@@ -515,6 +515,51 @@
     setAdminStatus(rigNextRarity ? "次のパック開封でURレア確定！" : "UR確定モードを解除しました。");
   });
 
+  var adminPreviewRarity = "UR";
+  var btnPrevUr = document.getElementById("admin-preview-ur");
+  var btnPrevGod = document.getElementById("admin-preview-god");
+  if (btnPrevUr && btnPrevGod) {
+    btnPrevUr.addEventListener("click", function() {
+      adminPreviewRarity = "UR";
+      btnPrevUr.classList.add("active-rig");
+      btnPrevGod.classList.remove("active-rig");
+      setAdminStatus("演出テストのレアリティを UR に設定しました。");
+    });
+    btnPrevGod.addEventListener("click", function() {
+      adminPreviewRarity = "GOD";
+      btnPrevGod.classList.add("active-rig");
+      btnPrevUr.classList.remove("active-rig");
+      setAdminStatus("演出テストのレアリティを GOD に設定しました。");
+    });
+  }
+
+  document.querySelectorAll(".admin-cutin-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var cutinType = btn.getAttribute("data-cutin");
+      var samplePool = ALL_CARDS.filter(function(c) { return c.rarity === adminPreviewRarity; });
+      var sampleCard = samplePool.length > 0 ? samplePool[Math.floor(Math.random() * samplePool.length)] : ALL_CARDS[0];
+      document.getElementById("admin-modal").style.display = "none";
+      triggerSpecialCutin(adminPreviewRarity, function() {
+        document.getElementById("admin-modal").style.display = "flex";
+        setAdminStatus("演出「" + btn.innerText + "（" + adminPreviewRarity + "）」の再生が完了しました！");
+      }, [sampleCard], cutinType);
+    });
+  });
+
+  var btnPrevGodSummon = document.getElementById("admin-preview-god-summon");
+  if (btnPrevGodSummon) {
+    btnPrevGodSummon.addEventListener("click", function() {
+      var godPool = ALL_CARDS.filter(function(c) { return c.rarity === "GOD" || c.rarity === "ADMIN"; });
+      var pick = godPool[Math.floor(Math.random() * godPool.length)];
+      document.getElementById("admin-modal").style.display = "none";
+      showGodSummonCutin(pick, userData.playerName || DEFAULT_PLAYER_NAME);
+      setTimeout(function() {
+        document.getElementById("admin-modal").style.display = "flex";
+        setAdminStatus("降臨演出「" + pick.name + "」の再生が完了しました！");
+      }, 2450);
+    });
+  }
+
   document.getElementById("admin-reset-all").addEventListener("click", function() {
     if (confirm("本当にセーブデータを完全に初期化しますか？")) {
       localStorage.removeItem(SAVE_KEY);
@@ -1100,7 +1145,7 @@
     }
   }
 
-  function triggerSpecialCutin(rarity, onComplete, pulledCards) {
+  function triggerSpecialCutin(rarity, onComplete, pulledCards, forceType) {
     var overlay = document.getElementById("pachinko-overlay");
     var scenes = [
       "scene-pachinko", "scene-crash", "scene-slot", "scene-trend", "scene-bigbang", "scene-blackout",
@@ -1114,7 +1159,7 @@
     overlay.style.display = "flex";
 
     var isGod = (rarity === "GOD");
-    var type = pickCutinType(rarity);
+    var type = forceType || pickCutinType(rarity);
 
     if (type === "bsod") {
       // 7. 💻 ブルースクリーン（BSoD）→ 強制再起動演出
