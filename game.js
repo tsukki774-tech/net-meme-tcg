@@ -70,6 +70,12 @@ window.addEventListener("error", function(ev) {
         if (!parsed.playerName) {
           parsed.playerName = DEFAULT_PLAYER_NAME;
         }
+        if (!parsed.playerId) {
+          parsed.playerId = Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+        if (!parsed.avatar) {
+          parsed.avatar = "👤";
+        }
         if (!Array.isArray(parsed.decks)) {
           parsed.decks = createDefaultDecks(Array.isArray(parsed.myDeck) ? parsed.myDeck : defaultDeck);
         }
@@ -84,6 +90,8 @@ window.addEventListener("error", function(ev) {
     }
     return {
       playerName: DEFAULT_PLAYER_NAME,
+      playerId: Math.random().toString(36).substring(2, 8).toUpperCase(),
+      avatar: "👤",
       points: 1500,
       collection: { mona: 3, giko: 3, yaruo: 3, numai: 3, kusa: 3, neko: 3, chiikawa: 3, ronpa: 2, ojisan: 2, kmr: 3, mur: 3, tono: 2, kirinuki: 3, zombie: 3, kagiaka: 2 },
       decks: createDefaultDecks(defaultDeck),
@@ -170,6 +178,10 @@ window.addEventListener("error", function(ev) {
   function updateHeaderUI() {
     document.getElementById("user-points").innerText = userData.points;
     document.getElementById("display-player-name").innerText = userData.playerName || DEFAULT_PLAYER_NAME;
+    var idEl = document.getElementById("display-player-id");
+    if (idEl && userData.playerId) idEl.innerText = userData.playerId;
+    var avEl = document.getElementById("display-player-avatar");
+    if (avEl) avEl.innerText = userData.avatar || "👤";
   }
 
   // ================= アップデートお知らせ機能 =================
@@ -270,6 +282,10 @@ window.addEventListener("error", function(ev) {
   // ================= プレイヤー名変更モーダル =================
   _on("btn-edit-player-name", "click", function() {
     document.getElementById("player-name-input").value = userData.playerName || DEFAULT_PLAYER_NAME;
+    selectedAvatarTemp = userData.avatar || "👤";
+    document.querySelectorAll(".avatar-opt-btn").forEach(function(b) {
+      b.style.borderColor = (b.getAttribute("data-avatar") === selectedAvatarTemp) ? "#00d2ff" : "#444";
+    });
     var _m_name_edit_modal = document.getElementById("name-edit-modal"); if(_m_name_edit_modal) { _m_name_edit_modal.style.display = "flex"; _m_name_edit_modal.style.pointerEvents = "auto"; }
   });
 
@@ -2501,6 +2517,320 @@ window.addEventListener("error", function(ev) {
       });
     }
   }
+
+  // ================= フレンド機能＆オンライン状態同期 =================
+  var friendListCache = {};
+  var friendReqCache = {};
+  var selectedAvatarTemp = userData.avatar || "👤";
+
+  document.querySelectorAll(".avatar-opt-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      selectedAvatarTemp = btn.getAttribute("data-avatar");
+      document.querySelectorAll(".avatar-opt-btn").forEach(function(b) {
+        b.style.borderColor = (b === btn) ? "#00d2ff" : "#444";
+      });
+    });
+  });
+
+  _on("btn-save-name", "click", function() {
+    userData.avatar = selectedAvatarTemp;
+    saveUserData();
+    syncMyProfileToFirebase(true);
+  });
+
+  function copyPlayerId() {
+    if (userData.playerId) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(userData.playerId).then(function() {
+          alert("プレイヤーID「" + userData.playerId + "」をコピーしました！");
+        }).catch(function() {
+          prompt("プレイヤーIDをコピーしてください:", userData.playerId);
+        });
+      } else {
+        prompt("プレイヤーIDをコピーしてください:", userData.playerId);
+      }
+    }
+  }
+  _on("btn-copy-my-id", "click", copyPlayerId);
+  _on("btn-modal-copy-id", "click", copyPlayerId);
+
+  function syncMyProfileToFirebase(isOnline) {
+    if (typeof firebase === "undefined" || !userData.playerId) return;
+    var db = firebase.database();
+    var userRef = db.ref("users/" + userData.playerId);
+    userRef.update({
+      name: userData.playerName || DEFAULT_PLAYER_NAME,
+      avatar: userData.avatar || "👤",
+      online: !!isOnline,
+      lastSeen: Date.now()
+    });
+    if (isOnline) {
+      userRef.child("online").onDisconnect().set(false);
+    }
+  }
+
+  function initFriendSystem() {
+    if (typeof firebase === "undefined" || !userData.playerId) return;
+    var db = firebase.database();
+    var myId = userData.playerId;
+
+    syncMyProfileToFirebase(true);
+
+    db.ref("friend_requests/" + myId).on("value", function(snap) {
+      friendReqCache = snap.val() || {};
+      var count = Object.keys(friendReqCache).length;
+      var badge = document.getElementById("home-friend-badge");
+      if (badge) {
+        badge.style.display = count > 0 ? "inline-block" : "none";
+        badge.innerText = count;
+      }
+      renderFriendModal();
+    });
+
+    db.ref("friends/" + myId).on("value", function(snap) {
+      var rawFriends = snap.val() || {};
+      var friendIds = Object.keys(rawFriends);
+      friendListCache = {};
+      if (friendIds.length === 0) {
+        renderFriendModal();
+        updateHomeFriendAvatars();
+        return;
+      }
+      friendIds.forEach(function(fid) {
+        db.ref("users/" + fid).on("value", function(uSnap) {
+          if (uSnap.exists()) {
+            friendListCache[fid] = uSnap.val();
+            renderFriendModal();
+            updateHomeFriendAvatars();
+          }
+        });
+      });
+    });
+
+    db.ref("duel_invites/" + myId).on("value", function(snap) {
+      var invite = snap.val();
+      var modal = document.getElementById("friend-invite-modal");
+      if (!invite || !invite.hostPeerId) {
+        if (modal) { modal.style.display = "none"; modal.style.pointerEvents = "none"; }
+        return;
+      }
+      var invText = document.getElementById("friend-invite-text");
+      if (invText) {
+        invText.innerText = (invite.fromName || "フレンド") + " から対戦の招待が届いています！";
+      }
+      if (modal) { modal.style.display = "flex"; modal.style.pointerEvents = "auto"; }
+
+      var accBtn = document.getElementById("btn-accept-invite");
+      if (accBtn) {
+        accBtn.onclick = function() {
+          db.ref("duel_invites/" + myId).remove();
+          modal.style.display = "none";
+          modal.style.pointerEvents = "none";
+          joinFriendDuel(invite.hostPeerId);
+        };
+      }
+      var decBtn = document.getElementById("btn-decline-invite");
+      if (decBtn) {
+        decBtn.onclick = function() {
+          db.ref("duel_invites/" + myId).remove();
+          modal.style.display = "none";
+          modal.style.pointerEvents = "none";
+        };
+      }
+    });
+  }
+
+  function updateHomeFriendAvatars() {
+    var box = document.getElementById("home-friend-avatars");
+    if (!box) return;
+    var fids = Object.keys(friendListCache);
+    if (fids.length === 0) {
+      box.innerHTML = '<div class="cyber-friend-node">➕</div>';
+      return;
+    }
+    box.innerHTML = fids.slice(0, 4).map(function(fid) {
+      var f = friendListCache[fid];
+      var dotClass = f.online ? "cyber-friend-dot" : "cyber-friend-dot off";
+      return '<div class="cyber-friend-node">' + (f.avatar || "👤") + '<span class="' + dotClass + '"></span></div>';
+    }).join("");
+  }
+
+  function renderFriendModal() {
+    var myIdEl = document.getElementById("modal-my-friend-id");
+    if (myIdEl) myIdEl.innerText = userData.playerId;
+
+    var reqSec = document.getElementById("friend-requests-section");
+    var reqList = document.getElementById("friend-requests-list");
+    var reqIds = Object.keys(friendReqCache);
+    if (reqSec && reqList) {
+      if (reqIds.length > 0) {
+        reqSec.style.display = "block";
+        reqList.innerHTML = reqIds.map(function(rid) {
+          var r = friendReqCache[rid];
+          return '<div style="display:flex; justify-content:space-between; align-items:center; background:#252525; padding:6px 10px; border-radius:8px;">' +
+            '<span>' + (r.avatar || "👤") + ' <strong>' + (r.name || rid) + '</strong> <small style="color:#aaa;">(#' + rid + ')</small></span>' +
+            '<div style="display:flex; gap:6px;">' +
+              '<button class="primary-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="window.__acceptFriend(\'' + rid + '\')">✅ 承認</button>' +
+              '<button class="sub-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="window.__rejectFriend(\'' + rid + '\')">✕</button>' +
+            '</div></div>';
+        }).join("");
+      } else {
+        reqSec.style.display = "none";
+      }
+    }
+
+    var listEl = document.getElementById("friend-list-container");
+    if (!listEl) return;
+    var fids = Object.keys(friendListCache);
+    if (fids.length === 0) {
+      listEl.innerHTML = '<p style="color:#888; font-size:0.85rem; text-align:center; padding:12px;">まだフレンドがいません。IDを入力して申請しよう！</p>';
+      return;
+    }
+    listEl.innerHTML = fids.map(function(fid) {
+      var f = friendListCache[fid];
+      var statusBadge = f.online
+        ? '<span style="color:#00ff88; font-size:0.75rem;">● オンライン</span>'
+        : '<span style="color:#888; font-size:0.75rem;">● オフライン</span>';
+      return '<div style="display:flex; justify-content:space-between; align-items:center; background:#1c2430; border:1px solid #334155; padding:8px 10px; border-radius:8px;">' +
+        '<div>' +
+          '<div style="font-weight:bold;">' + (f.avatar || "👤") + ' ' + (f.name || fid) + ' <small style="color:#94a3b8;">#' + fid + '</small></div>' +
+          statusBadge +
+        '</div>' +
+        '<div style="display:flex; gap:6px;">' +
+          '<button class="primary-btn" style="padding:5px 10px; font-size:0.78rem;" onclick="window.__inviteFriendDuel(\'' + fid + '\')">⚔️ 対戦</button>' +
+          '<button class="sub-btn" style="padding:5px 8px; font-size:0.75rem;" onclick="window.__removeFriend(\'' + fid + '\')">削除</button>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+  }
+
+  window.__acceptFriend = function(targetId) {
+    var db = firebase.database();
+    var myId = userData.playerId;
+    db.ref("friends/" + myId + "/" + targetId).set(true);
+    db.ref("friends/" + targetId + "/" + myId).set(true);
+    db.ref("friend_requests/" + myId + "/" + targetId).remove();
+  };
+
+  window.__rejectFriend = function(targetId) {
+    firebase.database().ref("friend_requests/" + userData.playerId + "/" + targetId).remove();
+  };
+
+  window.__removeFriend = function(targetId) {
+    if (!confirm("このフレンドを解除しますか？")) return;
+    var db = firebase.database();
+    var myId = userData.playerId;
+    db.ref("friends/" + myId + "/" + targetId).remove();
+    db.ref("friends/" + targetId + "/" + myId).remove();
+    delete friendListCache[targetId];
+    renderFriendModal();
+    updateHomeFriendAvatars();
+  };
+
+  window.__inviteFriendDuel = function(targetId) {
+    var myDeck = getSelectedDeckCards();
+    if (!myDeck || myDeck.cards.length !== DECK_SIZE) {
+      alert("対戦するには40枚のデッキを編成・選択してください！");
+      return;
+    }
+    state.mode = "online";
+    p1OnlineDeck = myDeck;
+    var hostPeerId = ROOM_PREFIX + "frd-" + userData.playerId + "-" + Math.floor(1000 + Math.random() * 9000);
+    if (peer) { peer.destroy(); }
+    peer = new Peer(hostPeerId);
+
+    peer.on("open", function() {
+      firebase.database().ref("duel_invites/" + targetId).set({
+        fromId: userData.playerId,
+        fromName: userData.playerName || DEFAULT_PLAYER_NAME,
+        hostPeerId: hostPeerId,
+        timestamp: Date.now()
+      });
+      var msg = document.getElementById("friend-action-msg");
+      if (msg) {
+        msg.style.color = "#00ff88";
+        msg.innerText = "⚔️ 対戦招待を送信しました！相手の応答を待っています...";
+      }
+    });
+
+    peer.on("connection", function(connection) {
+      var fm = document.getElementById("friend-modal");
+      if (fm) { fm.style.display = "none"; fm.style.pointerEvents = "none"; }
+      conn = connection;
+      state.myRole = "p1";
+      setupConnectionHandlers();
+    });
+  };
+
+  function joinFriendDuel(hostPeerId) {
+    var myDeck = getSelectedDeckCards();
+    if (!myDeck || myDeck.cards.length !== DECK_SIZE) {
+      alert("対戦するには40枚のデッキを編成・選択してください！");
+      return;
+    }
+    state.mode = "online";
+    p1OnlineDeck = myDeck;
+    if (peer) { peer.destroy(); }
+    peer = new Peer();
+    peer.on("open", function() {
+      conn = peer.connect(hostPeerId);
+      conn.on("open", function() {
+        state.myRole = "p2";
+        setupConnectionHandlers();
+        conn.send({
+          type: "SEND_DECK",
+          deck: p1OnlineDeck,
+          playerName: userData.playerName || DEFAULT_PLAYER_NAME
+        });
+      });
+    });
+  }
+
+  _on("btn-open-friends", "click", function() {
+    renderFriendModal();
+    var m = document.getElementById("friend-modal");
+    if (m) { m.style.display = "flex"; m.style.pointerEvents = "auto"; }
+  });
+
+  _on("btn-close-friend", "click", function() {
+    var m = document.getElementById("friend-modal");
+    if (m) { m.style.display = "none"; m.style.pointerEvents = "none"; }
+  });
+
+  _on("btn-send-friend-req", "click", function() {
+    var input = document.getElementById("friend-id-input");
+    var msg = document.getElementById("friend-action-msg");
+    var targetId = (input.value || "").trim().toUpperCase();
+    if (targetId.length !== 6) {
+      msg.style.color = "#ff6b6b";
+      msg.innerText = "6桁のプレイヤーIDを入力してください。";
+      return;
+    }
+    if (targetId === userData.playerId) {
+      msg.style.color = "#ff6b6b";
+      msg.innerText = "自分自身には申請できません。";
+      return;
+    }
+    var db = firebase.database();
+    db.ref("users/" + targetId).once("value").then(function(snap) {
+      if (!snap.exists()) {
+        msg.style.color = "#ff6b6b";
+        msg.innerText = "該当するIDのプレイヤーが見つかりません。";
+        return;
+      }
+      db.ref("friend_requests/" + targetId + "/" + userData.playerId).set({
+        name: userData.playerName || DEFAULT_PLAYER_NAME,
+        avatar: userData.avatar || "👤",
+        timestamp: Date.now()
+      }).then(function() {
+        msg.style.color = "#00ff88";
+        msg.innerText = "✅ 「" + (snap.val().name || targetId) + "」にフレンド申請を送りました！";
+        input.value = "";
+      });
+    });
+  });
+
+  initFriendSystem();
 
   function startMatch(p1Deck, p2Deck, p2Name, p2StartHp, bossQuote) {
     addMissionStat("battles", 1);
