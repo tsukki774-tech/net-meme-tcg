@@ -828,7 +828,39 @@
       this.tone(1174.66, "square", 0.2, 0.24, 0.18);
       this.tone(1760, "square", 0.55, 0.26, 0.32);
     },
-    cardFlip: function(rarity) {
+    bsodBeep: function() {
+      this.tone(440, "square", 0.14, 0.18, 0);
+      this.tone(330, "square", 0.22, 0.2, 0.14);
+    },
+    bsodOverride: function() {
+      this.noise(0.45, 0.4, 0, 2600);
+      this.tone(523.25, "square", 0.16, 0.22, 0.05);
+      this.tone(783.99, "square", 0.18, 0.24, 0.16);
+      this.tone(1046.5, "square", 0.22, 0.25, 0.28);
+      this.tone(1567.98, "triangle", 0.55, 0.28, 0.4);
+    },
+    notifPop: function(step) {
+      var base = 780 + step * 95;
+      this.tone(base, "sine", 0.08, 0.16, 0);
+      this.tone(base * 1.33, "sine", 0.12, 0.18, 0.05);
+    },
+    jikaiDrum: function() {
+      this.noise(0.07, 0.22, 0, 650);
+      this.tone(110, "triangle", 0.08, 0.2, 0, 75);
+    },
+    jikaiDon: function(isGod) {
+      this.noise(0.5, 0.42, 0, 420);
+      this.tone(95, "sawtooth", 0.55, 0.3, 0, 38);
+      this.tone(isGod ? 1318.5 : 1046.5, "triangle", 0.65, 0.25, 0.08);
+    },
+    nurupoGatsu: function(isGod) {
+      this.noise(0.4, 0.45, 0, 1400);
+      this.tone(140, "sawtooth", 0.35, 0.3, 0, 42);
+      this.tone(880, "square", 0.16, 0.22, 0.08);
+      this.tone(1318.5, "square", 0.22, 0.24, 0.18);
+      if (isGod) this.tone(1760, "triangle", 0.5, 0.26, 0.28);
+    },
+        cardFlip: function(rarity) {
       if (rarity === "GOD") {
         this.noise(0.25, 0.25, 0, 2600);
         this.tone(523.25, "triangle", 0.45, 0.22, 0);
@@ -1015,7 +1047,7 @@
         visual.classList.remove("pack-tearing-anim");
         triggerSpecialCutin(data.maxRarity, function() {
           revealCardsSequence(data);
-        });
+        }, data.pulled);
       }, 1350);
 
     } else {
@@ -1030,7 +1062,7 @@
         if (data.maxRarity === "UR" || data.maxRarity === "GOD") {
           triggerSpecialCutin(data.maxRarity, function() {
             revealCardsSequence(data);
-          });
+          }, data.pulled);
         } else {
           revealCardsSequence(data);
         }
@@ -1039,40 +1071,213 @@
   }
 
   // =========================================================================
-  // 激アツ演出ルーレット（全6パターン：パチンコ / 画面クラッシュ / 777スロット / トレンド炎上 / 宇宙ビッグバン / プチュン暗転）
+  // 激アツ演出ルーレット（全10パターン：既存6種 + BSoD再起動 / 通知万バズ / 次回予告 / ぬるぽ→ガッ！）
   // =========================================================================
   function pickCutinType(rarity) {
     var r = Math.random() * 100;
     if (rarity === "GOD") {
-      // GOD時：ビッグバン(35%) / 暗転(20%) / 777(15%) / クラッシュ(10%) / トレンド(10%) / パチンコ(10%)
-      if (r < 35) return "bigbang";
-      if (r < 55) return "blackout";
-      if (r < 70) return "slot";
-      if (r < 80) return "crash";
-      if (r < 90) return "trend";
+      if (r < 18) return "bsod";
+      if (r < 34) return "jikai";
+      if (r < 48) return "notif";
+      if (r < 60) return "nurupo";
+      if (r < 74) return "bigbang";
+      if (r < 84) return "blackout";
+      if (r < 90) return "slot";
+      if (r < 94) return "crash";
+      if (r < 97) return "trend";
       return "pachinko";
     } else {
-      // UR時：パチンコ(22%) / クラッシュ(20%) / 777(20%) / トレンド(18%) / 暗転(15%) / ビッグバン(5%)
-      if (r < 22) return "pachinko";
-      if (r < 42) return "crash";
-      if (r < 62) return "slot";
-      if (r < 80) return "trend";
-      if (r < 95) return "blackout";
+      if (r < 15) return "bsod";
+      if (r < 30) return "notif";
+      if (r < 45) return "jikai";
+      if (r < 60) return "nurupo";
+      if (r < 68) return "pachinko";
+      if (r < 76) return "crash";
+      if (r < 84) return "slot";
+      if (r < 91) return "trend";
+      if (r < 97) return "blackout";
       return "bigbang";
     }
   }
 
-  function triggerSpecialCutin(rarity, onComplete) {
+  function triggerSpecialCutin(rarity, onComplete, pulledCards) {
     var overlay = document.getElementById("pachinko-overlay");
-    var scenes = ["scene-pachinko", "scene-crash", "scene-slot", "scene-trend", "scene-bigbang", "scene-blackout"];
+    var scenes = [
+      "scene-pachinko", "scene-crash", "scene-slot", "scene-trend", "scene-bigbang", "scene-blackout",
+      "scene-bsod", "scene-notif", "scene-jikai", "scene-nurupo"
+    ];
     scenes.forEach(function(id) {
-      document.getElementById(id).classList.remove("active");
+      var el = document.getElementById(id);
+      if (el) el.classList.remove("active");
     });
     overlay.classList.remove("quake-anim");
     overlay.style.display = "flex";
 
     var isGod = (rarity === "GOD");
     var type = pickCutinType(rarity);
+
+    if (type === "bsod") {
+      // 7. 💻 ブルースクリーン（BSoD）→ 強制再起動演出
+      var scBsod = document.getElementById("scene-bsod");
+      var errView = document.getElementById("bsod-error-view");
+      var ovView = document.getElementById("bsod-override-view");
+      var pctEl = document.getElementById("bsod-percent");
+      var ovText = document.getElementById("bsod-override-text");
+
+      scBsod.className = "effect-scene bsod-bg active";
+      errView.style.display = "block";
+      ovView.style.display = "none";
+      pctEl.innerText = "0% 完了";
+      PackSFX.bsodBeep();
+
+      setTimeout(function() { pctEl.innerText = "48% 完了"; }, 320);
+      setTimeout(function() { pctEl.innerText = "100% 完了"; }, 640);
+      setTimeout(function() {
+        PackSFX.bsodOverride();
+        overlay.classList.add("quake-anim");
+        scBsod.classList.add("override-mode");
+        errView.style.display = "none";
+        ovView.style.display = "flex";
+        ovText.className = isGod ? "pachi-main-text god-text" : "pachi-main-text";
+        ovText.innerHTML = isGod
+          ? "【SYSTEM OVERRIDE】<br>🌈 GOD権限で強制復旧!! 🌈"
+          : "【SYSTEM OVERRIDE】<br>🚨 URデータ強制サルベージ!! 🚨";
+      }, 950);
+      setTimeout(function() {
+        overlay.classList.remove("quake-anim");
+        overlay.style.display = "none";
+        onComplete();
+      }, 2350);
+      return;
+
+    } else if (type === "notif") {
+      // 8. 📱 通知爆発＆万バズカウンター演出
+      var scNotif = document.getElementById("scene-notif");
+      var stackEl = document.getElementById("notif-banner-stack");
+      var countEl = document.getElementById("notif-like-count");
+      var rankEl = document.getElementById("notif-rank-label");
+
+      scNotif.classList.add("active");
+      stackEl.innerHTML = "";
+      countEl.innerText = "0";
+      rankEl.innerText = "拡散開始…！";
+
+      var messages = [
+        "📱 X通知：あなたの投稿が急上昇中です！",
+        "🔥 トレンド速報：RTが10,000件を突破しました！",
+        "🚨 サーバー警告：アクセス集中により通知が爆発中！",
+        isGod ? "🌈 神話降臨：全ネット民が奇跡のGOD引きを目撃！！" : "⚡ 激アツ通知：URレア引き当てで万バズ確定！！"
+      ];
+      var counts = ["1,280", "14,900", "58,400", isGod ? "1,145,140 🌈" : "128,000 🔥"];
+
+      messages.forEach(function(msg, idx) {
+        setTimeout(function() {
+          PackSFX.notifPop(idx);
+          var toast = document.createElement("div");
+          toast.className = "notif-toast";
+          if (idx === 3) toast.style.borderLeftColor = isGod ? "#00ff88" : "#ff4757";
+          toast.innerText = msg;
+          stackEl.appendChild(toast);
+          countEl.innerText = counts[idx];
+          if (idx === 2) {
+            overlay.classList.add("quake-anim");
+            rankEl.innerText = "🔥 万バズ達成！！まだまだ伸びる！！";
+          } else if (idx === 3) {
+            rankEl.style.color = isGod ? "#00ff88" : "#ff4757";
+            rankEl.innerText = isGod ? "🌈 トレンド世界1位・GOD降臨確定!! 🌈" : "🚨 10万バズ突破!! UR確定!! 🚨";
+          }
+        }, idx * 360);
+      });
+
+      setTimeout(function() {
+        overlay.classList.remove("quake-anim");
+        overlay.style.display = "none";
+        onComplete();
+      }, 2250);
+      return;
+
+    } else if (type === "jikai") {
+      // 9. 🎰 パチンコ風・次回予告演出
+      var scJikai = document.getElementById("scene-jikai");
+      var jTextEl = document.getElementById("jikai-main-text");
+      var jBadgeEl = document.getElementById("jikai-sub-badge");
+
+      scJikai.classList.add("active");
+      jTextEl.innerText = "";
+      jBadgeEl.style.opacity = "0";
+
+      var topCard = (pulledCards && pulledCards.length > 0)
+        ? pulledCards.slice().sort(function(a, b) {
+            var rk = { N: 1, R: 2, SR: 3, UR: 4, GOD: 5, ADMIN: 6 };
+            return (rk[b.rarity] || 0) - (rk[a.rarity] || 0);
+          })[0]
+        : null;
+
+      var fullScript = isGod
+        ? "次回、
+『" + (topCard ? topCard.name : "伝説のGOD降臨") + "』"
+        : "次回、
+『" + (topCard ? topCard.name : "激アツUR覚醒") + "』";
+
+      var charIdx = 0;
+      var typeTimer = setInterval(function() {
+        if (charIdx < fullScript.length) {
+          jTextEl.innerText += fullScript.charAt(charIdx);
+          if (charIdx % 2 === 0) PackSFX.jikaiDrum();
+          charIdx++;
+        } else {
+          clearInterval(typeTimer);
+        }
+      }, 65);
+
+      setTimeout(function() {
+        clearInterval(typeTimer);
+        jTextEl.innerText = fullScript;
+        PackSFX.jikaiDon(isGod);
+        overlay.classList.add("quake-anim");
+        jBadgeEl.style.opacity = "1";
+        jBadgeEl.style.color = isGod ? "#00ff88" : "#ffd32a";
+        jBadgeEl.innerText = isGod ? "🌈 激熱・GOD降臨確定!! 🌈" : "🔥 激アツ・UR確定!! 🔥";
+      }, 1350);
+
+      setTimeout(function() {
+        clearInterval(typeTimer);
+        overlay.classList.remove("quake-anim");
+        overlay.style.display = "none";
+        onComplete();
+      }, 2400);
+      return;
+
+    } else if (type === "nurupo") {
+      // 10. 🔨 ぬるぽ → ガッ！（文字打ち込み逆転）演出
+      var scNurupo = document.getElementById("scene-nurupo");
+      var p1 = document.getElementById("nurupo-phase1");
+      var p2 = document.getElementById("nurupo-phase2");
+      var nText = document.getElementById("nurupo-revive-text");
+
+      scNurupo.classList.add("active");
+      p1.style.display = "block";
+      p2.style.display = "none";
+      PackSFX.crashFake();
+
+      setTimeout(function() {
+        PackSFX.nurupoGatsu(isGod);
+        overlay.classList.add("quake-anim");
+        p1.style.display = "none";
+        p2.style.display = "flex";
+        nText.className = isGod ? "pachi-main-text god-text" : "pachi-main-text";
+        nText.innerHTML = isGod
+          ? "🌈 ハンマー直撃・GOD昇格!! 🌈"
+          : "🚨 強制昇格!! UR確定!! 🚨";
+      }, 850);
+
+      setTimeout(function() {
+        overlay.classList.remove("quake-anim");
+        overlay.style.display = "none";
+        onComplete();
+      }, 2250);
+      return;
+    }
 
     if (type === "pachinko") {
       // 1. 🚨 定番パチンコ・キュイン演出
