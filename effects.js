@@ -60,7 +60,7 @@ window.CardEffects = {
     else if (card.id === "savanna") { if (opp.field.length > 0) { opp.field[0].atk = 1; ctx.log("🦁 サバンナ男効果！相手ミームの攻撃力が1になった！"); } }
     else if (card.id === "nyan") { ctx.drawCard(who); card.atk += 1; ctx.log("🌈 Nyan Cat効果：1枚ドロー＆攻撃力+1！"); }
     else if (card.id === "streamer") { self.giga = Math.min(self.maxGiga, self.giga + 1); ctx.log("🎙️ 大手配信者効果：ギガを1回復！"); }
-    } else if (card.id === "admin_god_dev") {
+    else if (card.id === "admin_god_dev") {
       card.shield = true;
       var stolenNames = [];
       while (opp.field.length > 0 && self.field.length < 3) {
@@ -160,6 +160,7 @@ window.CardEffects = {
       ctx.drawCard(who);
       if (self.hand.length > 0) self.hand.splice(Math.floor(Math.random() * self.hand.length), 1);
       ctx.log("🧐 「私、気になります！」1枚ドロー＆1枚ランダム破棄！");
+    }
   },
 
   executeSpell: function(ctx, who, card) {
