@@ -908,7 +908,7 @@ window.addEventListener("error", function(ev) {
   _on("tab-pack-2", "click", function() { selectPackTab(2); });
   _on("tab-pack-3", "click", function() { selectPackTab(3); });
 
-  _on("btn-view-pack-list", "click", function() {
+  function renderPackCardListModal() {
     var packCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
     var rarityOrder = { GOD: 0, UR: 1, SR: 2, R: 3, N: 4 };
     packCards.sort(function(a, b) { return rarityOrder[a.rarity] - rarityOrder[b.rarity]; });
@@ -921,9 +921,30 @@ window.addEventListener("error", function(ev) {
     document.getElementById("modal-pack-title").innerText =
       (packTitles[selectedPackNo] || "📋 パック一覧") + "（全" + packCards.length + "種）";
 
+    var kw = (document.getElementById("pack-search-input") ? document.getElementById("pack-search-input").value : "").trim().toLowerCase();
+    var pRar = document.getElementById("pack-filter-rarity") ? document.getElementById("pack-filter-rarity").value : "ALL";
+    var pType = document.getElementById("pack-filter-type") ? document.getElementById("pack-filter-type").value : "ALL";
+    var pOwn = document.getElementById("pack-filter-owned") ? document.getElementById("pack-filter-owned").value : "ALL";
+
+    var filtered = packCards.filter(function(card) {
+      var owned = userData.collection[card.id] || 0;
+      if (pRar !== "ALL" && card.rarity !== pRar) return false;
+      if (pType !== "ALL" && card.type !== pType) return false;
+      if (pOwn === "OWNED" && owned <= 0) return false;
+      if (pOwn === "UNOWNED" && owned > 0) return false;
+      if (kw) {
+        var hay = ((card.name || "") + " " + (card.desc || "") + " " + (card.era || "")).toLowerCase();
+        if (hay.indexOf(kw) === -1) return false;
+      }
+      return true;
+    });
+
     var grid = document.getElementById("modal-card-grid");
     grid.innerHTML = "";
-    packCards.forEach(function(card) {
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#94a3b8; padding:20px;">条件に一致するカードがありません</div>';
+    }
+    filtered.forEach(function(card) {
       var owned = userData.collection[card.id] || 0;
       var el = createCardElement(card, null, {});
       var badge = document.createElement("div");
@@ -932,7 +953,19 @@ window.addEventListener("error", function(ev) {
       el.appendChild(badge);
       grid.appendChild(el);
     });
+  }
 
+  _on("pack-search-input", "input", renderPackCardListModal);
+  _on("pack-filter-rarity", "change", renderPackCardListModal);
+  _on("pack-filter-type", "change", renderPackCardListModal);
+  _on("pack-filter-owned", "change", renderPackCardListModal);
+
+  _on("btn-view-pack-list", "click", function() {
+    var ps = document.getElementById("pack-search-input"); if (ps) ps.value = "";
+    var pr = document.getElementById("pack-filter-rarity"); if (pr) pr.value = "ALL";
+    var pt = document.getElementById("pack-filter-type"); if (pt) pt.value = "ALL";
+    var po = document.getElementById("pack-filter-owned"); if (po) po.value = "ALL";
+    renderPackCardListModal();
     var _m_pack_list_modal = document.getElementById("pack-list-modal"); if(_m_pack_list_modal) { _m_pack_list_modal.style.display = "flex"; _m_pack_list_modal.style.pointerEvents = "auto"; }
   });
 
@@ -2142,10 +2175,57 @@ window.addEventListener("error", function(ev) {
 
     var colListEl = document.getElementById("collection-list");
     colListEl.innerHTML = "";
-    ALL_CARDS.forEach(function(card) {
+
+    var kw = (document.getElementById("deck-search-input") ? document.getElementById("deck-search-input").value : "").trim().toLowerCase();
+    var fType = document.getElementById("deck-filter-type") ? document.getElementById("deck-filter-type").value : "ALL";
+    var fEra = document.getElementById("deck-filter-era") ? document.getElementById("deck-filter-era").value : "ALL";
+    var fSort = document.getElementById("deck-filter-sort") ? document.getElementById("deck-filter-sort").value : "default";
+    var activeRarityBtn = document.querySelector("#deck-rarity-chips .filter-chip.active");
+    var fRarity = activeRarityBtn ? activeRarityBtn.getAttribute("data-rarity") : "ALL";
+    var activeCostBtn = document.querySelector("#deck-cost-chips .filter-chip.active");
+    var fCost = activeCostBtn ? activeCostBtn.getAttribute("data-cost") : "ALL";
+
+    var filteredCards = ALL_CARDS.filter(function(card) {
       var owned = userData.collection[card.id] || 0;
-      if (card.isAdminOnly && owned <= 0) return;
-      if (owned <= 0) return;
+      if (card.isAdminOnly && owned <= 0) return false;
+      if (owned <= 0) return false;
+      if (fType !== "ALL" && card.type !== fType) return false;
+      if (fEra !== "ALL" && card.era !== fEra) return false;
+      if (fRarity !== "ALL" && (card.rarity || "N") !== fRarity) return false;
+      if (fCost !== "ALL") {
+        if (fCost === "6+") {
+          if (card.cost < 6) return false;
+        } else {
+          if (card.cost !== Number(fCost)) return false;
+        }
+      }
+      if (kw) {
+        var hay = ((card.name || "") + " " + (card.desc || "") + " " + (card.era || "")).toLowerCase();
+        if (hay.indexOf(kw) === -1) return false;
+      }
+      return true;
+    });
+
+    var rarityRank = { ADMIN: 0, GOD: 1, UR: 2, SR: 3, R: 4, N: 5 };
+    if (fSort === "cost-asc") {
+      filteredCards.sort(function(a, b) { return a.cost - b.cost; });
+    } else if (fSort === "cost-desc") {
+      filteredCards.sort(function(a, b) { return b.cost - a.cost; });
+    } else if (fSort === "rarity-desc") {
+      filteredCards.sort(function(a, b) { return (rarityRank[a.rarity] || 9) - (rarityRank[b.rarity] || 9); });
+    } else if (fSort === "atk-desc") {
+      filteredCards.sort(function(a, b) { return (b.atk || -1) - (a.atk || -1); });
+    }
+
+    var countLabel = document.getElementById("deck-filter-count");
+    if (countLabel) countLabel.innerText = "表示: " + filteredCards.length + "種";
+
+    if (filteredCards.length === 0) {
+      colListEl.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#94a3b8; padding:20px;">条件に一致するカードがありません</div>';
+    }
+
+    filteredCards.forEach(function(card) {
+      var owned = userData.collection[card.id] || 0;
       var inDeckCount = editingDeckCards.filter(function(id) { return id === card.id; }).length;
       var el = createCardElement(card, function() {
         if (editingDeckCards.length >= DECK_SIZE) { alert("デッキは" + DECK_SIZE + "枚までです！"); return; }
@@ -2170,6 +2250,40 @@ window.addEventListener("error", function(ev) {
     available.sort(function() { return Math.random() - 0.5; });
     editingDeckCards = available.slice(0, DECK_SIZE);
     renderDeckBuilder();
+  });
+
+
+  // デッキ編成画面の絞り込みイベント
+  _on("deck-search-input", "input", renderDeckBuilder);
+  _on("deck-filter-type", "change", renderDeckBuilder);
+  _on("deck-filter-era", "change", renderDeckBuilder);
+  _on("deck-filter-sort", "change", renderDeckBuilder);
+  _on("btn-reset-deck-filter", "click", function() {
+    var sIn = document.getElementById("deck-search-input"); if (sIn) sIn.value = "";
+    var tSel = document.getElementById("deck-filter-type"); if (tSel) tSel.value = "ALL";
+    var eSel = document.getElementById("deck-filter-era"); if (eSel) eSel.value = "ALL";
+    var oSel = document.getElementById("deck-filter-sort"); if (oSel) oSel.value = "default";
+    document.querySelectorAll("#deck-rarity-chips .filter-chip").forEach(function(b) {
+      b.classList.toggle("active", b.getAttribute("data-rarity") === "ALL");
+    });
+    document.querySelectorAll("#deck-cost-chips .filter-chip").forEach(function(b) {
+      b.classList.toggle("active", b.getAttribute("data-cost") === "ALL");
+    });
+    renderDeckBuilder();
+  });
+  document.querySelectorAll("#deck-rarity-chips .filter-chip").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      document.querySelectorAll("#deck-rarity-chips .filter-chip").forEach(function(b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      renderDeckBuilder();
+    });
+  });
+  document.querySelectorAll("#deck-cost-chips .filter-chip").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      document.querySelectorAll("#deck-cost-chips .filter-chip").forEach(function(b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      renderDeckBuilder();
+    });
   });
 
   _on("btn-clear-deck", "click", function() {

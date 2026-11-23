@@ -505,6 +505,45 @@
     .mini-deck-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px; }
     .mini-chip { background: #2c2c2c; border: 1px solid #555; padding: 5px 10px; border-radius: 16px; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer; }
 
+
+    /* カード絞り込み・検索パネル */
+    .filter-panel {
+      background: #14171f; border: 1px solid #334155; border-radius: 10px;
+      padding: 10px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .filter-row {
+      display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    }
+    .filter-search-input {
+      flex: 1; min-width: 140px; padding: 8px 10px; border-radius: 8px;
+      border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 0.88rem;
+    }
+    .filter-select {
+      padding: 7px 8px; border-radius: 8px; border: 1px solid #475569;
+      background: #0f172a; color: #f8fafc; font-size: 0.82rem; font-weight: bold;
+    }
+    .filter-chip-row {
+      display: flex; gap: 5px; flex-wrap: wrap; align-items: center;
+    }
+    .filter-chip {
+      padding: 4px 9px; border-radius: 14px; border: 1px solid #475569;
+      background: #1e293b; color: #cbd5e1; font-size: 0.76rem; font-weight: bold; cursor: pointer;
+    }
+    .filter-chip.active {
+      background: #00d2ff; color: #090d16; border-color: #00d2ff; box-shadow: 0 0 8px rgba(0,210,255,0.45);
+    }
+    .filter-chip.rarity-GOD.active { background: linear-gradient(90deg, #ffd32a, #ff6b81); color: #111; border-color: #ffd32a; }
+    .filter-chip.rarity-UR.active { background: #ff4757; color: #fff; border-color: #ff4757; }
+    .filter-chip.rarity-SR.active { background: #ffd32a; color: #111; border-color: #ffd32a; }
+    .filter-chip.rarity-R.active { background: #00d2ff; color: #111; border-color: #00d2ff; }
+    .filter-reset-btn {
+      padding: 6px 10px; border-radius: 8px; border: 1px solid #64748b;
+      background: #334155; color: #fff; font-size: 0.78rem; font-weight: bold; cursor: pointer;
+    }
+    .filter-count-label {
+      font-size: 0.78rem; color: #94a3b8; margin-left: auto;
+    }
+
     /* 対戦準備・バトル画面 */
     .setup-box { background: #1e1e1e; padding: 18px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #333; display: flex; flex-direction: column; gap: 10px; }
     .setup-box select, .setup-box input { padding: 12px; border-radius: 8px; border: 1px solid #555; background: #121212; color: #fff; font-size: 1rem; }
@@ -2004,6 +2043,29 @@
           排出率：GOD 0.1%（確定枠0.1%） / UR 1.0%（確定枠3.0%） / SR 12%（確定枠27%） / R 30%（確定枠69.9%） / N 56.9%<br>
           <span style="color:#00d2ff;">💡 カードをタップすると詳細を拡大表示できます</span>
         </p>
+        <div class="filter-panel" style="margin-bottom:10px;">
+          <div class="filter-row">
+            <input type="text" id="pack-search-input" class="filter-search-input" placeholder="🔍 収録カード検索（名前・効果）">
+            <select id="pack-filter-rarity" class="filter-select">
+              <option value="ALL">レア：すべて</option>
+              <option value="GOD">GOD</option>
+              <option value="UR">UR</option>
+              <option value="SR">SR</option>
+              <option value="R">R</option>
+              <option value="N">N</option>
+            </select>
+            <select id="pack-filter-type" class="filter-select">
+              <option value="ALL">種類：すべて</option>
+              <option value="meme">ミーム</option>
+              <option value="spell">構文</option>
+            </select>
+            <select id="pack-filter-owned" class="filter-select">
+              <option value="ALL">所持：すべて</option>
+              <option value="OWNED">所持済みのみ</option>
+              <option value="UNOWNED">未所持のみ</option>
+            </select>
+          </div>
+        </div>
         <div id="modal-card-grid" class="card-grid"></div>
       </div>
     </div>
@@ -2033,7 +2095,60 @@
       <div id="current-deck-list" class="mini-deck-list"></div>
     </div>
     <div class="deck-section">
-      <h3>所持カード一覧（タップで追加 / 長押しで詳細確認）</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+        <h3 style="margin:0;">所持カード一覧（タップで追加 / 長押しで詳細確認）</h3>
+        <span id="deck-filter-count" class="filter-count-label">表示: 0種</span>
+      </div>
+      <div id="deck-filter-panel" class="filter-panel">
+        <div class="filter-row">
+          <input type="text" id="deck-search-input" class="filter-search-input" placeholder="🔍 カード名・効果・キーワード検索（例：無敵、ドロー）">
+          <select id="deck-filter-type" class="filter-select">
+            <option value="ALL">種類：すべて</option>
+            <option value="meme">ミームのみ</option>
+            <option value="spell">構文(スペル)のみ</option>
+          </select>
+          <select id="deck-filter-era" class="filter-select">
+            <option value="ALL">世代：すべて</option>
+            <option value="2ch">2ch</option>
+            <option value="ニコニコ">ニコニコ</option>
+            <option value="例のアレ">例のアレ</option>
+            <option value="VIP/なんJ">VIP/なんJ</option>
+            <option value="海外">海外</option>
+            <option value="配信者">配信者</option>
+            <option value="X炎上">X炎上</option>
+            <option value="令和">令和</option>
+            <option value="アニメ">アニメ</option>
+          </select>
+          <select id="deck-filter-sort" class="filter-select">
+            <option value="default">並び：標準順</option>
+            <option value="cost-asc">コスト低い順</option>
+            <option value="cost-desc">コスト高い順</option>
+            <option value="rarity-desc">レアリティ高い順</option>
+            <option value="atk-desc">攻撃力高い順</option>
+          </select>
+          <button type="button" id="btn-reset-deck-filter" class="filter-reset-btn">↺ リセット</button>
+        </div>
+        <div class="filter-chip-row" id="deck-rarity-chips">
+          <span style="font-size:0.75rem; color:#94a3b8;">レア:</span>
+          <button type="button" class="filter-chip active" data-rarity="ALL">全て</button>
+          <button type="button" class="filter-chip rarity-GOD" data-rarity="GOD">GOD</button>
+          <button type="button" class="filter-chip rarity-UR" data-rarity="UR">UR</button>
+          <button type="button" class="filter-chip rarity-SR" data-rarity="SR">SR</button>
+          <button type="button" class="filter-chip rarity-R" data-rarity="R">R</button>
+          <button type="button" class="filter-chip" data-rarity="N">N</button>
+        </div>
+        <div class="filter-chip-row" id="deck-cost-chips">
+          <span style="font-size:0.75rem; color:#94a3b8;">コスト:</span>
+          <button type="button" class="filter-chip active" data-cost="ALL">全て</button>
+          <button type="button" class="filter-chip" data-cost="0">0</button>
+          <button type="button" class="filter-chip" data-cost="1">1</button>
+          <button type="button" class="filter-chip" data-cost="2">2</button>
+          <button type="button" class="filter-chip" data-cost="3">3</button>
+          <button type="button" class="filter-chip" data-cost="4">4</button>
+          <button type="button" class="filter-chip" data-cost="5">5</button>
+          <button type="button" class="filter-chip" data-cost="6+">6以上</button>
+        </div>
+      </div>
       <div id="collection-list" class="card-grid"></div>
     </div>
   </div>
@@ -4066,7 +4181,7 @@ window.addEventListener("error", function(ev) {
   _on("tab-pack-2", "click", function() { selectPackTab(2); });
   _on("tab-pack-3", "click", function() { selectPackTab(3); });
 
-  _on("btn-view-pack-list", "click", function() {
+  function renderPackCardListModal() {
     var packCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
     var rarityOrder = { GOD: 0, UR: 1, SR: 2, R: 3, N: 4 };
     packCards.sort(function(a, b) { return rarityOrder[a.rarity] - rarityOrder[b.rarity]; });
@@ -4079,9 +4194,30 @@ window.addEventListener("error", function(ev) {
     document.getElementById("modal-pack-title").innerText =
       (packTitles[selectedPackNo] || "📋 パック一覧") + "（全" + packCards.length + "種）";
 
+    var kw = (document.getElementById("pack-search-input") ? document.getElementById("pack-search-input").value : "").trim().toLowerCase();
+    var pRar = document.getElementById("pack-filter-rarity") ? document.getElementById("pack-filter-rarity").value : "ALL";
+    var pType = document.getElementById("pack-filter-type") ? document.getElementById("pack-filter-type").value : "ALL";
+    var pOwn = document.getElementById("pack-filter-owned") ? document.getElementById("pack-filter-owned").value : "ALL";
+
+    var filtered = packCards.filter(function(card) {
+      var owned = userData.collection[card.id] || 0;
+      if (pRar !== "ALL" && card.rarity !== pRar) return false;
+      if (pType !== "ALL" && card.type !== pType) return false;
+      if (pOwn === "OWNED" && owned <= 0) return false;
+      if (pOwn === "UNOWNED" && owned > 0) return false;
+      if (kw) {
+        var hay = ((card.name || "") + " " + (card.desc || "") + " " + (card.era || "")).toLowerCase();
+        if (hay.indexOf(kw) === -1) return false;
+      }
+      return true;
+    });
+
     var grid = document.getElementById("modal-card-grid");
     grid.innerHTML = "";
-    packCards.forEach(function(card) {
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#94a3b8; padding:20px;">条件に一致するカードがありません</div>';
+    }
+    filtered.forEach(function(card) {
       var owned = userData.collection[card.id] || 0;
       var el = createCardElement(card, null, {});
       var badge = document.createElement("div");
@@ -4090,7 +4226,19 @@ window.addEventListener("error", function(ev) {
       el.appendChild(badge);
       grid.appendChild(el);
     });
+  }
 
+  _on("pack-search-input", "input", renderPackCardListModal);
+  _on("pack-filter-rarity", "change", renderPackCardListModal);
+  _on("pack-filter-type", "change", renderPackCardListModal);
+  _on("pack-filter-owned", "change", renderPackCardListModal);
+
+  _on("btn-view-pack-list", "click", function() {
+    var ps = document.getElementById("pack-search-input"); if (ps) ps.value = "";
+    var pr = document.getElementById("pack-filter-rarity"); if (pr) pr.value = "ALL";
+    var pt = document.getElementById("pack-filter-type"); if (pt) pt.value = "ALL";
+    var po = document.getElementById("pack-filter-owned"); if (po) po.value = "ALL";
+    renderPackCardListModal();
     var _m_pack_list_modal = document.getElementById("pack-list-modal"); if(_m_pack_list_modal) { _m_pack_list_modal.style.display = "flex"; _m_pack_list_modal.style.pointerEvents = "auto"; }
   });
 
@@ -5300,10 +5448,57 @@ window.addEventListener("error", function(ev) {
 
     var colListEl = document.getElementById("collection-list");
     colListEl.innerHTML = "";
-    ALL_CARDS.forEach(function(card) {
+
+    var kw = (document.getElementById("deck-search-input") ? document.getElementById("deck-search-input").value : "").trim().toLowerCase();
+    var fType = document.getElementById("deck-filter-type") ? document.getElementById("deck-filter-type").value : "ALL";
+    var fEra = document.getElementById("deck-filter-era") ? document.getElementById("deck-filter-era").value : "ALL";
+    var fSort = document.getElementById("deck-filter-sort") ? document.getElementById("deck-filter-sort").value : "default";
+    var activeRarityBtn = document.querySelector("#deck-rarity-chips .filter-chip.active");
+    var fRarity = activeRarityBtn ? activeRarityBtn.getAttribute("data-rarity") : "ALL";
+    var activeCostBtn = document.querySelector("#deck-cost-chips .filter-chip.active");
+    var fCost = activeCostBtn ? activeCostBtn.getAttribute("data-cost") : "ALL";
+
+    var filteredCards = ALL_CARDS.filter(function(card) {
       var owned = userData.collection[card.id] || 0;
-      if (card.isAdminOnly && owned <= 0) return;
-      if (owned <= 0) return;
+      if (card.isAdminOnly && owned <= 0) return false;
+      if (owned <= 0) return false;
+      if (fType !== "ALL" && card.type !== fType) return false;
+      if (fEra !== "ALL" && card.era !== fEra) return false;
+      if (fRarity !== "ALL" && (card.rarity || "N") !== fRarity) return false;
+      if (fCost !== "ALL") {
+        if (fCost === "6+") {
+          if (card.cost < 6) return false;
+        } else {
+          if (card.cost !== Number(fCost)) return false;
+        }
+      }
+      if (kw) {
+        var hay = ((card.name || "") + " " + (card.desc || "") + " " + (card.era || "")).toLowerCase();
+        if (hay.indexOf(kw) === -1) return false;
+      }
+      return true;
+    });
+
+    var rarityRank = { ADMIN: 0, GOD: 1, UR: 2, SR: 3, R: 4, N: 5 };
+    if (fSort === "cost-asc") {
+      filteredCards.sort(function(a, b) { return a.cost - b.cost; });
+    } else if (fSort === "cost-desc") {
+      filteredCards.sort(function(a, b) { return b.cost - a.cost; });
+    } else if (fSort === "rarity-desc") {
+      filteredCards.sort(function(a, b) { return (rarityRank[a.rarity] || 9) - (rarityRank[b.rarity] || 9); });
+    } else if (fSort === "atk-desc") {
+      filteredCards.sort(function(a, b) { return (b.atk || -1) - (a.atk || -1); });
+    }
+
+    var countLabel = document.getElementById("deck-filter-count");
+    if (countLabel) countLabel.innerText = "表示: " + filteredCards.length + "種";
+
+    if (filteredCards.length === 0) {
+      colListEl.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#94a3b8; padding:20px;">条件に一致するカードがありません</div>';
+    }
+
+    filteredCards.forEach(function(card) {
+      var owned = userData.collection[card.id] || 0;
       var inDeckCount = editingDeckCards.filter(function(id) { return id === card.id; }).length;
       var el = createCardElement(card, function() {
         if (editingDeckCards.length >= DECK_SIZE) { alert("デッキは" + DECK_SIZE + "枚までです！"); return; }
@@ -5328,6 +5523,40 @@ window.addEventListener("error", function(ev) {
     available.sort(function() { return Math.random() - 0.5; });
     editingDeckCards = available.slice(0, DECK_SIZE);
     renderDeckBuilder();
+  });
+
+
+  // デッキ編成画面の絞り込みイベント
+  _on("deck-search-input", "input", renderDeckBuilder);
+  _on("deck-filter-type", "change", renderDeckBuilder);
+  _on("deck-filter-era", "change", renderDeckBuilder);
+  _on("deck-filter-sort", "change", renderDeckBuilder);
+  _on("btn-reset-deck-filter", "click", function() {
+    var sIn = document.getElementById("deck-search-input"); if (sIn) sIn.value = "";
+    var tSel = document.getElementById("deck-filter-type"); if (tSel) tSel.value = "ALL";
+    var eSel = document.getElementById("deck-filter-era"); if (eSel) eSel.value = "ALL";
+    var oSel = document.getElementById("deck-filter-sort"); if (oSel) oSel.value = "default";
+    document.querySelectorAll("#deck-rarity-chips .filter-chip").forEach(function(b) {
+      b.classList.toggle("active", b.getAttribute("data-rarity") === "ALL");
+    });
+    document.querySelectorAll("#deck-cost-chips .filter-chip").forEach(function(b) {
+      b.classList.toggle("active", b.getAttribute("data-cost") === "ALL");
+    });
+    renderDeckBuilder();
+  });
+  document.querySelectorAll("#deck-rarity-chips .filter-chip").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      document.querySelectorAll("#deck-rarity-chips .filter-chip").forEach(function(b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      renderDeckBuilder();
+    });
+  });
+  document.querySelectorAll("#deck-cost-chips .filter-chip").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      document.querySelectorAll("#deck-cost-chips .filter-chip").forEach(function(b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      renderDeckBuilder();
+    });
   });
 
   _on("btn-clear-deck", "click", function() {
