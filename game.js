@@ -28,6 +28,86 @@ window.addEventListener("error", function(ev) {
   var currentMissionTab = "daily";
   var userData = loadUserData();
 
+  var PLAYMAT_THEMES = [
+    { id: "default",  name: "🌐 標準サイバー", price: 0,      selfClass: "pm-default-self", oppClass: "pm-default-opp" },
+    { id: "2ch",      name: "📜 2ch掲示板風",   price: 1000,   selfClass: "pm-2ch",          oppClass: "pm-2ch" },
+    { id: "grass",    name: "🌱 大草原(www)",   price: 3000,   selfClass: "pm-grass",        oppClass: "pm-grass" },
+    { id: "niconico", name: "📺 深夜ニコニコ",   price: 10000,  selfClass: "pm-niconico",     oppClass: "pm-niconico" },
+    { id: "enjo",     name: "🔥 X炎上レッド",   price: 25000,  selfClass: "pm-enjo",         oppClass: "pm-enjo" },
+    { id: "chaos",    name: "🌀 深淵カオス",     price: 50000,  selfClass: "pm-chaos",        oppClass: "pm-chaos" },
+    { id: "god",      name: "👑 黄金GOD神殿",    price: 100000, selfClass: "pm-god",          oppClass: "pm-god" }
+  ];
+
+  function getPlaymatTheme(id) {
+    return PLAYMAT_THEMES.find(function(t) { return t.id === id; }) || PLAYMAT_THEMES[0];
+  }
+
+  function isPlaymatUnlocked(id) {
+    if (id === "default") return true;
+    var list = Array.isArray(userData.unlockedPlaymats) ? userData.unlockedPlaymats : ["default"];
+    return list.indexOf(id) !== -1;
+  }
+
+  function setMyPlaymat(id) {
+    var theme = getPlaymatTheme(id);
+    if (!Array.isArray(userData.unlockedPlaymats)) {
+      userData.unlockedPlaymats = ["default"];
+    }
+    if (!isPlaymatUnlocked(theme.id)) {
+      var priceStr = theme.price.toLocaleString();
+      if (userData.points < theme.price) {
+        alert("💎 ダイヤが足りません！\n「" + theme.name + "」の解放には 💎 " + priceStr + " 個必要です。（現在: 💎 " + userData.points.toLocaleString() + " 個）");
+        return;
+      }
+      if (!confirm("💎 " + priceStr + " 個を使ってバトル場背景「" + theme.name + "」を解放しますか？")) {
+        return;
+      }
+      userData.points -= theme.price;
+      userData.unlockedPlaymats.push(theme.id);
+      alert("🎉 「" + theme.name + "」を解放してセットしました！");
+    }
+    userData.playmat = theme.id;
+    saveUserData();
+    renderPlaymatSelectors();
+    if (typeof syncMyProfileToFirebase === "function") {
+      syncMyProfileToFirebase(true);
+    }
+  }
+
+  function renderPlaymatSelectors() {
+    var currentId = isPlaymatUnlocked(userData.playmat) ? (userData.playmat || "default") : "default";
+    var currentTheme = getPlaymatTheme(currentId);
+    var lbl = document.getElementById("setup-playmat-current");
+    if (lbl) lbl.innerText = currentTheme.name;
+
+    ["setup-playmat-grid", "profile-playmat-grid"].forEach(function(gridId) {
+      var grid = document.getElementById(gridId);
+      if (!grid) return;
+      grid.innerHTML = "";
+      PLAYMAT_THEMES.forEach(function(t) {
+        var unlocked = isPlaymatUnlocked(t.id);
+        var isActive = (t.id === currentId);
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "playmat-opt-btn" + (isActive ? " active" : "") + (!unlocked ? " locked" : "");
+        var subHtml = "";
+        if (isActive) {
+          subHtml = '<span class="playmat-price-tag owned">✅ 装備中</span>';
+        } else if (unlocked) {
+          subHtml = '<span class="playmat-price-tag owned">所持済</span>';
+        } else {
+          subHtml = '<span class="playmat-price-tag">🔒 💎 ' + t.price.toLocaleString() + '</span>';
+        }
+        btn.innerHTML = '<div>' + t.name + '</div>' + subHtml;
+        btn.addEventListener("click", function() {
+          setMyPlaymat(t.id);
+        });
+        grid.appendChild(btn);
+      });
+    });
+  }
+
+
   var pendingPackData = null;
   var isTearing = false;
 
@@ -77,6 +157,15 @@ window.addEventListener("error", function(ev) {
         if (!parsed.avatar) {
           parsed.avatar = "👤";
         }
+        if (!parsed.playmat) {
+          parsed.playmat = "default";
+        }
+        if (!Array.isArray(parsed.unlockedPlaymats)) {
+          parsed.unlockedPlaymats = ["default"];
+          if (parsed.playmat !== "default") {
+            parsed.unlockedPlaymats.push(parsed.playmat);
+          }
+        }
         if (!Array.isArray(parsed.decks)) {
           parsed.decks = createDefaultDecks(Array.isArray(parsed.myDeck) ? parsed.myDeck : defaultDeck);
         }
@@ -93,6 +182,8 @@ window.addEventListener("error", function(ev) {
       playerName: DEFAULT_PLAYER_NAME,
       playerId: (Math.random().toString(36).substring(2) + "ABCDEF").substring(0, 6).toUpperCase(),
       avatar: "👤",
+      playmat: "default",
+      unlockedPlaymats: ["default"],
       points: 1500,
       collection: { mona: 3, giko: 3, yaruo: 3, numai: 3, kusa: 3, neko: 3, chiikawa: 3, ronpa: 2, ojisan: 2, kmr: 3, mur: 3, tono: 2, kirinuki: 3, zombie: 3, kagiaka: 2 },
       decks: createDefaultDecks(defaultDeck),
@@ -976,6 +1067,7 @@ window.addEventListener("error", function(ev) {
 
   _on("nav-battle", "click", function() {
     populateBattleDeckSelect();
+    renderPlaymatSelectors();
     document.getElementById("step-mode").style.display = "block";
     document.getElementById("step-boss").style.display = "none";
     document.getElementById("step-online").style.display = "none";
@@ -2411,7 +2503,7 @@ window.addEventListener("error", function(ev) {
       return found ? JSON.parse(JSON.stringify(found)) : null;
     }).filter(function(c) { return c !== null; });
     cards.sort(function() { return Math.random() - 0.5; });
-    return { cards: cards, label: label };
+    return { cards: cards, label: label, playmat: userData.playmat || "default" };
   }
 
   function renderBossList() {
@@ -2917,6 +3009,7 @@ window.addEventListener("error", function(ev) {
     if (im) { im.style.display = "none"; im.style.pointerEvents = "none"; }
 
     populateBattleDeckSelect();
+    renderPlaymatSelectors();
     showScreen("setup-screen");
     document.getElementById("step-mode").style.display = "none";
     document.getElementById("step-boss").style.display = "none";
@@ -3207,13 +3300,26 @@ window.addEventListener("error", function(ev) {
   });
 
   initFriendSystem();
+  renderPlaymatSelectors();
 
   function startMatch(p1Deck, p2Deck, p2Name, p2StartHp, bossQuote) {
     addMissionStat("battles", 1);
     var myName = userData.playerName || DEFAULT_PLAYER_NAME;
     state.turn = 1; state.activeSide = "p1";
-    state.p1 = { name: myName, label: p1Deck.label, hp: 20, maxGiga: 1, giga: 1, deck: p1Deck.cards, hand: [], field: [] };
-    state.p2 = { name: p2Name, label: p2Deck.label, hp: p2StartHp || 20, maxGiga: 1, giga: 1, deck: p2Deck.cards, hand: [], field: [] };
+    var p1Playmat = (p1Deck && p1Deck.playmat) ? p1Deck.playmat : (userData.playmat || "default");
+    var p2Playmat = (p2Deck && p2Deck.playmat) ? p2Deck.playmat : "default";
+    if (state.mode === "cpu" && state.currentBoss) {
+      var bossMats = {
+        normal_netizen: "2ch",
+        niconico_elder: "niconico",
+        enjo_streamer: "enjo",
+        yaju_alliance: "chaos",
+        god_admin: "god"
+      };
+      p2Playmat = bossMats[state.currentBoss.id] || "chaos";
+    }
+    state.p1 = { name: myName, label: p1Deck.label, playmat: p1Playmat, hp: 20, maxGiga: 1, giga: 1, deck: p1Deck.cards, hand: [], field: [] };
+    state.p2 = { name: p2Name, label: p2Deck.label, playmat: p2Playmat, hp: p2StartHp || 20, maxGiga: 1, giga: 1, deck: p2Deck.cards, hand: [], field: [] };
     showScreen("game-screen"); document.getElementById("log").innerHTML = "";
     for (var i = 0; i < 4; i++) { drawCard("p1"); drawCard("p2"); }
     state.isInputLocked = (state.mode === "online" && state.myRole !== "p1");
@@ -3793,7 +3899,10 @@ window.addEventListener("error", function(ev) {
     document.getElementById("end-turn-btn").disabled = state.isInputLocked;
 
     var oppFieldEl = document.getElementById("opp-field");
-    oppFieldEl.innerHTML = opp.field.length === 0 ? '<span class="empty-msg">相手の場にミームはいません</span>' : "";
+    var oppTheme = getPlaymatTheme(opp.playmat || "default");
+    oppFieldEl.className = "field-area " + oppTheme.oppClass;
+    oppFieldEl.innerHTML = '<span class="field-playmat-badge">相手マット: ' + oppTheme.name + '</span>' +
+      (opp.field.length === 0 ? '<span class="empty-msg">相手の場にミームはいません</span>' : "");
     opp.field.forEach(function(c, idx) {
       if (!c) return;
       try {
@@ -3805,7 +3914,10 @@ window.addEventListener("error", function(ev) {
     });
 
     var selfFieldEl = document.getElementById("self-field");
-    selfFieldEl.innerHTML = self.field.length === 0 ? '<span class="empty-msg">自分の場にミームはいません</span>' : "";
+    var selfTheme = getPlaymatTheme(self.playmat || userData.playmat || "default");
+    selfFieldEl.className = "field-area " + selfTheme.selfClass;
+    selfFieldEl.innerHTML = '<span class="field-playmat-badge">自分マット: ' + selfTheme.name + '</span>' +
+      (self.field.length === 0 ? '<span class="empty-msg">自分の場にミームはいません</span>' : "");
     self.field.forEach(function(c, idx) {
       if (!c) return;
       try {
