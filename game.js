@@ -70,8 +70,9 @@ window.addEventListener("error", function(ev) {
         if (!parsed.playerName) {
           parsed.playerName = DEFAULT_PLAYER_NAME;
         }
-        if (!parsed.playerId) {
-          parsed.playerId = Math.random().toString(36).substring(2, 8).toUpperCase();
+        if (!parsed.playerId || String(parsed.playerId).trim().length !== 6) {
+          parsed.playerId = (Math.random().toString(36).substring(2) + "ABCDEF").substring(0, 6).toUpperCase();
+          try { localStorage.setItem(SAVE_KEY, JSON.stringify(parsed)); } catch (se) {}
         }
         if (!parsed.avatar) {
           parsed.avatar = "👤";
@@ -90,7 +91,7 @@ window.addEventListener("error", function(ev) {
     }
     return {
       playerName: DEFAULT_PLAYER_NAME,
-      playerId: Math.random().toString(36).substring(2, 8).toUpperCase(),
+      playerId: (Math.random().toString(36).substring(2) + "ABCDEF").substring(0, 6).toUpperCase(),
       avatar: "👤",
       points: 1500,
       collection: { mona: 3, giko: 3, yaruo: 3, numai: 3, kusa: 3, neko: 3, chiikawa: 3, ronpa: 2, ojisan: 2, kmr: 3, mur: 3, tono: 2, kirinuki: 3, zombie: 3, kagiaka: 2 },
@@ -2352,32 +2353,55 @@ window.addEventListener("error", function(ev) {
     }
   }
 
-  function getSelectedDeckCards() {
-    var choice = document.getElementById("battle-deck-select").value, ids = [], label = "";
-    if (choice.indexOf("mydeck_") === 0) {
+  function getSelectedDeckCards(autoFallback) {
+    var selectEl = document.getElementById("battle-deck-select");
+    if (selectEl && selectEl.options.length === 0) {
+      populateBattleDeckSelect();
+    }
+    var choice = selectEl ? selectEl.value : "", ids = [], label = "";
+    if (choice && choice.indexOf("mydeck_") === 0) {
       var slotIdx = parseInt(choice.replace("mydeck_", ""), 10);
       var targetDeck = userData.decks[slotIdx];
       if (!targetDeck || targetDeck.ids.length !== DECK_SIZE) {
-        alert("選択した「" + (targetDeck ? targetDeck.name : "マイデッキ") + "」が" + DECK_SIZE + "枚になっていません！デッキ編成で40枚揃えて保存するか、完成済みのデッキ・レンタルデッキを選んでください。");
-        return null;
+        if (autoFallback) {
+          var validDeck = userData.decks.find(function(d) { return d && d.ids && d.ids.length === DECK_SIZE; });
+          if (validDeck) {
+            ids = validDeck.ids.slice();
+            label = validDeck.name;
+          } else {
+            var firstRentalKey = Object.keys(RENTAL_DECKS)[0];
+            ids = RENTAL_DECKS[firstRentalKey].ids.slice();
+            label = RENTAL_DECKS[firstRentalKey].label;
+          }
+        } else {
+          alert("選択した「" + (targetDeck ? targetDeck.name : "マイデッキ") + "」が" + DECK_SIZE + "枚になっていません！デッキ編成で40枚揃えて保存するか、完成済みのデッキ・レンタルデッキを選んでください。");
+          return null;
+        }
+      } else {
+        ids = targetDeck.ids.slice();
+        label = targetDeck.name;
       }
-      ids = targetDeck.ids.slice();
-      label = targetDeck.name;
-    } else {
+    } else if (choice && RENTAL_DECKS[choice]) {
       ids = RENTAL_DECKS[choice].ids.slice();
       label = RENTAL_DECKS[choice].label;
+    } else {
+      var validDeck2 = userData.decks.find(function(d) { return d && d.ids && d.ids.length === DECK_SIZE; });
+      if (validDeck2) {
+        ids = validDeck2.ids.slice();
+        label = validDeck2.name;
+      } else {
+        var fallbackKey = Object.keys(RENTAL_DECKS)[0];
+        ids = RENTAL_DECKS[fallbackKey].ids.slice();
+        label = RENTAL_DECKS[fallbackKey].label;
+      }
     }
     var cards = ids.map(function(id) {
       var found = ALL_CARDS.find(function(c) { return c.id === id; });
       return found ? JSON.parse(JSON.stringify(found)) : null;
-    }).filter(function(c) { return c !== null; }).sort(function() { return Math.random() - 0.5; });
-    return { label: label, cards: cards };
+    }).filter(function(c) { return c !== null; });
+    cards.sort(function() { return Math.random() - 0.5; });
+    return { cards: cards, label: label };
   }
-
-  _on("btn-back-to-mode", "click", function() {
-    document.getElementById("step-boss").style.display = "none";
-    document.getElementById("step-mode").style.display = "block";
-  });
 
   function renderBossList() {
     var container = document.getElementById("boss-list-container");
@@ -2843,16 +2867,28 @@ window.addEventListener("error", function(ev) {
   };
 
   window.__inviteFriendDuel = function(targetId) {
-    var myDeck = getSelectedDeckCards();
+    var myDeck = getSelectedDeckCards(true);
     if (!myDeck || myDeck.cards.length !== DECK_SIZE) {
       alert("対戦するには40枚のデッキを編成・選択してください！");
       return;
     }
+    var msg = document.getElementById("friend-action-msg");
+    if (msg) {
+      msg.style.color = "#00d2ff";
+      msg.innerText = "🔄 対戦ルームを準備しています...";
+    }
     state.mode = "online";
     p1OnlineDeck = myDeck;
     var hostPeerId = ROOM_PREFIX + "frd-" + userData.playerId + "-" + Math.floor(1000 + Math.random() * 9000);
-    if (peer) { peer.destroy(); }
+    if (peer) { try { peer.destroy(); } catch (e) {} }
     peer = new Peer(hostPeerId);
+
+    peer.on("error", function(err) {
+      if (msg) {
+        msg.style.color = "#ff6b6b";
+        msg.innerText = "⚠️ 通信エラー(" + (err && err.type ? err.type : "unknown") + ")：もう一度お試しください";
+      }
+    });
 
     peer.on("open", function() {
       firebase.database().ref("duel_invites/" + targetId).set({
@@ -2860,12 +2896,17 @@ window.addEventListener("error", function(ev) {
         fromName: userData.playerName || DEFAULT_PLAYER_NAME,
         hostPeerId: hostPeerId,
         timestamp: Date.now()
+      }).then(function() {
+        if (msg) {
+          msg.style.color = "#00ff88";
+          msg.innerText = "⚔️ 対戦招待を送信しました！（使用デッキ: " + myDeck.label + "）相手の承諾を待っています...";
+        }
+      }).catch(function(fbErr) {
+        if (msg) {
+          msg.style.color = "#ff6b6b";
+          msg.innerText = "⚠️ 招待の送信に失敗しました: " + fbErr.message;
+        }
       });
-      var msg = document.getElementById("friend-action-msg");
-      if (msg) {
-        msg.style.color = "#00ff88";
-        msg.innerText = "⚔️ 対戦招待を送信しました！相手の応答を待っています...";
-      }
     });
 
     peer.on("connection", function(connection) {
@@ -2878,18 +2919,37 @@ window.addEventListener("error", function(ev) {
   };
 
   function joinFriendDuel(hostPeerId) {
-    var myDeck = getSelectedDeckCards();
+    var myDeck = getSelectedDeckCards(true);
     if (!myDeck || myDeck.cards.length !== DECK_SIZE) {
       alert("対戦するには40枚のデッキを編成・選択してください！");
       return;
     }
+    var fm = document.getElementById("friend-modal");
+    if (fm) { fm.style.display = "none"; fm.style.pointerEvents = "none"; }
+    showCutin("🔄 フレンドの対戦ルームに接続中...", 2500);
+
     state.mode = "online";
     p1OnlineDeck = myDeck;
-    if (peer) { peer.destroy(); }
+    if (peer) { try { peer.destroy(); } catch (e) {} }
     peer = new Peer();
+
+    var connected = false;
+    var connectTimer = setTimeout(function() {
+      if (!connected) {
+        alert("⚠️ 相手との接続がタイムアウトしました。相手が画面を閉じたか、通信環境が不安定な可能性があります。もう一度招待を送ってもらってください。");
+      }
+    }, 12000);
+
+    peer.on("error", function(err) {
+      clearTimeout(connectTimer);
+      alert("⚠️ 対戦接続エラー: " + (err && err.type ? err.type : "接続失敗") + "\n相手が画面を閉じている可能性があります。");
+    });
+
     peer.on("open", function() {
-      conn = peer.connect(hostPeerId);
+      conn = peer.connect(hostPeerId, { reliable: true });
       conn.on("open", function() {
+        connected = true;
+        clearTimeout(connectTimer);
         state.myRole = "p2";
         setupConnectionHandlers();
         conn.send({
@@ -2897,6 +2957,10 @@ window.addEventListener("error", function(ev) {
           deck: p1OnlineDeck,
           playerName: userData.playerName || DEFAULT_PLAYER_NAME
         });
+      });
+      conn.on("error", function() {
+        clearTimeout(connectTimer);
+        alert("⚠️ 相手とのデータ通信の確立に失敗しました。");
       });
     });
   }
@@ -2915,10 +2979,11 @@ window.addEventListener("error", function(ev) {
   _on("btn-send-friend-req", "click", function() {
     var input = document.getElementById("friend-id-input");
     var msg = document.getElementById("friend-action-msg");
-    var targetId = (input.value || "").trim().toUpperCase();
+    var targetId = (input.value || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    input.value = targetId;
     if (targetId.length !== 6) {
       msg.style.color = "#ff6b6b";
-      msg.innerText = "6桁のプレイヤーIDを入力してください。";
+      msg.innerText = "6桁のプレイヤーIDを入力してください（現在 " + targetId.length + " 桁）。";
       return;
     }
     if (targetId === userData.playerId) {
@@ -2926,11 +2991,19 @@ window.addEventListener("error", function(ev) {
       msg.innerText = "自分自身には申請できません。";
       return;
     }
+    if (typeof firebase === "undefined" || !firebase.database) {
+      msg.style.color = "#ff6b6b";
+      msg.innerText = "⚠️ 通信サーバー（Firebase）に接続できていません。ネット接続を確認して再読み込みしてください。";
+      return;
+    }
+    msg.style.color = "#00d2ff";
+    msg.innerText = "🔍 プレイヤーを検索中...";
+    syncMyProfileToFirebase(true);
     var db = firebase.database();
     db.ref("users/" + targetId).once("value").then(function(snap) {
       if (!snap.exists()) {
         msg.style.color = "#ff6b6b";
-        msg.innerText = "該当するIDのプレイヤーが見つかりません。";
+        msg.innerText = "該当するID「" + targetId + "」のプレイヤーが見つかりません（相手も一度ゲームを開いてオンラインにする必要があります）。";
         return;
       }
       db.ref("friend_requests/" + targetId + "/" + userData.playerId).set({
@@ -2941,7 +3014,13 @@ window.addEventListener("error", function(ev) {
         msg.style.color = "#00ff88";
         msg.innerText = "✅ 「" + (snap.val().name || targetId) + "」にフレンド申請を送りました！";
         input.value = "";
+      }).catch(function(err) {
+        msg.style.color = "#ff6b6b";
+        msg.innerText = "⚠️ 申請の送信に失敗しました: " + (err && err.message ? err.message : "通信エラー");
       });
+    }).catch(function(err) {
+      msg.style.color = "#ff6b6b";
+      msg.innerText = "⚠️ 検索エラー: " + (err && err.message ? err.message : "サーバーに接続できません");
     });
   });
 
