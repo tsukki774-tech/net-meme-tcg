@@ -3659,7 +3659,23 @@ window.addEventListener("error", function(ev) {
     if (p.deck.length === 0) { p.hp -= 2; log(p.name + "はネタ切れでメンタルに2ダメージ！"); return; }
     if (p.hand.length < 7) p.hand.push(p.deck.pop());
   }
-  function log(msg) { var logBox = document.getElementById("log"); logBox.innerHTML = "<p>> " + msg + "</p>" + logBox.innerHTML; }
+  function log(msg) {
+    var logBox = document.getElementById("log");
+    if (logBox) logBox.innerHTML = "<p>> " + msg + "</p>" + logBox.innerHTML;
+    var latestEl = document.getElementById("log-latest-text");
+    if (latestEl) latestEl.innerText = msg;
+    if (typeof msg === "string") {
+      if (msg.indexOf("GOD") !== -1 || msg.indexOf("降臨") !== -1) {
+        spawnDanmaku("ｷﾀ━━━━(ﾟ∀ﾟ)━━━━!! 神回ｗｗｗ", "#ffd32a");
+      } else if (msg.indexOf("直接攻撃") !== -1 || msg.indexOf("ダメージ") !== -1) {
+        spawnDanmaku("うおおおお！ 痛すぎｗｗｗ", "#ff6b81");
+      } else if (msg.indexOf("合体") !== -1) {
+        spawnDanmaku("合体きたあああ！ 88888888", "#00ff88");
+      } else if (msg.indexOf("スペル") !== -1 || msg.indexOf("発動") !== -1) {
+        spawnDanmaku("草ｗｗｗ 運営乙！ それな", "#00d2ff");
+      }
+    }
+  }
   var cutinTimer = null;
   function showCutin(text, duration) {
     var overlay = document.getElementById("cutin-overlay");
@@ -3842,28 +3858,133 @@ window.addEventListener("error", function(ev) {
     }
   }
 
-  function openFusionGuideModal() {
+  var currentFusionFilter = "all";
+
+  function getMaterialPresence(cardId) {
+    var gs = document.getElementById("game-screen");
+    if (!gs || gs.style.display === "none" || !state || !state.p1) return "none";
+    var self = getViewSelf();
+    if (!self) return "none";
+    var inField = (self.field || []).some(function(c) { return c && c.id === cardId; });
+    if (inField) return "field";
+    var inHand = (self.hand || []).some(function(c) { return c && c.id === cardId; });
+    if (inHand) return "hand";
+    return "none";
+  }
+
+  function renderFusionRecipeCards() {
     var listEl = document.getElementById("fusion-recipe-list");
     if (!listEl || typeof FUSION_RECIPES === "undefined") return;
     listEl.innerHTML = "";
+
+    var renderedCount = 0;
     FUSION_RECIPES.forEach(function(rec) {
-      var c0 = ALL_CARDS.find(function(c) { return c.id === rec.materials[0]; });
-      var c1 = ALL_CARDS.find(function(c) { return c.id === rec.materials[1]; });
+      var c0 = ALL_CARDS.find(function(c) { return c.id === rec.materials[0]; }) || {
+        id: rec.materials[0], name: rec.materials[0], type: "meme", rarity: "N", cost: 1, atk: 1, hp: 1, freshness: 3, icon: "❓", desc: ""
+      };
+      var c1 = ALL_CARDS.find(function(c) { return c.id === rec.materials[1]; }) || {
+        id: rec.materials[1], name: rec.materials[1], type: "meme", rarity: "N", cost: 1, atk: 1, hp: 1, freshness: 3, icon: "❓", desc: ""
+      };
       var res = rec.result;
-      var item = document.createElement("div");
-      item.className = "fusion-recipe-item";
-      item.innerHTML =
-        '<div class="fusion-recipe-formula">' +
-          '<span class="fusion-mat-pill">' + (c0 ? c0.icon + " " + c0.name : rec.materials[0]) + '</span>' +
-          '<span style="color:#ffd32a;">＋</span>' +
-          '<span class="fusion-mat-pill">' + (c1 ? c1.icon + " " + c1.name : rec.materials[1]) + '</span>' +
-          '<span style="color:#00ff88;">➔</span>' +
-          '<span class="fusion-res-pill">' + res.icon + " " + res.name + '（⚔️' + res.atk + '/❤️' + res.hp + '）</span>' +
-        '</div>' +
-        '<div style="font-size:0.78rem; color:#ddd; line-height:1.4;">' + res.desc + '</div>';
-      listEl.appendChild(item);
+
+      var p0 = getMaterialPresence(c0.id);
+      var p1 = getMaterialPresence(c1.id);
+      var isReady = (p0 === "field" && p1 === "hand") || (p1 === "field" && p0 === "hand") || (p0 === "hand" && p1 === "hand");
+      var isReach = !isReady && (p0 !== "none" || p1 !== "none");
+
+      if (currentFusionFilter === "ready" && !isReady && !isReach) return;
+      if (currentFusionFilter === "high" && res.rarity !== "UR" && res.rarity !== "GOD") return;
+      renderedCount++;
+
+      var row = document.createElement("div");
+      row.className = "fusion-visual-row" + (isReady ? " is-ready" : (isReach ? " is-reach" : ""));
+
+      var statusHtml = isReady
+        ? '<span class="fusion-status-tag ready">⚡ 合体可能！</span>'
+        : (isReach ? '<span class="fusion-status-tag reach">🔥 リーチ中</span>' : '<span class="fusion-status-tag normal">' + (res.era || "全時代") + ' / ' + (res.rarity || "SR") + '</span>');
+
+      var header = document.createElement("div");
+      header.className = "fusion-row-header";
+      header.innerHTML = '<span class="fusion-row-title">' + res.icon + ' ' + res.name + '</span>' + statusHtml;
+      row.appendChild(header);
+
+      var eq = document.createElement("div");
+      eq.className = "fusion-cards-equation";
+
+      function buildSlot(cardObj, presence, isResult) {
+        var wrap = document.createElement("div");
+        wrap.className = "fusion-slot-wrap";
+        var badge = document.createElement("span");
+        if (isResult) {
+          badge.className = "fusion-slot-badge result-tag";
+          badge.innerText = "✨ 進化後";
+        } else if (presence === "field") {
+          badge.className = "fusion-slot-badge in-field";
+          badge.innerText = "🟦 場に配置済";
+        } else if (presence === "hand") {
+          badge.className = "fusion-slot-badge in-hand";
+          badge.innerText = "🟩 手札にあり";
+        } else {
+          badge.className = "fusion-slot-badge";
+          badge.innerText = "素材ミーム";
+        }
+        wrap.appendChild(badge);
+        var cardEl = createCardElement(cardObj, function() { showCardDetail(cardObj); }, {
+          playable: presence === "hand" || presence === "field" || isResult
+        });
+        wrap.appendChild(cardEl);
+        return wrap;
+      }
+
+      eq.appendChild(buildSlot(c0, p0, false));
+
+      var plus = document.createElement("div");
+      plus.className = "fusion-op-symbol";
+      plus.style.color = "#ffd32a";
+      plus.innerText = "＋";
+      eq.appendChild(plus);
+
+      eq.appendChild(buildSlot(c1, p1, false));
+
+      var arrow = document.createElement("div");
+      arrow.className = "fusion-op-symbol";
+      arrow.style.color = "#00ff88";
+      arrow.innerText = "➔";
+      eq.appendChild(arrow);
+
+      eq.appendChild(buildSlot(res, "none", true));
+      row.appendChild(eq);
+
+      var eff = document.createElement("div");
+      eff.className = "fusion-effect-banner";
+      eff.innerText = res.desc;
+      row.appendChild(eff);
+
+      listEl.appendChild(row);
     });
-    var _m_fusion_guide_modal = document.getElementById("fusion-guide-modal"); if(_m_fusion_guide_modal) { _m_fusion_guide_modal.style.display = "flex"; _m_fusion_guide_modal.style.pointerEvents = "auto"; }
+
+    if (renderedCount === 0) {
+      listEl.innerHTML = '<p style="text-align:center; color:#94a3b8; font-size:0.85rem; padding:18px;">該当する合体レシピがありません。上のタブで「📋 すべて」を選んでください。</p>';
+    }
+  }
+
+  document.querySelectorAll(".fusion-tab-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      currentFusionFilter = btn.getAttribute("data-ffilter") || "all";
+      document.querySelectorAll(".fusion-tab-btn").forEach(function(b) {
+        b.classList.toggle("active", b === btn);
+      });
+      renderFusionRecipeCards();
+    });
+  });
+
+  function openFusionGuideModal() {
+    renderFusionRecipeCards();
+    var _m_fusion_guide_modal = document.getElementById("fusion-guide-modal");
+    if (_m_fusion_guide_modal) {
+      _m_fusion_guide_modal.style.display = "flex";
+      _m_fusion_guide_modal.style.pointerEvents = "auto";
+    }
   }
 
   var btnHomeFusion = document.getElementById("btn-open-fusion-guide");
@@ -4226,18 +4347,123 @@ window.addEventListener("error", function(ev) {
     else banner.innerText = "✅ できる行動がありません。「⏭️ ターン終了」を押そう！";
   }
 
+  var danmakuEnabled = true;
+
+  function renderGigaAntenna(containerId, current, max) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    var total = Math.max(1, Math.min(10, max || 1));
+    var html = "";
+    for (var i = 1; i <= total; i++) {
+      var h = 5 + Math.round((i / total) * 9);
+      var cls = i <= current ? "giga-bar active" : "giga-bar";
+      html += '<span class="' + cls + '" style="height:' + h + 'px;"></span>';
+    }
+    el.innerHTML = html;
+  }
+
+  function updateHpBarFill(fillId, hp, maxHp) {
+    var el = document.getElementById(fillId);
+    if (!el) return;
+    var cap = Math.max(20, maxHp || 20);
+    var pct = Math.max(0, Math.min(100, Math.round((hp / cap) * 100)));
+    el.style.width = pct + "%";
+    if (hp <= 6) el.classList.add("low-hp"); else el.classList.remove("low-hp");
+  }
+
+  function spawnDanmaku(text, color) {
+    if (!danmakuEnabled) return;
+    var layer = document.getElementById("danmaku-layer");
+    if (!layer) return;
+    var item = document.createElement("div");
+    item.className = "danmaku-item";
+    item.innerText = text;
+    item.style.top = (8 + Math.floor(Math.random() * 72)) + "%";
+    if (color) item.style.color = color;
+    layer.appendChild(item);
+    setTimeout(function() {
+      if (item.parentNode) item.parentNode.removeChild(item);
+    }, 4300);
+  }
+
+  function spawnDamagePopup(targetSide, amount, isHeal) {
+    var layer = document.getElementById("damage-popup-layer");
+    if (!layer) return;
+    var pop = document.createElement("div");
+    pop.className = "damage-popup-num" + (isHeal ? " heal" : "");
+    pop.innerText = (isHeal ? "+" : "-") + Math.abs(amount);
+    pop.style.left = (32 + Math.floor(Math.random() * 36)) + "%";
+    pop.style.top = (targetSide === "opp" ? "24%" : "74%");
+    layer.appendChild(pop);
+    setTimeout(function() {
+      if (pop.parentNode) pop.parentNode.removeChild(pop);
+    }, 1000);
+  }
+
+  _on("btn-danmaku-toggle", "click", function() {
+    danmakuEnabled = !danmakuEnabled;
+    var btn = document.getElementById("btn-danmaku-toggle");
+    if (btn) {
+      btn.innerText = danmakuEnabled ? "💬 弾幕ON" : "💬 弾幕OFF";
+      btn.style.opacity = danmakuEnabled ? "1" : "0.55";
+    }
+  });
+
+  _on("log-ticker-bar", "click", function() {
+    var box = document.getElementById("log");
+    var icon = document.getElementById("log-expand-icon");
+    if (!box) return;
+    var isOpen = box.classList.contains("log-drawer-expanded");
+    if (isOpen) {
+      box.classList.remove("log-drawer-expanded");
+      box.classList.add("log-drawer-collapsed");
+      if (icon) icon.innerText = "▲ 履歴";
+    } else {
+      box.classList.remove("log-drawer-collapsed");
+      box.classList.add("log-drawer-expanded");
+      if (icon) icon.innerText = "▼ 閉じる";
+    }
+  });
+
+  var prevOppHp = null;
+  var prevSelfHp = null;
+
   function render() {
     var self = getViewSelf(), opp = getViewOpp();
+    if (prevOppHp !== null && opp.hp !== prevOppHp) {
+      spawnDamagePopup("opp", opp.hp - prevOppHp, opp.hp > prevOppHp);
+    }
+    if (prevSelfHp !== null && self.hp !== prevSelfHp) {
+      spawnDamagePopup("self", self.hp - prevSelfHp, self.hp > prevSelfHp);
+    }
+    prevOppHp = opp.hp;
+    prevSelfHp = self.hp;
+
     document.getElementById("opp-title").innerText = "👾 " + opp.name + "（" + opp.label + "）";
     document.getElementById("opp-hp").innerText = opp.hp;
+    updateHpBarFill("opp-hp-fill", opp.hp, 20);
     document.getElementById("opp-giga").innerText = opp.giga + "/" + opp.maxGiga;
+    renderGigaAntenna("opp-giga-bars", opp.giga, opp.maxGiga);
+
+    var oppHandCount = opp.hand ? opp.hand.length : 0;
     var oppHandEl = document.getElementById("opp-hand-count");
-    if (oppHandEl) oppHandEl.innerText = "🃏 手札: " + (opp.hand ? opp.hand.length : 0) + "枚";
-    document.getElementById("opp-deck-count").innerText = "(山札: " + opp.deck.length + "枚)";
+    if (oppHandEl) oppHandEl.innerText = "手札 " + oppHandCount + "枚";
+    var oppHandIcons = document.getElementById("opp-hand-icons");
+    if (oppHandIcons) {
+      var iconsHtml = "";
+      for (var h = 0; h < Math.min(7, oppHandCount); h++) {
+        iconsHtml += '<span class="mini-card-back"></span>';
+      }
+      oppHandIcons.innerHTML = iconsHtml;
+    }
+    document.getElementById("opp-deck-count").innerText = "山札 " + opp.deck.length;
+
     document.getElementById("self-title").innerText = "🧑 " + self.name + "（" + self.label + "）";
     document.getElementById("self-hp").innerText = self.hp;
+    updateHpBarFill("self-hp-fill", self.hp, 20);
     document.getElementById("self-giga").innerText = self.giga + "/" + self.maxGiga;
-    document.getElementById("self-deck-count").innerText = "(山札: " + self.deck.length + "枚)";
+    renderGigaAntenna("self-giga-bars", self.giga, self.maxGiga);
+    document.getElementById("self-deck-count").innerText = "山札 " + self.deck.length;
     updateGuideBanner();
 
     var canDirect = !state.isInputLocked && state.selectedAttackerIndex !== null && opp.field.length === 0;
