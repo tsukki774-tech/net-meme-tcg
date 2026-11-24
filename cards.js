@@ -58,6 +58,14 @@ const ALL_CARDS = [
   { id: "gakkyukai", pack: 1, name: "Xの学級会", type: "spell", era: "X炎上", rarity: "R", cost: 2, icon: "🔥", desc: "お互いの場のミーム全てに2ダメージを与える。" },
   { id: "ban", pack: 1, name: "アカウント凍結", type: "spell", era: "X炎上", rarity: "UR", cost: 4, icon: "❄️", desc: "相手ミーム1体を消滅させ、相手本体に2ダメージ。" },
 
+  // --- 第3弾（アニメ）＆第4弾（ゲーム・RTA）対策メタカード（pack: 1 追加6種） ---
+  { id: "meta_anime_critic", pack: 1, name: "原作改変警察（作画崩壊チェッカー）", type: "meme", era: "X炎上", rarity: "SR", cost: 3, atk: 3, hp: 4, freshness: 4, icon: "🧐", desc: "【第3弾メタ】召喚時：相手の場の「アニメ」ミーム1体を消滅させ、相手本体に2ダメージ！" },
+  { id: "meta_spoiler_troll", pack: 1, name: "最終回ネタバレ荒らし", type: "spell", era: "2ch", rarity: "R", cost: 2, icon: "📢", desc: "【第3弾メタ】相手の「アニメ」ミーム全体の攻撃力-2＆鮮度-1し、自分は1枚ドロー！" },
+  { id: "meta_flag_breaker", pack: 1, name: "死亡フラグ粉砕機（現実主義者）", type: "meme", era: "現代", rarity: "UR", cost: 3, atk: 3, hp: 3, freshness: 4, icon: "✂️", desc: "【第3弾メタ】召喚時：相手の無敵バリアを全解除し、「アニメ」ミームの攻撃力を0にする！" },
+  { id: "meta_anticheat_ban", pack: 1, name: "アンチチートBAN（TAS疑惑検証班）", type: "meme", era: "現代", rarity: "SR", cost: 3, atk: 3, hp: 4, freshness: 4, icon: "🛡️", desc: "【第4弾メタ】召喚時：相手の場の「ゲーム」ミーム1体を無敵バリア貫通で消滅させ、ギガ+1！" },
+  { id: "meta_server_maint", pack: 1, name: "緊急メンテナンスのお知らせ", type: "spell", era: "現代", rarity: "R", cost: 2, icon: "🚧", desc: "【第4弾メタ】相手の「ゲーム」ミーム全体の攻撃力を0＆鮮度-1し、自分は1枚ドロー！" },
+  { id: "meta_boss_nerf", pack: 1, name: "ラスボス弱体化パッチ（復活無効）", type: "meme", era: "現代", rarity: "UR", cost: 3, atk: 4, hp: 3, freshness: 4, icon: "🔧", desc: "【第4弾メタ】召喚時：相手の復活能力（第2形態など）を封印し、「ゲーム」ミームに4ダメージ！" },
+
   // ================= 第2弾：カオス＆深淵インターネット編（pack: 2 / 全46種） =================
   { id: "god_moderator", pack: 2, name: "全知全能のモデレーター", type: "meme", era: "X炎上", rarity: "GOD", cost: 6, atk: 6, hp: 8, freshness: 5, icon: "🔨", desc: "【神の粛清】召喚時：相手場のミーム全消滅＆相手メンタルに3ダメ＆自身に無敵バリア！" },
   { id: "god_deepweb", pack: 2, name: "深淵のインターネット", type: "meme", era: "海外", rarity: "GOD", cost: 7, atk: 8, hp: 8, freshness: 5, icon: "🕳️", desc: "【深淵解放】召喚時：相手の手札を2枚破壊＆味方全員の攻撃力+2＆メンタル4回復！" },
@@ -614,14 +622,25 @@ const FUSION_RECIPES = [
   }
 ];
 
-const APP_VERSION = "v1.9";
+const APP_VERSION = "v2.0";
 
 const UPDATE_LOGS = [
   {
-    version: "v1.9",
+    version: "v2.0",
     date: "最新アップデート",
-    title: "第4弾パック「🎮 VOL.4 GAME（伝説のゲーム＆実況者・RTA編）」実装！",
+    title: "第1弾パックに『第3弾（アニメ）＆第4弾（ゲーム・RTA）対策メタカード6種』を追加！",
     isLatest: true,
+    items: [
+      { tag: "第1弾強化", color: "#00d2ff", text: "第1弾『VOL.1 BASIC』に、第3弾（アニメ）メタ3種＆第4弾（ゲーム・RTA）メタ3種の計6種を新規収録！" },
+      { tag: "アニメ対策", color: "#ff77c2", text: "『原作改変警察』『最終回ネタバレ荒らし』『死亡フラグ粉砕機』でアニメ勢のバリアや鮮度を一掃！" },
+      { tag: "ゲーム対策", color: "#00ff88", text: "『アンチチートBAN』『緊急メンテナンス』『ラスボス弱体化パッチ（復活封印）』でRTA＆第2形態を完封！" }
+    ]
+  },
+  {
+    version: "v1.9",
+    date: "過去アップデート",
+    title: "第4弾パック「🎮 VOL.4 GAME（伝説のゲーム＆実況者・RTA編）」実装！",
+    isLatest: false,
     items: [
       { tag: "新パック", color: "#00ff88", text: "第4弾パック『🎮 VOL.4 GAME（伝説のゲーム＆実況者・RTA編）』全42種を追加！10連ガチャにも対応！" },
       { tag: "GOD降臨", color: "#ffd32a", text: "新GODレア『世界記録更新（RTA完走者）』＆破壊時に1度復活する『伝説のラスボス（第2形態）』が登場！" },

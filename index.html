@@ -910,7 +910,7 @@
     }
 
   
-    /* v1.9.8 iPadOS Chrome/Safari 完全互換タッチ・スクロールCSS */
+    /* v2.0.8 iPadOS Chrome/Safari 完全互換タッチ・スクロールCSS */
     html, body {
       overflow-y: auto !important;
       overflow-x: hidden !important;
@@ -939,7 +939,7 @@
     }
 
   
-    /* v1.9.8 ホーム画面・カオスネット掲示板＆弾幕タイムライン背景 */
+    /* v2.0.8 ホーム画面・カオスネット掲示板＆弾幕タイムライン背景 */
     #home-chaos-bg {
       position: fixed;
       top: 0;
@@ -1034,7 +1034,7 @@
 
 
     /* ============================================================
-       v1.9.0 新サイバー・ネオン3カラム・ホーム画面UI
+       v2.0.0 新サイバー・ネオン3カラム・ホーム画面UI
        ============================================================ */
     #home-screen {
       max-width: none !important;
@@ -2436,7 +2436,7 @@
     </div>
   </div>
 
-  <div id="ver-stamp-badge">v1.9.8</div>
+  <div id="ver-stamp-badge">v2.0.8</div>
   <!-- インライン統合スクリプト（キャッシュ完全回避・即時実行版） -->
   <script>
 // cards.js - カード一覧・レンタルデッキ・ミッションデータ定義
@@ -2498,6 +2498,14 @@ const ALL_CARDS = [
   { id: "comnote", pack: 1, name: "コミュニティノート", type: "spell", era: "X炎上", rarity: "SR", cost: 2, icon: "📝", desc: "相手ミーム1体に3ダメージ＆自分のメンタルを2回復。" },
   { id: "gakkyukai", pack: 1, name: "Xの学級会", type: "spell", era: "X炎上", rarity: "R", cost: 2, icon: "🔥", desc: "お互いの場のミーム全てに2ダメージを与える。" },
   { id: "ban", pack: 1, name: "アカウント凍結", type: "spell", era: "X炎上", rarity: "UR", cost: 4, icon: "❄️", desc: "相手ミーム1体を消滅させ、相手本体に2ダメージ。" },
+
+  // --- 第3弾（アニメ）＆第4弾（ゲーム・RTA）対策メタカード（pack: 1 追加6種） ---
+  { id: "meta_anime_critic", pack: 1, name: "原作改変警察（作画崩壊チェッカー）", type: "meme", era: "X炎上", rarity: "SR", cost: 3, atk: 3, hp: 4, freshness: 4, icon: "🧐", desc: "【第3弾メタ】召喚時：相手の場の「アニメ」ミーム1体を消滅させ、相手本体に2ダメージ！" },
+  { id: "meta_spoiler_troll", pack: 1, name: "最終回ネタバレ荒らし", type: "spell", era: "2ch", rarity: "R", cost: 2, icon: "📢", desc: "【第3弾メタ】相手の「アニメ」ミーム全体の攻撃力-2＆鮮度-1し、自分は1枚ドロー！" },
+  { id: "meta_flag_breaker", pack: 1, name: "死亡フラグ粉砕機（現実主義者）", type: "meme", era: "現代", rarity: "UR", cost: 3, atk: 3, hp: 3, freshness: 4, icon: "✂️", desc: "【第3弾メタ】召喚時：相手の無敵バリアを全解除し、「アニメ」ミームの攻撃力を0にする！" },
+  { id: "meta_anticheat_ban", pack: 1, name: "アンチチートBAN（TAS疑惑検証班）", type: "meme", era: "現代", rarity: "SR", cost: 3, atk: 3, hp: 4, freshness: 4, icon: "🛡️", desc: "【第4弾メタ】召喚時：相手の場の「ゲーム」ミーム1体を無敵バリア貫通で消滅させ、ギガ+1！" },
+  { id: "meta_server_maint", pack: 1, name: "緊急メンテナンスのお知らせ", type: "spell", era: "現代", rarity: "R", cost: 2, icon: "🚧", desc: "【第4弾メタ】相手の「ゲーム」ミーム全体の攻撃力を0＆鮮度-1し、自分は1枚ドロー！" },
+  { id: "meta_boss_nerf", pack: 1, name: "ラスボス弱体化パッチ（復活無効）", type: "meme", era: "現代", rarity: "UR", cost: 3, atk: 4, hp: 3, freshness: 4, icon: "🔧", desc: "【第4弾メタ】召喚時：相手の復活能力（第2形態など）を封印し、「ゲーム」ミームに4ダメージ！" },
 
   // ================= 第2弾：カオス＆深淵インターネット編（pack: 2 / 全46種） =================
   { id: "god_moderator", pack: 2, name: "全知全能のモデレーター", type: "meme", era: "X炎上", rarity: "GOD", cost: 6, atk: 6, hp: 8, freshness: 5, icon: "🔨", desc: "【神の粛清】召喚時：相手場のミーム全消滅＆相手メンタルに3ダメ＆自身に無敵バリア！" },
@@ -3055,14 +3063,25 @@ const FUSION_RECIPES = [
   }
 ];
 
-const APP_VERSION = "v1.9";
+const APP_VERSION = "v2.0";
 
 const UPDATE_LOGS = [
   {
-    version: "v1.9",
+    version: "v2.0",
     date: "最新アップデート",
-    title: "第4弾パック「🎮 VOL.4 GAME（伝説のゲーム＆実況者・RTA編）」実装！",
+    title: "第1弾パックに『第3弾（アニメ）＆第4弾（ゲーム・RTA）対策メタカード6種』を追加！",
     isLatest: true,
+    items: [
+      { tag: "第1弾強化", color: "#00d2ff", text: "第1弾『VOL.1 BASIC』に、第3弾（アニメ）メタ3種＆第4弾（ゲーム・RTA）メタ3種の計6種を新規収録！" },
+      { tag: "アニメ対策", color: "#ff77c2", text: "『原作改変警察』『最終回ネタバレ荒らし』『死亡フラグ粉砕機』でアニメ勢のバリアや鮮度を一掃！" },
+      { tag: "ゲーム対策", color: "#00ff88", text: "『アンチチートBAN』『緊急メンテナンス』『ラスボス弱体化パッチ（復活封印）』でRTA＆第2形態を完封！" }
+    ]
+  },
+  {
+    version: "v1.9",
+    date: "過去アップデート",
+    title: "第4弾パック「🎮 VOL.4 GAME（伝説のゲーム＆実況者・RTA編）」実装！",
+    isLatest: false,
     items: [
       { tag: "新パック", color: "#00ff88", text: "第4弾パック『🎮 VOL.4 GAME（伝説のゲーム＆実況者・RTA編）』全42種を追加！10連ガチャにも対応！" },
       { tag: "GOD降臨", color: "#ffd32a", text: "新GODレア『世界記録更新（RTA完走者）』＆破壊時に1度復活する『伝説のラスボス（第2形態）』が登場！" },
@@ -3213,6 +3232,47 @@ window.CardEffects = {
     else if (card.id === "savanna") { if (opp.field.length > 0) { opp.field[0].atk = 1; ctx.log("🦁 サバンナ男効果！相手ミームの攻撃力が1になった！"); } }
     else if (card.id === "nyan") { ctx.drawCard(who); card.atk += 1; ctx.log("🌈 Nyan Cat効果：1枚ドロー＆攻撃力+1！"); }
     else if (card.id === "streamer") { self.giga = Math.min(self.maxGiga, self.giga + 1); ctx.log("🎙️ 大手配信者効果：ギガを1回復！"); }
+    // ================= 第1弾追加：第3弾（アニメ）＆第4弾（ゲーム）対策メタ召喚効果 =================
+    else if (card.id === "meta_anime_critic") {
+      var animeIdx = opp.field.findIndex(function(m) { return m.era === "アニメ"; });
+      if (animeIdx !== -1) {
+        var erasedAnime = opp.field.splice(animeIdx, 1)[0];
+        opp.hp -= 2;
+        ctx.log("🧐 【第3弾メタ】原作改変警察！「" + erasedAnime.name + "」の矛盾を指摘して消滅＆本体に2ダメージ！");
+      } else {
+        ctx.log("🧐 原作改変警察がスタンバイ！（相手の場にアニメミームはいなかった）");
+      }
+    } else if (card.id === "meta_flag_breaker") {
+      var hadBarrierOrAnime = false;
+      opp.field.forEach(function(m) {
+        if (m.shield) { m.shield = false; hadBarrierOrAnime = true; }
+        if (m.era === "アニメ") { m.atk = 0; hadBarrierOrAnime = true; }
+      });
+      ctx.log(hadBarrierOrAnime
+        ? "✂️ 【第3弾メタ】死亡フラグ粉砕機！相手の無敵バリア全解除＆アニメミームの攻撃力を0にした！"
+        : "✂️ 死亡フラグ粉砕機が召喚された！");
+    } else if (card.id === "meta_anticheat_ban") {
+      var gameIdx = opp.field.findIndex(function(m) { return m.era === "ゲーム"; });
+      if (gameIdx !== -1) {
+        var bannedGame = opp.field.splice(gameIdx, 1)[0];
+        self.giga = Math.min(self.maxGiga, self.giga + 1);
+        ctx.log("🛡️ 【第4弾メタ】アンチチートBAN！「" + bannedGame.name + "」の壁抜けグリッチを検知して消滅＆ギガ+1！");
+      } else {
+        ctx.log("🛡️ アンチチートBANが監視を開始！（相手の場にゲームミームはいなかった）");
+      }
+    } else if (card.id === "meta_boss_nerf") {
+      var sealed = false;
+      opp.field.forEach(function(m) {
+        if (m.hasRevive) { m.hasRevive = false; sealed = true; }
+      });
+      var gameTarget = opp.field.find(function(m) { return m.era === "ゲーム"; }) || opp.field[0];
+      if (gameTarget) {
+        ctx.dealDamageToMeme(gameTarget, gameTarget.era === "ゲーム" ? 4 : 2);
+        ctx.cleanupDeadMemes();
+      }
+      ctx.log("🔧 【第4弾メタ】ラスボス弱体化パッチ！" + (sealed ? "第2形態の復活能力を封印＆" : "") + "ゲームミームに痛恨の修正ダメージ！");
+    }
+
     // ================= 第4弾：ゲーム＆実況者・RTAミーム召喚効果 =================
     else if (card.id === "god_rta_runner") {
       ctx.drawCard(who); ctx.drawCard(who);
@@ -3615,6 +3675,33 @@ window.CardEffects = {
     } else if (card.id === "op_skip" && opp.field.length > 0) {
       ctx.dealDamageToMeme(opp.field[0], 2);
       ctx.log("⏩ OPスキップ！相手ミームに2ダメージ！");
+    }
+
+    // ================= 第1弾追加：第3弾（アニメ）＆第4弾（ゲーム）対策メタスペル効果 =================
+    else if (card.id === "meta_spoiler_troll") {
+      var hitAnime = 0;
+      opp.field.forEach(function(m) {
+        if (m.era === "アニメ") {
+          m.atk = Math.max(0, m.atk - 2);
+          m.freshness -= 1;
+          hitAnime++;
+        }
+      });
+      opp.field = opp.field.filter(function(m) { return m.freshness > 0; });
+      ctx.drawCard(who);
+      ctx.log("📢 【第3弾メタ】最終回ネタバレ荒らし！アニメミーム" + hitAnime + "体の攻撃力-2＆鮮度-1＋1枚ドロー！");
+    } else if (card.id === "meta_server_maint") {
+      var hitGame = 0;
+      opp.field.forEach(function(m) {
+        if (m.era === "ゲーム") {
+          m.atk = 0;
+          m.freshness -= 1;
+          hitGame++;
+        }
+      });
+      opp.field = opp.field.filter(function(m) { return m.freshness > 0; });
+      ctx.drawCard(who);
+      ctx.log("🚧 【第4弾メタ】緊急メンテナンス！ゲームミーム" + hitGame + "体の攻撃力0＆鮮度-1＋1枚ドロー！");
     }
 
     // ================= 第4弾：ゲーム＆実況者・RTAスペル効果 =================
