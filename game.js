@@ -2351,12 +2351,29 @@ window.addEventListener("error", function(ev) {
     if (prevVal && Array.from(selectEl.options).some(function(o) { return o.value === prevVal; })) {
       selectEl.value = prevVal;
     }
+
+    ["friend-duel-deck-select", "friend-invite-deck-select"].forEach(function(fid) {
+      var fSel = document.getElementById(fid);
+      if (!fSel) return;
+      var fPrev = fSel.value || selectEl.value;
+      fSel.innerHTML = selectEl.innerHTML;
+      if (fPrev && Array.from(fSel.options).some(function(o) { return o.value === fPrev; })) {
+        fSel.value = fPrev;
+      }
+    });
   }
 
-  function getSelectedDeckCards(autoFallback) {
-    var selectEl = document.getElementById("battle-deck-select");
+  function getSelectedDeckCards(autoFallback, customSelectId) {
+    var mainSel = document.getElementById("battle-deck-select");
+    if (mainSel && mainSel.options.length === 0) {
+      populateBattleDeckSelect();
+    }
+    var selectEl = (customSelectId ? document.getElementById(customSelectId) : null) || mainSel;
     if (selectEl && selectEl.options.length === 0) {
       populateBattleDeckSelect();
+    }
+    if (selectEl && mainSel && selectEl !== mainSel && selectEl.value) {
+      mainSel.value = selectEl.value;
     }
     var choice = selectEl ? selectEl.value : "", ids = [], label = "";
     if (choice && choice.indexOf("mydeck_") === 0) {
@@ -2753,6 +2770,7 @@ window.addEventListener("error", function(ev) {
         if (modal) { modal.style.display = "none"; modal.style.pointerEvents = "none"; }
         return;
       }
+      populateBattleDeckSelect();
       var invText = document.getElementById("friend-invite-text");
       if (invText) {
         invText.innerText = (invite.fromName || "フレンド") + " から対戦の招待が届いています！";
@@ -2762,10 +2780,12 @@ window.addEventListener("error", function(ev) {
       var accBtn = document.getElementById("btn-accept-invite");
       if (accBtn) {
         accBtn.onclick = function() {
+          var chosenDeck = getSelectedDeckCards(false, "friend-invite-deck-select");
+          if (!chosenDeck || chosenDeck.cards.length !== DECK_SIZE) return;
           db.ref("duel_invites/" + myId).remove();
           modal.style.display = "none";
           modal.style.pointerEvents = "none";
-          joinFriendDuel(invite.hostPeerId);
+          joinFriendDuel(invite.hostPeerId, chosenDeck);
         };
       }
       var decBtn = document.getElementById("btn-decline-invite");
@@ -2867,7 +2887,7 @@ window.addEventListener("error", function(ev) {
   };
 
   window.__inviteFriendDuel = function(targetId) {
-    var myDeck = getSelectedDeckCards(true);
+    var myDeck = getSelectedDeckCards(false, "friend-duel-deck-select");
     if (!myDeck || myDeck.cards.length !== DECK_SIZE) {
       alert("対戦するには40枚のデッキを編成・選択してください！");
       return;
@@ -2918,8 +2938,8 @@ window.addEventListener("error", function(ev) {
     });
   };
 
-  function joinFriendDuel(hostPeerId) {
-    var myDeck = getSelectedDeckCards(true);
+  function joinFriendDuel(hostPeerId, preselectedDeck) {
+    var myDeck = preselectedDeck || getSelectedDeckCards(false, "friend-invite-deck-select");
     if (!myDeck || myDeck.cards.length !== DECK_SIZE) {
       alert("対戦するには40枚のデッキを編成・選択してください！");
       return;
@@ -2966,6 +2986,7 @@ window.addEventListener("error", function(ev) {
   }
 
   _on("btn-open-friends", "click", function() {
+    populateBattleDeckSelect();
     renderFriendModal();
     var m = document.getElementById("friend-modal");
     if (m) { m.style.display = "flex"; m.style.pointerEvents = "auto"; }
