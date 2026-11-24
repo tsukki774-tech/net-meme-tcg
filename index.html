@@ -1989,7 +1989,8 @@
       </div>
 
       <div class="pack-btn-row">
-        <button id="btn-open-pack" class="primary-btn">💎 100 バズPで開封画面へ！</button>
+        <button id="btn-open-pack" class="primary-btn">💎 1回開封 (100P)</button>
+        <button id="btn-open-pack-10" class="primary-btn" style="background:linear-gradient(135deg, #ff9f1a, #ff3838); box-shadow:0 0 14px rgba(255,159,26,0.45);">🔥 10連開封 (1,000P / SR以上1枚確定！)</button>
         <button id="btn-view-pack-list" class="sub-btn">📋 収録カード一覧を見る</button>
       </div>
     </div>
@@ -2020,7 +2021,8 @@
     <div id="pack-result-area" class="card-grid"></div>
 
     <div id="stage-after-buttons" style="display:none; gap:12px; margin-top:20px; flex-wrap:wrap; justify-content:center;">
-      <button id="btn-stage-again" class="primary-btn">💎 もう1パック開ける (100P)</button>
+      <button id="btn-stage-again" class="primary-btn">💎 もう1回 (100P)</button>
+      <button id="btn-stage-again-10" class="primary-btn" style="background:linear-gradient(135deg, #ff9f1a, #ff3838);">🔥 もう10連 (1,000P)</button>
       <button id="btn-stage-back" class="sub-btn">◀ パック選択へ戻る</button>
     </div>
   </div>
@@ -2378,10 +2380,11 @@
       <button id="btn-battle-bgm-toggle" class="action-btn" style="padding:5px 9px; font-size:0.75rem; border-color:#ff4757; white-space:nowrap;">🔥 戦BGM ON</button>
       <button id="btn-battle-sfx-toggle" class="action-btn" style="padding:5px 9px; font-size:0.75rem; border-color:#ffd32a; white-space:nowrap;">🔊 効果音ON</button>
     </div>
-    <div class="player-bar opp-bar">
+    <div class="player-bar opp-bar" style="flex-wrap:wrap; gap:6px;">
       <span id="opp-title">👾 相手</span>
       <span>❤️ メンタル: <strong id="opp-hp">20</strong></span>
       <span>📶 ギガ: <strong id="opp-giga">1/1</strong></span>
+      <span id="opp-hand-count" style="color:#ffd32a; font-weight:bold;">🃏 手札: 4枚</span>
       <span id="opp-deck-count">(山札: 40枚)</span>
     </div>
     <div id="opp-field" class="field-area"></div>
@@ -2934,14 +2937,26 @@ const FUSION_RECIPES = [
   }
 ];
 
-const APP_VERSION = "v1.7";
+const APP_VERSION = "v1.8";
 
 const UPDATE_LOGS = [
   {
-    version: "v1.7",
+    version: "v1.8",
     date: "最新アップデート",
-    title: "新バトルシステム「ミーム合体・派生進化」実装！",
+    title: "フレンド対戦ロビー＆バトル場プレイマット＆相手手札表示を実装！",
     isLatest: true,
+    items: [
+      { tag: "新機能", color: "#00d2ff", text: "自分と相手で別々のバトル場背景を表示できる『プレイマット（全7種）』を実装！ダイヤで解放してセット可能！" },
+      { tag: "フレンド対戦", color: "#00ff88", text: "フレンド対戦の招待承認後、2人とも対戦準備画面（フレンド対戦ルーム）へ移動し、デッキ選択＆双方準備完了で開戦する方式に進化！" },
+      { tag: "バトルUI", color: "#ffd32a", text: "相手ステータスバーに『🃏 手札枚数』のリアルタイム表示を追加し、相手の残り手札がひと目で分かるようになりました！" },
+      { tag: "お知らせ", color: "#a55eea", text: "新バージョン公開時にホーム画面でお知らせポップアップが自動表示されるようになりました！" }
+    ]
+  },
+  {
+    version: "v1.7",
+    date: "過去アップデート",
+    title: "新バトルシステム「ミーム合体・派生進化」実装！",
+    isLatest: false,
     items: [
       { tag: "新システム", color: "#00ff88", text: "特定のミームが場にいる状態で相方のミームを出すと、超強力な上位ミームへ『合体・進化』する新ルールを実装！" },
       { tag: "合体特典", color: "#ffd32a", text: "合体進化したミームは鮮度全回復＆即攻撃可能（召喚酔いなし）＆強力な合体時スキルが炸裂！" },
@@ -3747,8 +3762,13 @@ window.addEventListener("error", function(ev) {
     if (e.target === this) closeNewsModal();
   });
 
-  // 起動時は自動ポップアップを出さず未読バッジのみ点灯（iPad Chrome操作ブロック防止）
+  // 未読の新バージョンがある場合は起動時にお知らせモーダルを自動表示
   updateNewsBadge();
+  if (typeof APP_VERSION !== "undefined" && localStorage.getItem(SEEN_VERSION_KEY) !== APP_VERSION) {
+    setTimeout(function() {
+      openNewsModal();
+    }, 350);
+  }
 
   // ================= カード詳細拡大モーダル ================= 
   function showCardDetail(card) {
@@ -5008,19 +5028,26 @@ window.addEventListener("error", function(ev) {
   };
 
   // ================= パック開封ステージ =================
-  _on("btn-open-pack", "click", enterPackOpenStage);
-  _on("btn-stage-again", "click", enterPackOpenStage);
+  _on("btn-open-pack", "click", function() { enterPackOpenStage(1); });
+  _on("btn-open-pack-10", "click", function() { enterPackOpenStage(10); });
+  _on("btn-stage-again", "click", function() { enterPackOpenStage(1); });
+  _on("btn-stage-again-10", "click", function() { enterPackOpenStage(10); });
   _on("btn-stage-back", "click", function() {
     var _m_pack_open_stage = document.getElementById("pack-open-stage"); if(_m_pack_open_stage) { _m_pack_open_stage.style.display = "none"; _m_pack_open_stage.style.pointerEvents = "none"; }
   });
 
-  function enterPackOpenStage() {
+  function enterPackOpenStage(packCount) {
+    packCount = (packCount === 10) ? 10 : 1;
+    var totalCost = packCount * 100;
     if (pendingPackData) return;
-    if (userData.points < 100) { alert("バズPが足りません！ミッションやCPU戦勝利でポイントを貯めよう！"); return; }
+    if (userData.points < totalCost) {
+      alert("💎 ダイヤが足りません！（必要: " + totalCost.toLocaleString() + " 個 / 現在: " + userData.points.toLocaleString() + " 個）");
+      return;
+    }
     PackSFX.tap();
 
-    userData.points -= 100;
-    addMissionStat("packs", 1);
+    userData.points -= totalCost;
+    addMissionStat("packs", packCount);
 
     var targetCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
     var poolN = targetCards.filter(function(c) { return c.rarity === "N"; });
@@ -5032,21 +5059,32 @@ window.addEventListener("error", function(ev) {
     var pulled = [];
     var maxRarity = "R";
     var rankMap = { N: 1, R: 2, SR: 3, UR: 4, GOD: 5 };
+    var totalCardsToPull = packCount * 5;
 
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < totalCardsToPull; i++) {
       var rand = Math.random() * 100, pool = poolN;
-      if (i === 4) {
-        if (rigNextRarity === "GOD" && poolGOD.length > 0) pool = poolGOD;
-        else if (rigNextRarity === "UR" && poolUR.length > 0) pool = poolUR;
-        else if (rand < 0.1 && poolGOD.length > 0) pool = poolGOD;
-        else if (rand < 3.1) pool = poolUR;
-        else if (rand < 30.1) pool = poolSR;
+      var isLastInPack = (i % 5 === 4);
+      var isFinalTenthGuarantee = (packCount === 10 && i === totalCardsToPull - 1);
+
+      if (i === 4 && rigNextRarity === "GOD" && poolGOD.length > 0) {
+        pool = poolGOD;
+      } else if (i === 4 && rigNextRarity === "UR" && poolUR.length > 0) {
+        pool = poolUR;
+      } else if (isFinalTenthGuarantee) {
+        // 10連の50枚目はSR以上確定！
+        if (rand < 0.2 && poolGOD.length > 0) pool = poolGOD;
+        else if (rand < 6.0 && poolUR.length > 0) pool = poolUR;
+        else pool = poolSR.length > 0 ? poolSR : poolR;
+      } else if (isLastInPack) {
+        if (rand < 0.1 && poolGOD.length > 0) pool = poolGOD;
+        else if (rand < 3.1 && poolUR.length > 0) pool = poolUR;
+        else if (rand < 30.1 && poolSR.length > 0) pool = poolSR;
         else pool = poolR;
       } else {
         if (rand < 0.1 && poolGOD.length > 0) pool = poolGOD;
-        else if (rand < 1.1) pool = poolUR;
-        else if (rand < 13.1) pool = poolSR;
-        else if (rand < 43.1) pool = poolR;
+        else if (rand < 1.1 && poolUR.length > 0) pool = poolUR;
+        else if (rand < 13.1 && poolSR.length > 0) pool = poolSR;
+        else if (rand < 43.1 && poolR.length > 0) pool = poolR;
       }
       var card = pool[Math.floor(Math.random() * pool.length)];
       if (rankMap[card.rarity] > rankMap[maxRarity]) maxRarity = card.rarity;
@@ -5056,7 +5094,7 @@ window.addEventListener("error", function(ev) {
     rigNextRarity = null;
     saveUserData();
 
-    pendingPackData = { pulled: pulled, maxRarity: maxRarity };
+    pendingPackData = { pulled: pulled, maxRarity: maxRarity, packCount: packCount };
 
     var stage = document.getElementById("pack-open-stage");
     var visual = document.getElementById("pack-visual");
@@ -5067,14 +5105,16 @@ window.addEventListener("error", function(ev) {
     var hint = document.getElementById("tear-hint");
     var slit = document.getElementById("pack-slit-glow");
 
-    document.getElementById("stage-guide").innerText = "✂️ パック上部を右へなぞって切り開け！";
+    document.getElementById("stage-guide").innerText = packCount === 10
+      ? "🔥 10連パック（計50枚）！パック上部を右へなぞって切り開け！"
+      : "✂️ パック上部を右へなぞって切り開け！";
     document.getElementById("pack-result-area").innerHTML = "";
     document.getElementById("stage-after-buttons").style.display = "none";
 
     visual.className = "real-pack ready-to-tear" + (selectedPackNo === 2 ? " vol2" : (selectedPackNo === 3 ? " vol3" : ""));
     emblem.innerText = selectedPackNo === 1 ? "🌐" : (selectedPackNo === 2 ? "🔥" : "🎬");
-    title.innerText = selectedPackNo === 1 ? "VOL.1 BASIC" : (selectedPackNo === 2 ? "VOL.2 CHAOS" : "VOL.3 ANIME");
-    sub.innerText = "5枚入り / R以上1枚確定";
+    title.innerText = (selectedPackNo === 1 ? "VOL.1 BASIC" : (selectedPackNo === 2 ? "VOL.2 CHAOS" : "VOL.3 ANIME")) + (packCount === 10 ? " ×10連" : "");
+    sub.innerText = packCount === 10 ? "計50枚入り / SR以上1枚確定！" : "5枚入り / R以上1枚確定";
     bar.style.width = "0%";
     hint.innerText = "✂️ ここを右へスワイプ！";
     slit.className = "pack-slit-glow";
@@ -5630,7 +5670,13 @@ window.addEventListener("error", function(ev) {
 
     stageGuide.innerText = "✨ 獲得カード（タップで詳細） ✨";
 
-    for (var j = 0; j < 5; j++) {
+    var totalCards = data.pulled.length;
+    var stepDelay = totalCards > 5 ? 65 : 320;
+    if (totalCards > 5) {
+      stageGuide.innerText = "✨ 10連獲得カード（全50枚・タップで詳細） ✨";
+    }
+
+    for (var j = 0; j < totalCards; j++) {
       var back = document.createElement("div");
       back.className = "card-back-mystery";
       back.innerHTML = "❓<br><span style='font-size:0.75rem; color:#aaa;'>MEME</span>";
@@ -5639,14 +5685,18 @@ window.addEventListener("error", function(ev) {
 
     data.pulled.forEach(function(c, idx) {
       setTimeout(function() {
-        PackSFX.cardFlip(c.rarity);
+        if (totalCards <= 5 || c.rarity === "SR" || c.rarity === "UR" || c.rarity === "GOD" || idx % 5 === 0) {
+          PackSFX.cardFlip(c.rarity);
+        }
         var el = createCardElement(c, null, {});
         el.classList.add("card-revealed");
-        resultArea.replaceChild(el, resultArea.children[idx]);
-        if (idx === data.pulled.length - 1) {
+        if (resultArea.children[idx]) {
+          resultArea.replaceChild(el, resultArea.children[idx]);
+        }
+        if (idx === totalCards - 1) {
           document.getElementById("stage-after-buttons").style.display = "flex";
         }
-      }, 250 + idx * 320);
+      }, 220 + idx * stepDelay);
     });
   }
 
@@ -7308,6 +7358,8 @@ window.addEventListener("error", function(ev) {
     document.getElementById("opp-title").innerText = "👾 " + opp.name + "（" + opp.label + "）";
     document.getElementById("opp-hp").innerText = opp.hp;
     document.getElementById("opp-giga").innerText = opp.giga + "/" + opp.maxGiga;
+    var oppHandEl = document.getElementById("opp-hand-count");
+    if (oppHandEl) oppHandEl.innerText = "🃏 手札: " + (opp.hand ? opp.hand.length : 0) + "枚";
     document.getElementById("opp-deck-count").innerText = "(山札: " + opp.deck.length + "枚)";
     document.getElementById("self-title").innerText = "🧑 " + self.name + "（" + self.label + "）";
     document.getElementById("self-hp").innerText = self.hp;

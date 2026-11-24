@@ -324,8 +324,13 @@ window.addEventListener("error", function(ev) {
     if (e.target === this) closeNewsModal();
   });
 
-  // 起動時は自動ポップアップを出さず未読バッジのみ点灯（iPad Chrome操作ブロック防止）
+  // 未読の新バージョンがある場合は起動時にお知らせモーダルを自動表示
   updateNewsBadge();
+  if (typeof APP_VERSION !== "undefined" && localStorage.getItem(SEEN_VERSION_KEY) !== APP_VERSION) {
+    setTimeout(function() {
+      openNewsModal();
+    }, 350);
+  }
 
   // ================= カード詳細拡大モーダル ================= 
   function showCardDetail(card) {
@@ -1585,19 +1590,26 @@ window.addEventListener("error", function(ev) {
   };
 
   // ================= パック開封ステージ =================
-  _on("btn-open-pack", "click", enterPackOpenStage);
-  _on("btn-stage-again", "click", enterPackOpenStage);
+  _on("btn-open-pack", "click", function() { enterPackOpenStage(1); });
+  _on("btn-open-pack-10", "click", function() { enterPackOpenStage(10); });
+  _on("btn-stage-again", "click", function() { enterPackOpenStage(1); });
+  _on("btn-stage-again-10", "click", function() { enterPackOpenStage(10); });
   _on("btn-stage-back", "click", function() {
     var _m_pack_open_stage = document.getElementById("pack-open-stage"); if(_m_pack_open_stage) { _m_pack_open_stage.style.display = "none"; _m_pack_open_stage.style.pointerEvents = "none"; }
   });
 
-  function enterPackOpenStage() {
+  function enterPackOpenStage(packCount) {
+    packCount = (packCount === 10) ? 10 : 1;
+    var totalCost = packCount * 100;
     if (pendingPackData) return;
-    if (userData.points < 100) { alert("バズPが足りません！ミッションやCPU戦勝利でポイントを貯めよう！"); return; }
+    if (userData.points < totalCost) {
+      alert("💎 ダイヤが足りません！（必要: " + totalCost.toLocaleString() + " 個 / 現在: " + userData.points.toLocaleString() + " 個）");
+      return;
+    }
     PackSFX.tap();
 
-    userData.points -= 100;
-    addMissionStat("packs", 1);
+    userData.points -= totalCost;
+    addMissionStat("packs", packCount);
 
     var targetCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
     var poolN = targetCards.filter(function(c) { return c.rarity === "N"; });
@@ -1609,21 +1621,32 @@ window.addEventListener("error", function(ev) {
     var pulled = [];
     var maxRarity = "R";
     var rankMap = { N: 1, R: 2, SR: 3, UR: 4, GOD: 5 };
+    var totalCardsToPull = packCount * 5;
 
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < totalCardsToPull; i++) {
       var rand = Math.random() * 100, pool = poolN;
-      if (i === 4) {
-        if (rigNextRarity === "GOD" && poolGOD.length > 0) pool = poolGOD;
-        else if (rigNextRarity === "UR" && poolUR.length > 0) pool = poolUR;
-        else if (rand < 0.1 && poolGOD.length > 0) pool = poolGOD;
-        else if (rand < 3.1) pool = poolUR;
-        else if (rand < 30.1) pool = poolSR;
+      var isLastInPack = (i % 5 === 4);
+      var isFinalTenthGuarantee = (packCount === 10 && i === totalCardsToPull - 1);
+
+      if (i === 4 && rigNextRarity === "GOD" && poolGOD.length > 0) {
+        pool = poolGOD;
+      } else if (i === 4 && rigNextRarity === "UR" && poolUR.length > 0) {
+        pool = poolUR;
+      } else if (isFinalTenthGuarantee) {
+        // 10連の50枚目はSR以上確定！
+        if (rand < 0.2 && poolGOD.length > 0) pool = poolGOD;
+        else if (rand < 6.0 && poolUR.length > 0) pool = poolUR;
+        else pool = poolSR.length > 0 ? poolSR : poolR;
+      } else if (isLastInPack) {
+        if (rand < 0.1 && poolGOD.length > 0) pool = poolGOD;
+        else if (rand < 3.1 && poolUR.length > 0) pool = poolUR;
+        else if (rand < 30.1 && poolSR.length > 0) pool = poolSR;
         else pool = poolR;
       } else {
         if (rand < 0.1 && poolGOD.length > 0) pool = poolGOD;
-        else if (rand < 1.1) pool = poolUR;
-        else if (rand < 13.1) pool = poolSR;
-        else if (rand < 43.1) pool = poolR;
+        else if (rand < 1.1 && poolUR.length > 0) pool = poolUR;
+        else if (rand < 13.1 && poolSR.length > 0) pool = poolSR;
+        else if (rand < 43.1 && poolR.length > 0) pool = poolR;
       }
       var card = pool[Math.floor(Math.random() * pool.length)];
       if (rankMap[card.rarity] > rankMap[maxRarity]) maxRarity = card.rarity;
@@ -1633,7 +1656,7 @@ window.addEventListener("error", function(ev) {
     rigNextRarity = null;
     saveUserData();
 
-    pendingPackData = { pulled: pulled, maxRarity: maxRarity };
+    pendingPackData = { pulled: pulled, maxRarity: maxRarity, packCount: packCount };
 
     var stage = document.getElementById("pack-open-stage");
     var visual = document.getElementById("pack-visual");
@@ -1644,14 +1667,16 @@ window.addEventListener("error", function(ev) {
     var hint = document.getElementById("tear-hint");
     var slit = document.getElementById("pack-slit-glow");
 
-    document.getElementById("stage-guide").innerText = "✂️ パック上部を右へなぞって切り開け！";
+    document.getElementById("stage-guide").innerText = packCount === 10
+      ? "🔥 10連パック（計50枚）！パック上部を右へなぞって切り開け！"
+      : "✂️ パック上部を右へなぞって切り開け！";
     document.getElementById("pack-result-area").innerHTML = "";
     document.getElementById("stage-after-buttons").style.display = "none";
 
     visual.className = "real-pack ready-to-tear" + (selectedPackNo === 2 ? " vol2" : (selectedPackNo === 3 ? " vol3" : ""));
     emblem.innerText = selectedPackNo === 1 ? "🌐" : (selectedPackNo === 2 ? "🔥" : "🎬");
-    title.innerText = selectedPackNo === 1 ? "VOL.1 BASIC" : (selectedPackNo === 2 ? "VOL.2 CHAOS" : "VOL.3 ANIME");
-    sub.innerText = "5枚入り / R以上1枚確定";
+    title.innerText = (selectedPackNo === 1 ? "VOL.1 BASIC" : (selectedPackNo === 2 ? "VOL.2 CHAOS" : "VOL.3 ANIME")) + (packCount === 10 ? " ×10連" : "");
+    sub.innerText = packCount === 10 ? "計50枚入り / SR以上1枚確定！" : "5枚入り / R以上1枚確定";
     bar.style.width = "0%";
     hint.innerText = "✂️ ここを右へスワイプ！";
     slit.className = "pack-slit-glow";
@@ -2207,7 +2232,13 @@ window.addEventListener("error", function(ev) {
 
     stageGuide.innerText = "✨ 獲得カード（タップで詳細） ✨";
 
-    for (var j = 0; j < 5; j++) {
+    var totalCards = data.pulled.length;
+    var stepDelay = totalCards > 5 ? 65 : 320;
+    if (totalCards > 5) {
+      stageGuide.innerText = "✨ 10連獲得カード（全50枚・タップで詳細） ✨";
+    }
+
+    for (var j = 0; j < totalCards; j++) {
       var back = document.createElement("div");
       back.className = "card-back-mystery";
       back.innerHTML = "❓<br><span style='font-size:0.75rem; color:#aaa;'>MEME</span>";
@@ -2216,14 +2247,18 @@ window.addEventListener("error", function(ev) {
 
     data.pulled.forEach(function(c, idx) {
       setTimeout(function() {
-        PackSFX.cardFlip(c.rarity);
+        if (totalCards <= 5 || c.rarity === "SR" || c.rarity === "UR" || c.rarity === "GOD" || idx % 5 === 0) {
+          PackSFX.cardFlip(c.rarity);
+        }
         var el = createCardElement(c, null, {});
         el.classList.add("card-revealed");
-        resultArea.replaceChild(el, resultArea.children[idx]);
-        if (idx === data.pulled.length - 1) {
+        if (resultArea.children[idx]) {
+          resultArea.replaceChild(el, resultArea.children[idx]);
+        }
+        if (idx === totalCards - 1) {
           document.getElementById("stage-after-buttons").style.display = "flex";
         }
-      }, 250 + idx * 320);
+      }, 220 + idx * stepDelay);
     });
   }
 
@@ -3885,6 +3920,8 @@ window.addEventListener("error", function(ev) {
     document.getElementById("opp-title").innerText = "👾 " + opp.name + "（" + opp.label + "）";
     document.getElementById("opp-hp").innerText = opp.hp;
     document.getElementById("opp-giga").innerText = opp.giga + "/" + opp.maxGiga;
+    var oppHandEl = document.getElementById("opp-hand-count");
+    if (oppHandEl) oppHandEl.innerText = "🃏 手札: " + (opp.hand ? opp.hand.length : 0) + "枚";
     document.getElementById("opp-deck-count").innerText = "(山札: " + opp.deck.length + "枚)";
     document.getElementById("self-title").innerText = "🧑 " + self.name + "（" + self.label + "）";
     document.getElementById("self-hp").innerText = self.hp;
