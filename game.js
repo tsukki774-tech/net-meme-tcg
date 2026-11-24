@@ -979,6 +979,8 @@ window.addEventListener("error", function(ev) {
     document.getElementById("step-mode").style.display = "block";
     document.getElementById("step-boss").style.display = "none";
     document.getElementById("step-online").style.display = "none";
+    var fl = document.getElementById("step-friend-lobby");
+    if (fl) fl.style.display = "none";
     showScreen("setup-screen");
   });
   _on("nav-pack", "click", function() {
@@ -2352,15 +2354,7 @@ window.addEventListener("error", function(ev) {
       selectEl.value = prevVal;
     }
 
-    ["friend-duel-deck-select", "friend-invite-deck-select"].forEach(function(fid) {
-      var fSel = document.getElementById(fid);
-      if (!fSel) return;
-      var fPrev = fSel.value || selectEl.value;
-      fSel.innerHTML = selectEl.innerHTML;
-      if (fPrev && Array.from(fSel.options).some(function(o) { return o.value === fPrev; })) {
-        fSel.value = fPrev;
-      }
-    });
+
   }
 
   function getSelectedDeckCards(autoFallback, customSelectId) {
@@ -2638,7 +2632,9 @@ window.addEventListener("error", function(ev) {
 
   function setupConnectionHandlers() {
     conn.on("data", function(data) {
-      if (data.type === "SEND_DECK" && state.myRole === "p1") {
+      if (data.type === "FRIEND_READY") {
+        handleFriendLobbyOpponentReady(data);
+      } else if (data.type === "SEND_DECK" && state.myRole === "p1") {
         p2OnlineDeck = data.deck;
         startMatch(p1OnlineDeck, p2OnlineDeck, data.playerName || "プレイヤー2");
         conn.send({ type: "START_MATCH", p1: state.p1, p2: state.p2 });
@@ -2770,7 +2766,6 @@ window.addEventListener("error", function(ev) {
         if (modal) { modal.style.display = "none"; modal.style.pointerEvents = "none"; }
         return;
       }
-      populateBattleDeckSelect();
       var invText = document.getElementById("friend-invite-text");
       if (invText) {
         invText.innerText = (invite.fromName || "フレンド") + " から対戦の招待が届いています！";
@@ -2780,12 +2775,10 @@ window.addEventListener("error", function(ev) {
       var accBtn = document.getElementById("btn-accept-invite");
       if (accBtn) {
         accBtn.onclick = function() {
-          var chosenDeck = getSelectedDeckCards(false, "friend-invite-deck-select");
-          if (!chosenDeck || chosenDeck.cards.length !== DECK_SIZE) return;
           db.ref("duel_invites/" + myId).remove();
           modal.style.display = "none";
           modal.style.pointerEvents = "none";
-          joinFriendDuel(invite.hostPeerId, chosenDeck);
+          joinFriendDuel(invite.hostPeerId, invite.fromName);
         };
       }
       var decBtn = document.getElementById("btn-decline-invite");
@@ -2886,19 +2879,160 @@ window.addEventListener("error", function(ev) {
     updateHomeFriendAvatars();
   };
 
-  window.__inviteFriendDuel = function(targetId) {
-    var myDeck = getSelectedDeckCards(false, "friend-duel-deck-select");
-    if (!myDeck || myDeck.cards.length !== DECK_SIZE) {
-      alert("対戦するには40枚のデッキを編成・選択してください！");
+  var friendLobbyState = {
+    active: false,
+    isHost: false,
+    oppName: "フレンド",
+    myReady: false,
+    oppReady: false,
+    myDeck: null,
+    oppDeck: null
+  };
+
+  function openFriendDuelLobby(isHost, oppName) {
+    friendLobbyState.active = true;
+    friendLobbyState.isHost = isHost;
+    friendLobbyState.oppName = oppName || "フレンド";
+    friendLobbyState.myReady = false;
+    friendLobbyState.oppReady = false;
+    friendLobbyState.myDeck = null;
+    friendLobbyState.oppDeck = null;
+
+    var fm = document.getElementById("friend-modal");
+    if (fm) { fm.style.display = "none"; fm.style.pointerEvents = "none"; }
+    var im = document.getElementById("friend-invite-modal");
+    if (im) { im.style.display = "none"; im.style.pointerEvents = "none"; }
+
+    populateBattleDeckSelect();
+    showScreen("setup-screen");
+    document.getElementById("step-mode").style.display = "none";
+    document.getElementById("step-boss").style.display = "none";
+    document.getElementById("step-online").style.display = "none";
+    var fl = document.getElementById("step-friend-lobby");
+    if (fl) fl.style.display = "flex";
+
+    updateFriendLobbyUI();
+  }
+
+  function updateFriendLobbyUI() {
+    var myNameEl = document.getElementById("fl-my-name");
+    var myStEl = document.getElementById("fl-my-status");
+    var oppNameEl = document.getElementById("fl-opp-name");
+    var oppStEl = document.getElementById("fl-opp-status");
+    var readyBtn = document.getElementById("btn-friend-ready");
+    var deckSel = document.getElementById("battle-deck-select");
+
+    if (myNameEl) myNameEl.innerText = userData.playerName || DEFAULT_PLAYER_NAME;
+    if (oppNameEl) oppNameEl.innerText = friendLobbyState.oppName;
+
+    if (myStEl) {
+      if (friendLobbyState.myReady) {
+        myStEl.style.color = "#00ff88";
+        myStEl.innerText = "✅ 準備完了！（" + (friendLobbyState.myDeck ? friendLobbyState.myDeck.label : "") + "）";
+      } else {
+        myStEl.style.color = "#ffd32a";
+        myStEl.innerText = "⏳ デッキ選択中...";
+      }
+    }
+    if (oppStEl) {
+      if (friendLobbyState.oppReady) {
+        oppStEl.style.color = "#00ff88";
+        oppStEl.innerText = "✅ 準備完了！";
+      } else {
+        oppStEl.style.color = "#94a3b8";
+        oppStEl.innerText = "⏳ デッキ選択中...";
+      }
+    }
+    if (readyBtn) {
+      if (friendLobbyState.myReady) {
+        readyBtn.innerText = "🔄 デッキを変更する（準備解除）";
+        readyBtn.style.background = "#475569";
+      } else {
+        readyBtn.innerText = "✅ 準備完了！";
+        readyBtn.style.background = "";
+      }
+    }
+    if (deckSel) {
+      deckSel.disabled = friendLobbyState.myReady;
+    }
+  }
+
+  function tryStartFriendLobbyMatch() {
+    if (!friendLobbyState.active || !friendLobbyState.myReady || !friendLobbyState.oppReady) return;
+    if (!conn || !conn.open) {
+      alert("⚠️ 相手との接続が切れています。");
       return;
     }
+    if (friendLobbyState.isHost && state.myRole === "p1") {
+      friendLobbyState.active = false;
+      var deckSel = document.getElementById("battle-deck-select");
+      if (deckSel) deckSel.disabled = false;
+      p1OnlineDeck = friendLobbyState.myDeck;
+      p2OnlineDeck = friendLobbyState.oppDeck;
+      startMatch(p1OnlineDeck, p2OnlineDeck, friendLobbyState.oppName || "プレイヤー2");
+      conn.send({ type: "START_MATCH", p1: state.p1, p2: state.p2 });
+    }
+  }
+
+  function handleFriendLobbyOpponentReady(data) {
+    friendLobbyState.oppReady = !!data.ready;
+    friendLobbyState.oppDeck = data.ready ? data.deck : null;
+    if (data.playerName) friendLobbyState.oppName = data.playerName;
+    updateFriendLobbyUI();
+    tryStartFriendLobbyMatch();
+  }
+
+  _on("btn-friend-ready", "click", function() {
+    if (!friendLobbyState.active) return;
+    if (!conn || !conn.open) {
+      alert("⚠️ 相手との通信接続を確立中です。数秒待ってからもう一度押してください。");
+      return;
+    }
+    if (friendLobbyState.myReady) {
+      friendLobbyState.myReady = false;
+      friendLobbyState.myDeck = null;
+      updateFriendLobbyUI();
+      conn.send({
+        type: "FRIEND_READY",
+        ready: false,
+        playerName: userData.playerName || DEFAULT_PLAYER_NAME
+      });
+      return;
+    }
+    var chosenDeck = getSelectedDeckCards(false);
+    if (!chosenDeck || chosenDeck.cards.length !== DECK_SIZE) return;
+    friendLobbyState.myReady = true;
+    friendLobbyState.myDeck = chosenDeck;
+    updateFriendLobbyUI();
+    conn.send({
+      type: "FRIEND_READY",
+      ready: true,
+      deck: chosenDeck,
+      playerName: userData.playerName || DEFAULT_PLAYER_NAME
+    });
+    tryStartFriendLobbyMatch();
+  });
+
+  _on("btn-cancel-friend-lobby", "click", function() {
+    friendLobbyState.active = false;
+    var deckSel = document.getElementById("battle-deck-select");
+    if (deckSel) deckSel.disabled = false;
+    var fl = document.getElementById("step-friend-lobby");
+    if (fl) fl.style.display = "none";
+    document.getElementById("step-mode").style.display = "block";
+    if (peer) { try { peer.destroy(); } catch (e) {} peer = null; conn = null; }
+    showScreen("home-screen");
+  });
+
+  window.__inviteFriendDuel = function(targetId) {
     var msg = document.getElementById("friend-action-msg");
     if (msg) {
       msg.style.color = "#00d2ff";
-      msg.innerText = "🔄 対戦ルームを準備しています...";
+      msg.innerText = "🔄 対戦招待を送信しています...";
     }
     state.mode = "online";
-    p1OnlineDeck = myDeck;
+    var oppInfo = friendListCache[targetId];
+    var oppName = (oppInfo && oppInfo.name) ? oppInfo.name : targetId;
     var hostPeerId = ROOM_PREFIX + "frd-" + userData.playerId + "-" + Math.floor(1000 + Math.random() * 9000);
     if (peer) { try { peer.destroy(); } catch (e) {} }
     peer = new Peer(hostPeerId);
@@ -2919,7 +3053,7 @@ window.addEventListener("error", function(ev) {
       }).then(function() {
         if (msg) {
           msg.style.color = "#00ff88";
-          msg.innerText = "⚔️ 対戦招待を送信しました！（使用デッキ: " + myDeck.label + "）相手の承諾を待っています...";
+          msg.innerText = "⚔️ 「" + oppName + "」に対戦招待を送信しました！相手の承諾を待っています...";
         }
       }).catch(function(fbErr) {
         if (msg) {
@@ -2930,39 +3064,28 @@ window.addEventListener("error", function(ev) {
     });
 
     peer.on("connection", function(connection) {
-      var fm = document.getElementById("friend-modal");
-      if (fm) { fm.style.display = "none"; fm.style.pointerEvents = "none"; }
       conn = connection;
       state.myRole = "p1";
       setupConnectionHandlers();
+      openFriendDuelLobby(true, oppName);
     });
   };
 
-  function joinFriendDuel(hostPeerId, preselectedDeck) {
-    var myDeck = preselectedDeck || getSelectedDeckCards(false, "friend-invite-deck-select");
-    if (!myDeck || myDeck.cards.length !== DECK_SIZE) {
-      alert("対戦するには40枚のデッキを編成・選択してください！");
-      return;
-    }
-    var fm = document.getElementById("friend-modal");
-    if (fm) { fm.style.display = "none"; fm.style.pointerEvents = "none"; }
-    showCutin("🔄 フレンドの対戦ルームに接続中...", 2500);
-
+  function joinFriendDuel(hostPeerId, fromName) {
     state.mode = "online";
-    p1OnlineDeck = myDeck;
     if (peer) { try { peer.destroy(); } catch (e) {} }
     peer = new Peer();
 
     var connected = false;
     var connectTimer = setTimeout(function() {
       if (!connected) {
-        alert("⚠️ 相手との接続がタイムアウトしました。相手が画面を閉じたか、通信環境が不安定な可能性があります。もう一度招待を送ってもらってください。");
+        alert("⚠️ 相手との接続がタイムアウトしました。もう一度招待を送ってもらってください。");
       }
     }, 12000);
 
     peer.on("error", function(err) {
       clearTimeout(connectTimer);
-      alert("⚠️ 対戦接続エラー: " + (err && err.type ? err.type : "接続失敗") + "\n相手が画面を閉じている可能性があります。");
+      alert("⚠️ 対戦接続エラー: " + (err && err.type ? err.type : "接続失敗"));
     });
 
     peer.on("open", function() {
@@ -2972,11 +3095,7 @@ window.addEventListener("error", function(ev) {
         clearTimeout(connectTimer);
         state.myRole = "p2";
         setupConnectionHandlers();
-        conn.send({
-          type: "SEND_DECK",
-          deck: p1OnlineDeck,
-          playerName: userData.playerName || DEFAULT_PLAYER_NAME
-        });
+        openFriendDuelLobby(false, fromName || "フレンド");
       });
       conn.on("error", function() {
         clearTimeout(connectTimer);
