@@ -5918,7 +5918,20 @@ window.addEventListener("error", function(ev) {
 
   function setupConnectionHandlers() {
     conn.on("data", function(data) {
-      if (data.type === "FRIEND_READY") {
+      if (data.type === "LOBBY_HELLO") {
+        if (data.playerName) friendLobbyState.oppName = data.playerName;
+        updateFriendLobbyUI();
+        if (friendLobbyState.myReady && friendLobbyState.myDeck) {
+          try {
+            conn.send({
+              type: "FRIEND_READY",
+              ready: true,
+              deck: friendLobbyState.myDeck,
+              playerName: userData.playerName || DEFAULT_PLAYER_NAME
+            });
+          } catch (e) {}
+        }
+      } else if (data.type === "FRIEND_READY") {
         handleFriendLobbyOpponentReady(data);
       } else if (data.type === "SEND_DECK" && state.myRole === "p1") {
         p2OnlineDeck = data.deck;
@@ -6359,33 +6372,62 @@ window.addEventListener("error", function(ev) {
 
   function joinFriendDuel(hostPeerId, fromName) {
     state.mode = "online";
+    state.myRole = "p2";
+    openFriendDuelLobby(false, fromName || "フレンド");
+
+    var oppStEl = document.getElementById("fl-opp-status");
+    if (oppStEl) {
+      oppStEl.style.color = "#00d2ff";
+      oppStEl.innerText = "🔄 通信接続中...";
+    }
+
     if (peer) { try { peer.destroy(); } catch (e) {} }
     peer = new Peer();
 
     var connected = false;
     var connectTimer = setTimeout(function() {
-      if (!connected) {
-        alert("⚠️ 相手との接続がタイムアウトしました。もう一度招待を送ってもらってください。");
+      if (!connected && friendLobbyState.active) {
+        var st = document.getElementById("fl-opp-status");
+        if (st) {
+          st.style.color = "#ff6b6b";
+          st.innerText = "⚠️ 接続タイムアウト（再度招待を送ってもらってください）";
+        }
       }
-    }, 12000);
+    }, 15000);
 
     peer.on("error", function(err) {
       clearTimeout(connectTimer);
-      alert("⚠️ 対戦接続エラー: " + (err && err.type ? err.type : "接続失敗"));
+      var st = document.getElementById("fl-opp-status");
+      if (st) {
+        st.style.color = "#ff6b6b";
+        st.innerText = "⚠️ 接続エラー(" + (err && err.type ? err.type : "unknown") + ")";
+      }
     });
 
     peer.on("open", function() {
-      conn = peer.connect(hostPeerId, { reliable: true });
-      conn.on("open", function() {
+      conn = peer.connect(hostPeerId);
+      var onChannelReady = function() {
+        if (connected) return;
         connected = true;
         clearTimeout(connectTimer);
-        state.myRole = "p2";
         setupConnectionHandlers();
-        openFriendDuelLobby(false, fromName || "フレンド");
-      });
+        updateFriendLobbyUI();
+        try {
+          conn.send({
+            type: "LOBBY_HELLO",
+            playerName: userData.playerName || DEFAULT_PLAYER_NAME
+          });
+        } catch (e) {}
+      };
+      conn.on("open", onChannelReady);
+      if (conn.open) onChannelReady();
       conn.on("error", function() {
         clearTimeout(connectTimer);
-        alert("⚠️ 相手とのデータ通信の確立に失敗しました。");
+        var st = document.getElementById("fl-opp-status");
+        if (st) {
+          st.style.color = "#ff6b6b";
+          st.innerText = "⚠️ データ通信の確立に失敗しました";
+        }
       });
     });
   }
