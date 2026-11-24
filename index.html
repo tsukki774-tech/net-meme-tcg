@@ -910,7 +910,7 @@
     }
 
   
-    /* v2.1.8 iPadOS Chrome/Safari 完全互換タッチ・スクロールCSS */
+    /* v2.1.1.8 iPadOS Chrome/Safari 完全互換タッチ・スクロールCSS */
     html, body {
       overflow-y: auto !important;
       overflow-x: hidden !important;
@@ -939,7 +939,7 @@
     }
 
   
-    /* v2.1.8 ホーム画面・カオスネット掲示板＆弾幕タイムライン背景 */
+    /* v2.1.1.8 ホーム画面・カオスネット掲示板＆弾幕タイムライン背景 */
     #home-chaos-bg {
       position: fixed;
       top: 0;
@@ -1034,7 +1034,7 @@
 
 
     /* ============================================================
-       v2.1.0 新サイバー・ネオン3カラム・ホーム画面UI
+       v2.1.1.0 新サイバー・ネオン3カラム・ホーム画面UI
        ============================================================ */
     #home-screen {
       max-width: none !important;
@@ -2453,7 +2453,7 @@
     </div>
   </div>
 
-  <div id="ver-stamp-badge">v2.1.8</div>
+  <div id="ver-stamp-badge">v2.1.1.8</div>
   <!-- インライン統合スクリプト（キャッシュ完全回避・即時実行版） -->
   <script>
 // cards.js - カード一覧・レンタルデッキ・ミッションデータ定義
@@ -3080,11 +3080,11 @@ const FUSION_RECIPES = [
   }
 ];
 
-const APP_VERSION = "v2.1";
+const APP_VERSION = "v2.1.1";
 
 const UPDATE_LOGS = [
   {
-    version: "v2.1",
+    version: "v2.1.1",
     date: "最新アップデート",
     title: "🌐 オンライン通信対戦＆フレンド機能の全面復旧・強化（ダイレクトP2P対応）！",
     isLatest: true,
@@ -6506,7 +6506,7 @@ window.addEventListener("error", function(ev) {
       location.reload();
       return;
     }
-    if (!/^https:\/\//.test(val)) {
+    if (!val.startsWith("https://")) {
       alert("https:// から始まるFirebase Realtime DatabaseのURLを入力してください。");
       return;
     }

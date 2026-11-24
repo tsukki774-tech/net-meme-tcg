@@ -2681,7 +2681,7 @@ window.addEventListener("error", function(ev) {
       location.reload();
       return;
     }
-    if (!/^https:\/\//.test(val)) {
+    if (!val.startsWith("https://")) {
       alert("https:// から始まるFirebase Realtime DatabaseのURLを入力してください。");
       return;
     }

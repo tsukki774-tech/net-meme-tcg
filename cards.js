@@ -622,11 +622,11 @@ const FUSION_RECIPES = [
   }
 ];
 
-const APP_VERSION = "v2.1";
+const APP_VERSION = "v2.1.1";
 
 const UPDATE_LOGS = [
   {
-    version: "v2.1",
+    version: "v2.1.1",
     date: "最新アップデート",
     title: "🌐 オンライン通信対戦＆フレンド機能の全面復旧・強化（ダイレクトP2P対応）！",
     isLatest: true,
