@@ -910,7 +910,7 @@
     }
 
   
-    /* v2.1.1.8 iPadOS Chrome/Safari 完全互換タッチ・スクロールCSS */
+    /* v2.2.8 iPadOS Chrome/Safari 完全互換タッチ・スクロールCSS */
     html, body {
       overflow-y: auto !important;
       overflow-x: hidden !important;
@@ -939,7 +939,7 @@
     }
 
   
-    /* v2.1.1.8 ホーム画面・カオスネット掲示板＆弾幕タイムライン背景 */
+    /* v2.2.8 ホーム画面・カオスネット掲示板＆弾幕タイムライン背景 */
     #home-chaos-bg {
       position: fixed;
       top: 0;
@@ -1034,7 +1034,7 @@
 
 
     /* ============================================================
-       v2.1.1.0 新サイバー・ネオン3カラム・ホーム画面UI
+       v2.2.0 新サイバー・ネオン3カラム・ホーム画面UI
        ============================================================ */
     #home-screen {
       max-width: none !important;
@@ -1822,7 +1822,7 @@
         <button type="button" id="btn-direct-id-duel" class="sub-btn" style="padding:8px 10px; border-color:#ffd32a; color:#ffd32a;">⚔️ 直接対戦</button>
       </div>
       <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-        <span id="p2p-standby-status">📡 P2P待機中...</span>
+        <span id="p2p-standby-status">📡 P2P待機準備完了</span>
         <button type="button" id="btn-copy-friend-url" class="sub-btn" style="padding:2px 8px; font-size:0.72rem;">🔗 フレンド招待URL</button>
       </div>
       <p id="friend-action-msg" style="font-size:0.8rem; color:#00ff88; min-height:18px; margin-bottom:6px;"></p>
@@ -2353,14 +2353,14 @@
       </div>
 
       <hr style="margin:12px 0; border-color:#444;">
-      <p style="font-size:0.85rem; color:#aaa;">▼ 友達と合言葉・招待リンクで対戦（サーバー不要・確実接続）</p>
+      <p style="font-size:0.85rem; color:#aaa;">▼ 友達と合言葉で対戦する場合</p>
       <button id="btn-create-room" class="primary-btn">部屋を作る（合言葉発行）</button>
       <div id="host-info" style="display:none; margin-top:8px; background:#162232; border:1px solid #00d2ff; border-radius:8px; padding:10px;">
         <p style="margin:0 0 4px 0;">合言葉：<strong id="my-room-code" style="font-size:1.6rem; color:#ffd32a; letter-spacing:2px;">----</strong></p>
         <p id="host-status-text" style="font-size:0.82rem; color:#00ff88; margin:0 0 8px 0;">相手の参加を待っています...</p>
         <div style="display:flex; gap:6px;">
-          <button id="btn-copy-room-code" class="sub-btn" style="flex:1; font-size:0.78rem; padding:6px;">📋 合言葉コピー</button>
-          <button id="btn-copy-invite-url" class="primary-btn" style="flex:1; font-size:0.78rem; padding:6px;">🔗 招待リンクコピー</button>
+          <button type="button" id="btn-copy-room-code" class="sub-btn" style="flex:1; font-size:0.78rem; padding:6px;">📋 合言葉コピー</button>
+          <button type="button" id="btn-copy-invite-url" class="primary-btn" style="flex:1; font-size:0.78rem; padding:6px;">🔗 招待リンクコピー</button>
         </div>
       </div>
       <div style="display:flex; gap:8px; margin-top:8px;">
@@ -2368,14 +2368,6 @@
         <button id="btn-join-room" class="sub-btn">部屋に入る</button>
       </div>
       <p id="join-status" style="color:#ff6b6b; font-size:0.85rem; margin-top:4px;"></p>
-
-      <details style="margin-top:10px; font-size:0.78rem; color:#94a3b8; text-align:left;">
-        <summary style="cursor:pointer;">⚙️ 通信サーバー設定（Firebase DB URL変更）</summary>
-        <div style="margin-top:6px; display:flex; gap:6px;">
-          <input type="text" id="custom-fb-url-input" placeholder="https://xxxx-default-rtdb.firebaseio.com" style="flex:1; padding:6px; font-size:0.75rem; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff;">
-          <button id="btn-save-fb-url" class="sub-btn" style="padding:6px 10px; font-size:0.75rem;">保存</button>
-        </div>
-      </details>
     </div>
   </div>
 
@@ -2453,7 +2445,7 @@
     </div>
   </div>
 
-  <div id="ver-stamp-badge">v2.1.1.8</div>
+  <div id="ver-stamp-badge">v2.2.8</div>
   <!-- インライン統合スクリプト（キャッシュ完全回避・即時実行版） -->
   <script>
 // cards.js - カード一覧・レンタルデッキ・ミッションデータ定義
@@ -3080,18 +3072,18 @@ const FUSION_RECIPES = [
   }
 ];
 
-const APP_VERSION = "v2.1.1";
+const APP_VERSION = "v2.2";
 
 const UPDATE_LOGS = [
   {
-    version: "v2.1.1",
+    version: "v2.2",
     date: "最新アップデート",
-    title: "🌐 オンライン通信対戦＆フレンド機能の全面復旧・強化（ダイレクトP2P対応）！",
+    title: "🌐 オンライン対戦＆フレンド通信の安定復旧（STUNサーバー対応＋ダイレクトP2P招待）！",
     isLatest: true,
     items: [
-      { tag: "通信復旧", color: "#00ff88", text: "WebRTC（PeerJS）にSTUNサーバー群＆自動再接続を組み込み、スマホ回線や別Wi-Fi間でも安定接続！" },
-      { tag: "フレンド強化", color: "#00d2ff", text: "サーバーエラー時でも6桁IDへ直接P2P呼び出し＆ワンタップ招待リンクで即フレンド対戦可能に！" },
-      { tag: "ランダム対戦", color: "#ffd32a", text: "待機キューエラー時の自動リトライ＆サーバーURLカスタム切替に対応！" }
+      { tag: "通信復旧", color: "#00ff88", text: "WebRTC（PeerJS）にSTUNサーバー群を組み込み、異なるWi-Fiやスマホ回線間でも安定接続！" },
+      { tag: "フレンド強化", color: "#00d2ff", text: "フレンド画面を開いた際にダイレクトP2P待機＆6桁ID直接対戦・ワンタップ招待URLに対応！" },
+      { tag: "安定動作", color: "#ffd32a", text: "起動時の画面ロック・初期化不具合を解消し、セーブデータ＆全ボタン操作を完全正常化！" }
     ]
   },
   {
@@ -3833,22 +3825,17 @@ window.addEventListener("error", function(ev) {
     var el = document.getElementById(id);
     if (el) el.addEventListener(evt, fn, opts);
   }
-  // Firebase Realtime Database 初期化（カスタムURL対応＆フォールバック付き）
-  var DEFAULT_FIREBASE_DB_URL = "https://tcgnet-bf199-default-rtdb.firebaseio.com";
-  var FIREBASE_DB_URL = localStorage.getItem("netmeme_custom_fb_url") || DEFAULT_FIREBASE_DB_URL;
-  var firebaseAvailable = false;
+  // Firebase Realtime Database 初期化
+  var FIREBASE_DB_URL = "https://tcgnet-bf199-default-rtdb.firebaseio.com";
   try {
-    if (typeof firebase !== "undefined" && firebase.apps) {
-      if (!firebase.apps.length) {
-        firebase.initializeApp({ databaseURL: FIREBASE_DB_URL });
-      }
-      firebaseAvailable = true;
+    if (typeof firebase !== "undefined" && firebase.apps && !firebase.apps.length) {
+      firebase.initializeApp({ databaseURL: FIREBASE_DB_URL });
     }
   } catch (fbInitErr) {
     console.warn("Firebase init skipped:", fbInitErr);
   }
 
-  // WebRTC (PeerJS) 共通設定（Google STUNサーバー群でNAT越え・スマホ回線接続を強化）
+  // WebRTC (PeerJS) STUNサーバー設定（NAT越え・スマホ回線・別Wi-Fi間接続の安定化）
   var PEER_CONFIG = {
     debug: 1,
     config: {
@@ -3863,7 +3850,11 @@ window.addEventListener("error", function(ev) {
   };
   function createPeerInstance(customId) {
     if (typeof Peer === "undefined") return null;
-    return customId ? new Peer(customId, PEER_CONFIG) : new Peer(PEER_CONFIG);
+    try {
+      return customId ? new Peer(customId, PEER_CONFIG) : new Peer(PEER_CONFIG);
+    } catch (e) {
+      return customId ? new Peer(customId) : new Peer();
+    }
   }
 
   var SAVE_KEY = "netmeme_tcg_save_v2";
@@ -6475,53 +6466,26 @@ window.addEventListener("error", function(ev) {
   });
 
   // ================= Firebase SDK連携・ランダムマッチ処理 =================
-  var personalPeer = null;
-
   function cancelRandomMatch() {
     clearInterval(randomHeartbeatTimer);
     randomHeartbeatTimer = null;
     if (myQueueRef) {
-      try { myQueueRef.remove().catch(function() {}); } catch (e) {}
+      myQueueRef.remove().catch(function() {});
       myQueueRef = null;
     }
     if (peer) {
-      try { peer.destroy(); } catch (e) {}
+      peer.destroy();
       peer = null;
     }
-    var box = document.getElementById("random-matching-box");
-    var btn = document.getElementById("btn-random-match");
-    if (box) box.style.display = "none";
-    if (btn) btn.disabled = false;
+    document.getElementById("random-matching-box").style.display = "none";
+    document.getElementById("btn-random-match").disabled = false;
   }
 
   _on("btn-cancel-random", "click", cancelRandomMatch);
 
-  _on("btn-save-fb-url", "click", function() {
-    var inp = document.getElementById("custom-fb-url-input");
-    if (!inp) return;
-    var val = inp.value.trim();
-    if (!val) {
-      localStorage.removeItem("netmeme_custom_fb_url");
-      alert("サーバーURLを初期設定に戻しました。ページを再読み込みします。");
-      location.reload();
-      return;
-    }
-    if (!val.startsWith("https://")) {
-      alert("https:// から始まるFirebase Realtime DatabaseのURLを入力してください。");
-      return;
-    }
-    localStorage.setItem("netmeme_custom_fb_url", val);
-    alert("新しいサーバーURLを保存しました。ページを再読み込みして反映します。");
-    location.reload();
-  });
-
   _on("btn-random-match", "click", function() {
-    if (typeof Peer === "undefined") {
-      alert("通信ライブラリ（PeerJS）の読み込みに失敗しています。ネット接続を確認して再読み込みしてください。");
-      return;
-    }
-    if (!firebaseAvailable || typeof firebase === "undefined") {
-      alert("⚠️ ランダムマッチ用ロビーサーバーに接続できません。下の「合言葉・招待リンク対戦」または「フレンド対戦」をご利用ください！");
+    if (typeof firebase === "undefined") {
+      alert("Firebase SDKの読み込みに失敗しています。ネットワーク接続を確認してください。");
       return;
     }
 
@@ -6530,12 +6494,10 @@ window.addEventListener("error", function(ev) {
     document.getElementById("random-status-text").innerText = "🔍 ロビーを検索しています...";
 
     var myPeerId = ROOM_PREFIX + "rnd-" + Math.random().toString(36).substring(2, 10);
-    if (peer) { try { peer.destroy(); } catch (e) {} }
     peer = createPeerInstance(myPeerId);
 
     peer.on("error", function(err) {
-      document.getElementById("random-status-text").innerText = "⚠️ 通信エラー(" + (err && err.type ? err.type : "unknown") + ")：再試行してください";
-      document.getElementById("btn-random-match").disabled = false;
+      document.getElementById("random-status-text").innerText = "⚠️ 通信エラー: " + err.type;
     });
 
     peer.on("open", function() {
@@ -6550,7 +6512,7 @@ window.addEventListener("error", function(ev) {
         snapshot.forEach(function(child) {
           var val = child.val();
           if (!val || !val.peerId || (now - val.timestamp > 60000)) {
-            try { child.ref.remove().catch(function() {}); } catch (e) {}
+            child.ref.remove().catch(function() {});
             return false;
           }
           if (!targetKey && val.peerId !== myPeerId) {
@@ -6569,7 +6531,7 @@ window.addEventListener("error", function(ev) {
           }, function(error, committed) {
             if (committed) {
               document.getElementById("random-status-text").innerText = "⚡ 対戦相手を発見！接続中...";
-              conn = peer.connect(targetPeerId, { reliable: true });
+              conn = peer.connect(targetPeerId);
               conn.on("open", function() {
                 state.myRole = "p2";
                 setupConnectionHandlers();
@@ -6583,8 +6545,7 @@ window.addEventListener("error", function(ev) {
           registerAsWaitingHost(queueRef, myPeerId);
         }
       }).catch(function(err) {
-        document.getElementById("random-status-text").innerText = "⚠️ ランダムロビー停止中（合言葉・招待リンク対戦は利用可能です！）";
-        document.getElementById("btn-random-match").disabled = false;
+        document.getElementById("random-status-text").innerText = "⚠️ サーバー接続エラー: " + err.message;
       });
     });
   });
@@ -6618,12 +6579,12 @@ window.addEventListener("error", function(ev) {
     });
   }
 
-  // ================= 合言葉・招待リンク対戦処理（サーバー不要・ダイレクトP2P） =================
+  // ================= 従来の合言葉・招待リンク対戦処理（STUN対応P2P） =================
   var currentRoomCode = "";
 
   _on("btn-create-room", "click", function() {
     if (typeof Peer === "undefined") {
-      alert("通信ライブラリの読み込みに失敗しています。再読み込みしてください。");
+      alert("通信ライブラリの読み込みに失敗しています。ネット接続を確認して再読み込みしてください。");
       return;
     }
     var code = Math.floor(1000 + Math.random() * 9000).toString();
@@ -6636,7 +6597,6 @@ window.addEventListener("error", function(ev) {
 
     if (peer) { try { peer.destroy(); } catch (e) {} }
     peer = createPeerInstance(ROOM_PREFIX + code);
-
     peer.on("open", function() {
       if (hst) { hst.style.color = "#00ff88"; hst.innerText = "✅ ルーム開設完了！相手の参加を待っています..."; }
     });
@@ -6648,11 +6608,10 @@ window.addEventListener("error", function(ev) {
     peer.on("error", function(err) {
       document.getElementById("btn-create-room").disabled = false;
       if (err && err.type === "unavailable-id") {
-        // ID重複時は自動で別の合言葉を再発行
         document.getElementById("btn-create-room").click();
         return;
       }
-      if (hst) { hst.style.color = "#ff6b6b"; hst.innerText = "⚠️ 通信エラー(" + (err && err.type ? err.type : "unknown") + ")：もう一度押してください"; }
+      if (hst) { hst.style.color = "#ff6b6b"; hst.innerText = "⚠️ 通信エラーが発生しました。もう一度押してください。"; }
     });
   });
 
@@ -6661,7 +6620,7 @@ window.addEventListener("error", function(ev) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(currentRoomCode).then(function() {
         alert("合言葉「" + currentRoomCode + "」をコピーしました！");
-      });
+      }).catch(function() { prompt("合言葉をコピーしてください:", currentRoomCode); });
     } else {
       prompt("合言葉をコピーしてください:", currentRoomCode);
     }
@@ -6673,10 +6632,8 @@ window.addEventListener("error", function(ev) {
     var inviteUrl = baseUrl + "?room=" + currentRoomCode;
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(inviteUrl).then(function() {
-        alert("招待リンクをコピーしました！LINEやDiscordで相手に送ると自動入室できます。");
-      }).catch(function() {
-        prompt("招待リンクをコピーしてください:", inviteUrl);
-      });
+        alert("招待リンクをコピーしました！相手に送ると自動入室できます。");
+      }).catch(function() { prompt("招待リンクをコピーしてください:", inviteUrl); });
     } else {
       prompt("招待リンクをコピーしてください:", inviteUrl);
     }
@@ -6684,49 +6641,31 @@ window.addEventListener("error", function(ev) {
 
   function joinRoomByCode(code) {
     code = (code || "").trim();
-    var statusEl = document.getElementById("join-status");
+    var st = document.getElementById("join-status");
     if (code.length !== 4) {
-      if (statusEl) statusEl.innerText = "4桁の番号を入力してください";
+      if (st) st.innerText = "4桁の番号を入力してください";
       return;
     }
     if (typeof Peer === "undefined") {
-      if (statusEl) statusEl.innerText = "通信ライブラリの読み込みに失敗しています。";
+      if (st) st.innerText = "通信ライブラリの読み込みに失敗しています。";
       return;
     }
     if (!p1OnlineDeck) {
       p1OnlineDeck = getSelectedDeckCards(true) || getSelectedDeckCards(false);
     }
-    if (statusEl) { statusEl.style.color = "#00d2ff"; statusEl.innerText = "🔄 ルーム「" + code + "」に接続中..."; }
+    if (st) { st.style.color = "#00d2ff"; st.innerText = "🔄 接続中..."; }
     if (peer) { try { peer.destroy(); } catch (e) {} }
     peer = createPeerInstance();
-
-    var joined = false;
-    var joinTimer = setTimeout(function() {
-      if (!joined && statusEl) {
-        statusEl.style.color = "#ff6b6b";
-        statusEl.innerText = "⚠️ 接続タイムアウト。合言葉が正しいか、相手が待機中か確認してください。";
-      }
-    }, 15000);
-
     peer.on("open", function() {
       conn = peer.connect(ROOM_PREFIX + code, { reliable: true });
-      var onRoomOpen = function() {
-        if (joined) return;
-        joined = true;
-        clearTimeout(joinTimer);
+      conn.on("open", function() {
         state.myRole = "p2";
         setupConnectionHandlers();
         conn.send({ type: "SEND_DECK", deck: p1OnlineDeck, playerName: userData.playerName || DEFAULT_PLAYER_NAME });
-      };
-      conn.on("open", onRoomOpen);
-      if (conn.open) onRoomOpen();
+      });
     });
-    peer.on("error", function(err) {
-      clearTimeout(joinTimer);
-      if (statusEl) {
-        statusEl.style.color = "#ff6b6b";
-        statusEl.innerText = "⚠️ 部屋が見つかりません(" + (err && err.type ? err.type : "peer-unavailable") + ")。";
-      }
+    peer.on("error", function() {
+      if (st) { st.style.color = "#ff6b6b"; st.innerText = "⚠️ 部屋が見つかりません。合言葉を確認してください。"; }
     });
   }
 
@@ -6737,16 +6676,13 @@ window.addEventListener("error", function(ev) {
 
   function setupConnectionHandlers() {
     conn.on("data", function(data) {
-      if (!data || !data.type) return;
       if (data.type === "DIRECT_FRIEND_INVITE") {
-        // サーバー不要のダイレクトP2P対戦招待を受信
-        showIncomingFriendInvite(data.fromId, data.fromName, data.hostPeerId);
+        showDirectFriendInviteModal(data.fromId, data.fromName, data.hostPeerId);
       } else if (data.type === "DIRECT_FRIEND_REQ") {
-        // サーバー不要のダイレクトフレンド申請を受信
         saveLocalFriend(data.fromId, data.fromName, data.avatar, true);
         renderFriendModal();
         updateHomeFriendAvatars();
-        alert("👥 「" + (data.fromName || data.fromId) + "」とフレンドになりました！");
+        alert("👥 「" + (data.fromName || data.fromId) + "」があなたをフレンド登録しました！");
       } else if (data.type === "LOBBY_HELLO") {
         if (data.playerName) friendLobbyState.oppName = data.playerName;
         updateFriendLobbyUI();
@@ -6798,19 +6734,17 @@ window.addEventListener("error", function(ev) {
     }
   }
 
-  // ================= フレンド機能＆オンライン状態同期（Firebase＋ダイレクトP2Pハイブリッド） =================
+  // ================= フレンド機能＆オンライン状態同期（Firebase＋ダイレクトP2P対応） =================
   var LOCAL_FRIENDS_KEY = "netmeme_local_friends_v1";
+  var personalPeer = null;
   var friendListCache = {};
   var friendReqCache = {};
-  var selectedAvatarTemp = userData.avatar || "👤";
 
   function loadLocalFriends() {
     try {
       var raw = localStorage.getItem(LOCAL_FRIENDS_KEY);
       return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      return {};
-    }
+    } catch (e) { return {}; }
   }
   function saveLocalFriend(fid, name, avatar, isOnline) {
     if (!fid) return;
@@ -6818,8 +6752,7 @@ window.addEventListener("error", function(ev) {
     local[fid] = {
       name: name || (local[fid] && local[fid].name) || ("プレイヤー#" + fid),
       avatar: avatar || (local[fid] && local[fid].avatar) || "👤",
-      online: !!isOnline,
-      lastSeen: Date.now()
+      online: !!isOnline
     };
     try { localStorage.setItem(LOCAL_FRIENDS_KEY, JSON.stringify(local)); } catch (e) {}
     friendListCache[fid] = local[fid];
@@ -6830,9 +6763,67 @@ window.addEventListener("error", function(ev) {
     try { localStorage.setItem(LOCAL_FRIENDS_KEY, JSON.stringify(local)); } catch (e) {}
     delete friendListCache[fid];
   }
-
-  // 起動時にローカル保存済みフレンドを即座に読み込み
   friendListCache = loadLocalFriends();
+
+  function showDirectFriendInviteModal(fromId, fromName, hostPeerId) {
+    var modal = document.getElementById("friend-invite-modal");
+    var invText = document.getElementById("friend-invite-text");
+    if (invText) invText.innerText = (fromName || fromId || "フレンド") + " から対戦の招待が届いています！";
+    if (modal) { modal.style.display = "flex"; modal.style.pointerEvents = "auto"; }
+    var accBtn = document.getElementById("btn-accept-invite");
+    if (accBtn) {
+      accBtn.onclick = function() {
+        modal.style.display = "none";
+        modal.style.pointerEvents = "none";
+        joinFriendDuel(hostPeerId, fromName || fromId);
+      };
+    }
+    var decBtn = document.getElementById("btn-decline-invite");
+    if (decBtn) {
+      decBtn.onclick = function() {
+        modal.style.display = "none";
+        modal.style.pointerEvents = "none";
+      };
+    }
+  }
+
+  function ensurePersonalStandbyPeer() {
+    if (typeof Peer === "undefined" || !userData.playerId) return;
+    var stEl = document.getElementById("p2p-standby-status");
+    if (personalPeer && !personalPeer.destroyed) return;
+    try {
+      personalPeer = createPeerInstance(ROOM_PREFIX + "user-" + userData.playerId);
+      if (!personalPeer) return;
+      personalPeer.on("open", function() {
+        if (stEl) { stEl.style.color = "#00ff88"; stEl.innerText = "📡 P2P待機中（ID: " + userData.playerId + "）"; }
+      });
+      personalPeer.on("connection", function(incomingConn) {
+        incomingConn.on("data", function(data) {
+          if (!data || !data.type) return;
+          if (data.type === "DIRECT_FRIEND_INVITE") {
+            showDirectFriendInviteModal(data.fromId, data.fromName, data.hostPeerId);
+          } else if (data.type === "DIRECT_FRIEND_REQ") {
+            saveLocalFriend(data.fromId, data.fromName, data.avatar, true);
+            renderFriendModal();
+            updateHomeFriendAvatars();
+            try {
+              incomingConn.send({
+                type: "DIRECT_FRIEND_ACK",
+                fromId: userData.playerId,
+                fromName: userData.playerName || DEFAULT_PLAYER_NAME,
+                avatar: userData.avatar || "👤"
+              });
+            } catch (e) {}
+            alert("👥 「" + (data.fromName || data.fromId) + "」があなたをフレンド登録しました！");
+          }
+        });
+      });
+      personalPeer.on("error", function() {
+        if (stEl) { stEl.style.color = "#ffd32a"; stEl.innerText = "📡 合言葉・招待URL対戦可"; }
+      });
+    } catch (e) {}
+  }
+  var selectedAvatarTemp = userData.avatar || "👤";
 
   document.querySelectorAll(".avatar-opt-btn").forEach(function(btn) {
     btn.addEventListener("click", function() {
@@ -6865,156 +6856,23 @@ window.addEventListener("error", function(ev) {
   _on("btn-copy-my-id", "click", copyPlayerId);
   _on("btn-modal-copy-id", "click", copyPlayerId);
 
-  _on("btn-copy-friend-url", "click", function() {
-    if (!userData.playerId) return;
-    var baseUrl = window.location.href.split("?")[0].split("#")[0];
-    var url = baseUrl + "?addfriend=" + userData.playerId + "&fname=" + encodeURIComponent(userData.playerName || DEFAULT_PLAYER_NAME);
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(function() {
-        alert("フレンド追加＆対戦招待URLをコピーしました！相手に送ると自動でフレンド登録されます。");
-      }).catch(function() {
-        prompt("フレンド招待URLをコピーしてください:", url);
-      });
-    } else {
-      prompt("フレンド招待URLをコピーしてください:", url);
-    }
-  });
-
   function syncMyProfileToFirebase(isOnline) {
-    if (!firebaseAvailable || typeof firebase === "undefined" || !userData.playerId) return;
-    try {
-      var db = firebase.database();
-      var userRef = db.ref("users/" + userData.playerId);
-      userRef.update({
-        name: userData.playerName || DEFAULT_PLAYER_NAME,
-        avatar: userData.avatar || "👤",
-        online: !!isOnline,
-        lastSeen: Date.now()
-      }).catch(function() {});
-      if (isOnline) {
-        userRef.child("online").onDisconnect().set(false);
-      }
-    } catch (e) {}
-  }
-
-  function showIncomingFriendInvite(fromId, fromName, hostPeerId) {
-    var modal = document.getElementById("friend-invite-modal");
-    var invText = document.getElementById("friend-invite-text");
-    if (invText) {
-      invText.innerText = (fromName || fromId || "フレンド") + " から対戦の招待が届いています！";
-    }
-    if (modal) { modal.style.display = "flex"; modal.style.pointerEvents = "auto"; }
-
-    var accBtn = document.getElementById("btn-accept-invite");
-    if (accBtn) {
-      accBtn.onclick = function() {
-        if (firebaseAvailable && typeof firebase !== "undefined") {
-          try { firebase.database().ref("duel_invites/" + userData.playerId).remove().catch(function() {}); } catch (e) {}
-        }
-        modal.style.display = "none";
-        modal.style.pointerEvents = "none";
-        joinFriendDuel(hostPeerId, fromName || fromId);
-      };
-    }
-    var decBtn = document.getElementById("btn-decline-invite");
-    if (decBtn) {
-      decBtn.onclick = function() {
-        if (firebaseAvailable && typeof firebase !== "undefined") {
-          try { firebase.database().ref("duel_invites/" + userData.playerId).remove().catch(function() {}); } catch (e) {}
-        }
-        modal.style.display = "none";
-        modal.style.pointerEvents = "none";
-      };
-    }
-  }
-
-  // サーバー不要のダイレクトP2P待機ノード（自分の6桁IDで常時待機し、直接申請・招待を受け取れる）
-  function initPersonalStandbyPeer() {
-    if (typeof Peer === "undefined" || !userData.playerId) return;
-    var stEl = document.getElementById("p2p-standby-status");
-    if (personalPeer && !personalPeer.destroyed) return;
-
-    var standbyId = ROOM_PREFIX + "user-" + userData.playerId;
-    personalPeer = createPeerInstance(standbyId);
-
-    personalPeer.on("open", function() {
-      if (stEl) { stEl.style.color = "#00ff88"; stEl.innerText = "📡 P2Pオンライン待機中（ID: " + userData.playerId + "）"; }
+    if (typeof firebase === "undefined" || !userData.playerId) return;
+    var db = firebase.database();
+    var userRef = db.ref("users/" + userData.playerId);
+    userRef.update({
+      name: userData.playerName || DEFAULT_PLAYER_NAME,
+      avatar: userData.avatar || "👤",
+      online: !!isOnline,
+      lastSeen: Date.now()
     });
-
-    personalPeer.on("connection", function(incomingConn) {
-      incomingConn.on("data", function(data) {
-        if (!data || !data.type) return;
-        if (data.type === "DIRECT_FRIEND_INVITE") {
-          showIncomingFriendInvite(data.fromId, data.fromName, data.hostPeerId);
-        } else if (data.type === "DIRECT_FRIEND_REQ") {
-          saveLocalFriend(data.fromId, data.fromName, data.avatar, true);
-          renderFriendModal();
-          updateHomeFriendAvatars();
-          try {
-            incomingConn.send({
-              type: "DIRECT_FRIEND_ACK",
-              fromId: userData.playerId,
-              fromName: userData.playerName || DEFAULT_PLAYER_NAME,
-              avatar: userData.avatar || "👤"
-            });
-          } catch (e) {}
-          alert("👥 「" + (data.fromName || data.fromId) + "」があなたをフレンド登録しました！");
-        } else if (data.type === "PING_STATUS") {
-          try {
-            incomingConn.send({
-              type: "PONG_STATUS",
-              fromId: userData.playerId,
-              fromName: userData.playerName || DEFAULT_PLAYER_NAME,
-              avatar: userData.avatar || "👤"
-            });
-          } catch (e) {}
-        }
-      });
-    });
-
-    personalPeer.on("error", function(err) {
-      if (stEl) {
-        stEl.style.color = "#ffd32a";
-        stEl.innerText = "📡 P2P待機: " + (err && err.type === "unavailable-id" ? "別タブで起動中" : "合言葉対戦可");
-      }
-    });
+    if (isOnline) {
+      userRef.child("online").onDisconnect().set(false);
+    }
   }
 
   function initFriendSystem() {
-    initPersonalStandbyPeer();
-    renderFriendModal();
-    updateHomeFriendAvatars();
-
-    // URLパラメータ（?room=XXXX または ?addfriend=XXXXXX）の自動処理
-    try {
-      var params = new URLSearchParams(window.location.search);
-      var autoRoom = params.get("room");
-      var addFriendId = params.get("addfriend");
-      var addFriendName = params.get("fname");
-      if (addFriendId && addFriendId.length === 6 && addFriendId !== userData.playerId) {
-        saveLocalFriend(addFriendId.toUpperCase(), addFriendName || ("プレイヤー#" + addFriendId.toUpperCase()), "👤", true);
-        renderFriendModal();
-        updateHomeFriendAvatars();
-        setTimeout(function() {
-          alert("👥 「" + (addFriendName || addFriendId.toUpperCase()) + "」をフレンド一覧に追加しました！");
-        }, 400);
-      }
-      if (autoRoom && autoRoom.length === 4) {
-        setTimeout(function() {
-          state.mode = "online";
-          populateBattleDeckSelect();
-          p1OnlineDeck = getSelectedDeckCards(true) || getSelectedDeckCards(false);
-          showScreen("setup-screen");
-          document.getElementById("step-mode").style.display = "none";
-          document.getElementById("step-online").style.display = "block";
-          var inp = document.getElementById("join-room-input");
-          if (inp) inp.value = autoRoom;
-          joinRoomByCode(autoRoom);
-        }, 500);
-      }
-    } catch (urlErr) {}
-
-    if (!firebaseAvailable || typeof firebase === "undefined" || !userData.playerId) return;
+    if (typeof firebase === "undefined" || !userData.playerId) return;
     var db = firebase.database();
     var myId = userData.playerId;
 
@@ -7029,28 +6887,59 @@ window.addEventListener("error", function(ev) {
         badge.innerText = count;
       }
       renderFriendModal();
-    }, function() {});
+    });
 
     db.ref("friends/" + myId).on("value", function(snap) {
       var rawFriends = snap.val() || {};
       var friendIds = Object.keys(rawFriends);
+      friendListCache = {};
+      if (friendIds.length === 0) {
+        renderFriendModal();
+        updateHomeFriendAvatars();
+        return;
+      }
       friendIds.forEach(function(fid) {
         db.ref("users/" + fid).on("value", function(uSnap) {
           if (uSnap.exists()) {
-            var val = uSnap.val();
-            saveLocalFriend(fid, val.name, val.avatar, val.online);
+            friendListCache[fid] = uSnap.val();
             renderFriendModal();
             updateHomeFriendAvatars();
           }
-        }, function() {});
+        });
       });
-    }, function() {});
+    });
 
     db.ref("duel_invites/" + myId).on("value", function(snap) {
       var invite = snap.val();
-      if (!invite || !invite.hostPeerId) return;
-      showIncomingFriendInvite(invite.fromId, invite.fromName, invite.hostPeerId);
-    }, function() {});
+      var modal = document.getElementById("friend-invite-modal");
+      if (!invite || !invite.hostPeerId) {
+        if (modal) { modal.style.display = "none"; modal.style.pointerEvents = "none"; }
+        return;
+      }
+      var invText = document.getElementById("friend-invite-text");
+      if (invText) {
+        invText.innerText = (invite.fromName || "フレンド") + " から対戦の招待が届いています！";
+      }
+      if (modal) { modal.style.display = "flex"; modal.style.pointerEvents = "auto"; }
+
+      var accBtn = document.getElementById("btn-accept-invite");
+      if (accBtn) {
+        accBtn.onclick = function() {
+          db.ref("duel_invites/" + myId).remove();
+          modal.style.display = "none";
+          modal.style.pointerEvents = "none";
+          joinFriendDuel(invite.hostPeerId, invite.fromName);
+        };
+      }
+      var decBtn = document.getElementById("btn-decline-invite");
+      if (decBtn) {
+        decBtn.onclick = function() {
+          db.ref("duel_invites/" + myId).remove();
+          modal.style.display = "none";
+          modal.style.pointerEvents = "none";
+        };
+      }
+    });
   }
 
   function updateHomeFriendAvatars() {
@@ -7083,8 +6972,8 @@ window.addEventListener("error", function(ev) {
           return '<div style="display:flex; justify-content:space-between; align-items:center; background:#252525; padding:6px 10px; border-radius:8px;">' +
             '<span>' + (r.avatar || "👤") + ' <strong>' + (r.name || rid) + '</strong> <small style="color:#aaa;">(#' + rid + ')</small></span>' +
             '<div style="display:flex; gap:6px;">' +
-              '<button class="primary-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="window.__acceptFriend('' + rid + '')">✅ 承認</button>' +
-              '<button class="sub-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="window.__rejectFriend('' + rid + '')">✕</button>' +
+              '<button class="primary-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="window.__acceptFriend(\'' + rid + '\')">✅ 承認</button>' +
+              '<button class="sub-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="window.__rejectFriend(\'' + rid + '\')">✕</button>' +
             '</div></div>';
         }).join("");
       } else {
@@ -7096,65 +6985,48 @@ window.addEventListener("error", function(ev) {
     if (!listEl) return;
     var fids = Object.keys(friendListCache);
     if (fids.length === 0) {
-      listEl.innerHTML = '<p style="color:#888; font-size:0.85rem; text-align:center; padding:12px;">まだフレンドがいません。IDを入力して登録するか、招待URLを送ろう！</p>';
+      listEl.innerHTML = '<p style="color:#888; font-size:0.85rem; text-align:center; padding:12px;">まだフレンドがいません。IDを入力して申請しよう！</p>';
       return;
     }
     listEl.innerHTML = fids.map(function(fid) {
       var f = friendListCache[fid];
       var statusBadge = f.online
-        ? '<span style="color:#00ff88; font-size:0.75rem;">● オンライン / P2P待機</span>'
-        : '<span style="color:#94a3b8; font-size:0.75rem;">● 保存済みフレンド</span>';
+        ? '<span style="color:#00ff88; font-size:0.75rem;">● オンライン</span>'
+        : '<span style="color:#888; font-size:0.75rem;">● オフライン</span>';
       return '<div style="display:flex; justify-content:space-between; align-items:center; background:#1c2430; border:1px solid #334155; padding:8px 10px; border-radius:8px;">' +
         '<div>' +
           '<div style="font-weight:bold;">' + (f.avatar || "👤") + ' ' + (f.name || fid) + ' <small style="color:#94a3b8;">#' + fid + '</small></div>' +
           statusBadge +
         '</div>' +
         '<div style="display:flex; gap:6px;">' +
-          '<button class="primary-btn" style="padding:5px 10px; font-size:0.78rem;" onclick="window.__inviteFriendDuel('' + fid + '')">⚔️ 対戦</button>' +
-          '<button class="sub-btn" style="padding:5px 8px; font-size:0.75rem;" onclick="window.__removeFriend('' + fid + '')">削除</button>' +
+          '<button class="primary-btn" style="padding:5px 10px; font-size:0.78rem;" onclick="window.__inviteFriendDuel(\'' + fid + '\')">⚔️ 対戦</button>' +
+          '<button class="sub-btn" style="padding:5px 8px; font-size:0.75rem;" onclick="window.__removeFriend(\'' + fid + '\')">削除</button>' +
         '</div>' +
       '</div>';
     }).join("");
   }
 
   window.__acceptFriend = function(targetId) {
-    var r = friendReqCache[targetId] || {};
-    saveLocalFriend(targetId, r.name || targetId, r.avatar || "👤", true);
-    delete friendReqCache[targetId];
-    renderFriendModal();
-    updateHomeFriendAvatars();
-    if (firebaseAvailable && typeof firebase !== "undefined") {
-      try {
-        var db = firebase.database();
-        var myId = userData.playerId;
-        db.ref("friends/" + myId + "/" + targetId).set(true).catch(function() {});
-        db.ref("friends/" + targetId + "/" + myId).set(true).catch(function() {});
-        db.ref("friend_requests/" + myId + "/" + targetId).remove().catch(function() {});
-      } catch (e) {}
-    }
+    var db = firebase.database();
+    var myId = userData.playerId;
+    db.ref("friends/" + myId + "/" + targetId).set(true);
+    db.ref("friends/" + targetId + "/" + myId).set(true);
+    db.ref("friend_requests/" + myId + "/" + targetId).remove();
   };
 
   window.__rejectFriend = function(targetId) {
-    delete friendReqCache[targetId];
-    renderFriendModal();
-    if (firebaseAvailable && typeof firebase !== "undefined") {
-      try { firebase.database().ref("friend_requests/" + userData.playerId + "/" + targetId).remove().catch(function() {}); } catch (e) {}
-    }
+    firebase.database().ref("friend_requests/" + userData.playerId + "/" + targetId).remove();
   };
 
   window.__removeFriend = function(targetId) {
     if (!confirm("このフレンドを解除しますか？")) return;
-    removeLocalFriend(targetId);
+    var db = firebase.database();
+    var myId = userData.playerId;
+    db.ref("friends/" + myId + "/" + targetId).remove();
+    db.ref("friends/" + targetId + "/" + myId).remove();
+    delete friendListCache[targetId];
     renderFriendModal();
     updateHomeFriendAvatars();
-    if (firebaseAvailable && typeof firebase !== "undefined") {
-      try {
-        var db = firebase.database();
-        var myId = userData.playerId;
-        db.ref("friends/" + myId + "/" + targetId).remove().catch(function() {});
-        db.ref("friends/" + targetId + "/" + myId).remove().catch(function() {});
-      } catch (e) {}
-    }
   };
 
   var friendLobbyState = {
@@ -7304,16 +7176,14 @@ window.addEventListener("error", function(ev) {
   });
 
   window.__inviteFriendDuel = function(targetId) {
-    targetId = (targetId || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-    if (targetId.length !== 6) return;
     var msg = document.getElementById("friend-action-msg");
     if (msg) {
       msg.style.color = "#00d2ff";
-      msg.innerText = "🔄 対戦招待を送信しています（P2Pダイレクト＆サーバー通知）...";
+      msg.innerText = "🔄 対戦招待を送信しています...";
     }
     state.mode = "online";
     var oppInfo = friendListCache[targetId];
-    var oppName = (oppInfo && oppInfo.name) ? oppInfo.name : ("プレイヤー#" + targetId);
+    var oppName = (oppInfo && oppInfo.name) ? oppInfo.name : targetId;
     var hostPeerId = ROOM_PREFIX + "frd-" + userData.playerId + "-" + Math.floor(1000 + Math.random() * 9000);
     if (peer) { try { peer.destroy(); } catch (e) {} }
     peer = createPeerInstance(hostPeerId);
@@ -7326,52 +7196,41 @@ window.addEventListener("error", function(ev) {
     });
 
     peer.on("open", function() {
-      var sentAny = false;
-
-      // 経路1: 相手の個人P2P待機ノードへ直接招待を送信（Firebase不要！）
+      ensurePersonalStandbyPeer();
       if (personalPeer && !personalPeer.destroyed) {
         try {
-          var directCall = personalPeer.connect(ROOM_PREFIX + "user-" + targetId, { reliable: true });
-          directCall.on("open", function() {
-            directCall.send({
+          var dc = personalPeer.connect(ROOM_PREFIX + "user-" + targetId, { reliable: true });
+          dc.on("open", function() {
+            dc.send({
               type: "DIRECT_FRIEND_INVITE",
               fromId: userData.playerId,
               fromName: userData.playerName || DEFAULT_PLAYER_NAME,
               hostPeerId: hostPeerId
             });
-            sentAny = true;
             if (msg) {
               msg.style.color = "#00ff88";
-              msg.innerText = "⚔️ 「" + oppName + "」に対戦招待を送信しました！相手の承諾を待っています...";
+              msg.innerText = "⚔️ 「" + oppName + "」に直接P2P招待を送信しました！相手の承諾を待っています...";
             }
           });
-        } catch (p2pErr) {}
+        } catch (e) {}
       }
-
-      // 経路2: Firebase経由の招待通知（利用可能な場合）
-      if (firebaseAvailable && typeof firebase !== "undefined") {
-        try {
-          firebase.database().ref("duel_invites/" + targetId).set({
-            fromId: userData.playerId,
-            fromName: userData.playerName || DEFAULT_PLAYER_NAME,
-            hostPeerId: hostPeerId,
-            timestamp: Date.now()
-          }).then(function() {
-            sentAny = true;
-            if (msg) {
-              msg.style.color = "#00ff88";
-              msg.innerText = "⚔️ 「" + oppName + "」に対戦招待を送信しました！相手の承諾を待っています...";
-            }
-          }).catch(function() {
-            if (!sentAny && msg) {
-              msg.style.color = "#ffd32a";
-              msg.innerText = "📡 P2P待機中：相手がゲームを開いていれば招待が届きます（合言葉対戦も利用可）";
-            }
-          });
-        } catch (fbErr) {}
-      } else if (!sentAny && msg) {
-        msg.style.color = "#ffd32a";
-        msg.innerText = "📡 P2P招待を送信中...（相手がオフラインの場合はオンライン対戦の合言葉をご利用ください）";
+      if (typeof firebase !== "undefined" && firebase.database) {
+        firebase.database().ref("duel_invites/" + targetId).set({
+          fromId: userData.playerId,
+          fromName: userData.playerName || DEFAULT_PLAYER_NAME,
+          hostPeerId: hostPeerId,
+          timestamp: Date.now()
+        }).then(function() {
+          if (msg) {
+            msg.style.color = "#00ff88";
+            msg.innerText = "⚔️ 「" + oppName + "」に対戦招待を送信しました！相手の承諾を待っています...";
+          }
+        }).catch(function() {
+          if (msg) {
+            msg.style.color = "#ffd32a";
+            msg.innerText = "📡 P2P待機中：相手がフレンド画面を開いていれば直接招待が届きます（合言葉対戦も利用可）";
+          }
+        });
       }
     });
 
@@ -7418,7 +7277,7 @@ window.addEventListener("error", function(ev) {
     });
 
     peer.on("open", function() {
-      conn = peer.connect(hostPeerId, { reliable: true });
+      conn = peer.connect(hostPeerId);
       var onChannelReady = function() {
         if (connected) return;
         connected = true;
@@ -7446,19 +7305,28 @@ window.addEventListener("error", function(ev) {
   }
 
   _on("btn-open-friends", "click", function() {
-    initPersonalStandbyPeer();
+    ensurePersonalStandbyPeer();
     populateBattleDeckSelect();
     renderFriendModal();
     var m = document.getElementById("friend-modal");
     if (m) { m.style.display = "flex"; m.style.pointerEvents = "auto"; }
   });
 
-  _on("btn-close-friend", "click", function() {
-    var m = document.getElementById("friend-modal");
-    if (m) { m.style.display = "none"; m.style.pointerEvents = "none"; }
+  _on("btn-copy-friend-url", "click", function() {
+    if (!userData.playerId) return;
+    var baseUrl = window.location.href.split("?")[0].split("#")[0];
+    var url = baseUrl + "?addfriend=" + userData.playerId + "&fname=" + encodeURIComponent(userData.playerName || DEFAULT_PLAYER_NAME);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function() {
+        alert("フレンド招待URLをコピーしました！相手に送ると自動でフレンド追加されます。");
+      }).catch(function() { prompt("フレンド招待URLをコピーしてください:", url); });
+    } else {
+      prompt("フレンド招待URLをコピーしてください:", url);
+    }
   });
 
   _on("btn-direct-id-duel", "click", function() {
+    ensurePersonalStandbyPeer();
     var input = document.getElementById("friend-id-input");
     var msg = document.getElementById("friend-action-msg");
     var targetId = (input.value || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
@@ -7479,6 +7347,11 @@ window.addEventListener("error", function(ev) {
     window.__inviteFriendDuel(targetId);
   });
 
+  _on("btn-close-friend", "click", function() {
+    var m = document.getElementById("friend-modal");
+    if (m) { m.style.display = "none"; m.style.pointerEvents = "none"; }
+  });
+
   _on("btn-send-friend-req", "click", function() {
     var input = document.getElementById("friend-id-input");
     var msg = document.getElementById("friend-action-msg");
@@ -7494,26 +7367,31 @@ window.addEventListener("error", function(ev) {
       msg.innerText = "自分自身には申請できません。";
       return;
     }
-
-    // まずローカルフレンド一覧へ即登録（サーバーエラーでもフレンドリストに残り、すぐ対戦招待を送れるようにする）
+    if (typeof firebase === "undefined" || !firebase.database) {
+      msg.style.color = "#ff6b6b";
+      msg.innerText = "⚠️ 通信サーバー（Firebase）に接続できていません。ネット接続を確認して再読み込みしてください。";
+      return;
+    }
+    ensurePersonalStandbyPeer();
     saveLocalFriend(targetId, (friendListCache[targetId] && friendListCache[targetId].name) || ("プレイヤー#" + targetId), "👤", true);
     renderFriendModal();
     updateHomeFriendAvatars();
     input.value = "";
+    msg.style.color = "#00ff88";
+    msg.innerText = "✅ 「#" + targetId + "」をフレンド一覧に登録しました！右の「⚔️ 対戦」からすぐ招待できます。";
 
-    // ダイレクトP2P通知（相手が起動中なら相手のフレンド一覧にも即追加）
     if (personalPeer && !personalPeer.destroyed) {
       try {
-        var reqConn = personalPeer.connect(ROOM_PREFIX + "user-" + targetId, { reliable: true });
-        reqConn.on("open", function() {
-          reqConn.send({
+        var rc = personalPeer.connect(ROOM_PREFIX + "user-" + targetId, { reliable: true });
+        rc.on("open", function() {
+          rc.send({
             type: "DIRECT_FRIEND_REQ",
             fromId: userData.playerId,
             fromName: userData.playerName || DEFAULT_PLAYER_NAME,
             avatar: userData.avatar || "👤"
           });
         });
-        reqConn.on("data", function(ack) {
+        rc.on("data", function(ack) {
           if (ack && ack.type === "DIRECT_FRIEND_ACK") {
             saveLocalFriend(targetId, ack.fromName, ack.avatar, true);
             renderFriendModal();
@@ -7523,35 +7401,25 @@ window.addEventListener("error", function(ev) {
       } catch (e) {}
     }
 
-    if (!firebaseAvailable || typeof firebase === "undefined" || !firebase.database) {
-      msg.style.color = "#00ff88";
-      msg.innerText = "✅ 「#" + targetId + "」をフレンド一覧に登録しました！右の「⚔️ 対戦」からすぐ招待できます。";
-      return;
+    if (typeof firebase !== "undefined" && firebase.database) {
+      try {
+        syncMyProfileToFirebase(true);
+        var db = firebase.database();
+        db.ref("users/" + targetId).once("value").then(function(snap) {
+          if (snap.exists()) {
+            var u = snap.val();
+            saveLocalFriend(targetId, u.name || targetId, u.avatar || "👤", u.online);
+            renderFriendModal();
+            updateHomeFriendAvatars();
+          }
+          return db.ref("friend_requests/" + targetId + "/" + userData.playerId).set({
+            name: userData.playerName || DEFAULT_PLAYER_NAME,
+            avatar: userData.avatar || "👤",
+            timestamp: Date.now()
+          });
+        }).catch(function() {});
+      } catch (e) {}
     }
-
-    msg.style.color = "#00d2ff";
-    msg.innerText = "✅ フレンド一覧に登録しました（サーバーへ申請同期中...）";
-    syncMyProfileToFirebase(true);
-    var db = firebase.database();
-    db.ref("users/" + targetId).once("value").then(function(snap) {
-      if (snap.exists()) {
-        var u = snap.val();
-        saveLocalFriend(targetId, u.name || targetId, u.avatar || "👤", u.online);
-        renderFriendModal();
-        updateHomeFriendAvatars();
-      }
-      return db.ref("friend_requests/" + targetId + "/" + userData.playerId).set({
-        name: userData.playerName || DEFAULT_PLAYER_NAME,
-        avatar: userData.avatar || "👤",
-        timestamp: Date.now()
-      });
-    }).then(function() {
-      msg.style.color = "#00ff88";
-      msg.innerText = "✅ 「" + (friendListCache[targetId].name || targetId) + "」を登録＆フレンド申請を送信しました！";
-    }).catch(function() {
-      msg.style.color = "#00ff88";
-      msg.innerText = "✅ 「#" + targetId + "」をローカルフレンドに登録しました！「⚔️ 対戦」から直接招待できます。";
-    });
   });
 
   initFriendSystem();
@@ -8414,9 +8282,36 @@ window.addEventListener("error", function(ev) {
   (function ensureCleanInteractiveBoot() {
     var overlays = [
       "pachinko-overlay", "god-summon-overlay", "news-modal", "name-edit-modal",
+      "friend-modal", "friend-invite-modal",
       "card-detail-modal", "ur-reward-modal", "admin-modal", "pack-list-modal",
       "fusion-guide-modal", "cutin-overlay", "pass-screen"
     ];
+    try {
+      updateHomeFriendAvatars();
+      var qStr = window.location.search || "";
+      var mFriend = qStr.match(/[?&]addfriend=([A-Za-z0-9]{6})/);
+      if (mFriend && mFriend[1].toUpperCase() !== userData.playerId) {
+        var fidParam = mFriend[1].toUpperCase();
+        var mFname = qStr.match(/[?&]fname=([^&]+)/);
+        var fnameParam = mFname ? decodeURIComponent(mFname[1]) : ("プレイヤー#" + fidParam);
+        saveLocalFriend(fidParam, fnameParam, "👤", true);
+        updateHomeFriendAvatars();
+      }
+      var mRoom = qStr.match(/[?&]room=([0-9]{4})/);
+      if (mRoom) {
+        setTimeout(function() {
+          state.mode = "online";
+          populateBattleDeckSelect();
+          p1OnlineDeck = getSelectedDeckCards(true) || getSelectedDeckCards(false);
+          showScreen("setup-screen");
+          document.getElementById("step-mode").style.display = "none";
+          document.getElementById("step-online").style.display = "block";
+          var inp = document.getElementById("join-room-input");
+          if (inp) inp.value = mRoom[1];
+          joinRoomByCode(mRoom[1]);
+        }, 400);
+      }
+    } catch (qErr) {}
     overlays.forEach(function(oid) {
       var el = document.getElementById(oid);
       if (el) {

@@ -622,18 +622,18 @@ const FUSION_RECIPES = [
   }
 ];
 
-const APP_VERSION = "v2.1.1";
+const APP_VERSION = "v2.2";
 
 const UPDATE_LOGS = [
   {
-    version: "v2.1.1",
+    version: "v2.2",
     date: "最新アップデート",
-    title: "🌐 オンライン通信対戦＆フレンド機能の全面復旧・強化（ダイレクトP2P対応）！",
+    title: "🌐 オンライン対戦＆フレンド通信の安定復旧（STUNサーバー対応＋ダイレクトP2P招待）！",
     isLatest: true,
     items: [
-      { tag: "通信復旧", color: "#00ff88", text: "WebRTC（PeerJS）にSTUNサーバー群＆自動再接続を組み込み、スマホ回線や別Wi-Fi間でも安定接続！" },
-      { tag: "フレンド強化", color: "#00d2ff", text: "サーバーエラー時でも6桁IDへ直接P2P呼び出し＆ワンタップ招待リンクで即フレンド対戦可能に！" },
-      { tag: "ランダム対戦", color: "#ffd32a", text: "待機キューエラー時の自動リトライ＆サーバーURLカスタム切替に対応！" }
+      { tag: "通信復旧", color: "#00ff88", text: "WebRTC（PeerJS）にSTUNサーバー群を組み込み、異なるWi-Fiやスマホ回線間でも安定接続！" },
+      { tag: "フレンド強化", color: "#00d2ff", text: "フレンド画面を開いた際にダイレクトP2P待機＆6桁ID直接対戦・ワンタップ招待URLに対応！" },
+      { tag: "安定動作", color: "#ffd32a", text: "起動時の画面ロック・初期化不具合を解消し、セーブデータ＆全ボタン操作を完全正常化！" }
     ]
   },
   {
