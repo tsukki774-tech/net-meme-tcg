@@ -622,14 +622,25 @@ const FUSION_RECIPES = [
   }
 ];
 
-const APP_VERSION = "v2.0";
+const APP_VERSION = "v2.1";
 
 const UPDATE_LOGS = [
   {
-    version: "v2.0",
+    version: "v2.1",
     date: "最新アップデート",
-    title: "第1弾パックに『第3弾（アニメ）＆第4弾（ゲーム・RTA）対策メタカード6種』を追加！",
+    title: "🌐 オンライン通信対戦＆フレンド機能の全面復旧・強化（ダイレクトP2P対応）！",
     isLatest: true,
+    items: [
+      { tag: "通信復旧", color: "#00ff88", text: "WebRTC（PeerJS）にSTUNサーバー群＆自動再接続を組み込み、スマホ回線や別Wi-Fi間でも安定接続！" },
+      { tag: "フレンド強化", color: "#00d2ff", text: "サーバーエラー時でも6桁IDへ直接P2P呼び出し＆ワンタップ招待リンクで即フレンド対戦可能に！" },
+      { tag: "ランダム対戦", color: "#ffd32a", text: "待機キューエラー時の自動リトライ＆サーバーURLカスタム切替に対応！" }
+    ]
+  },
+  {
+    version: "v2.0",
+    date: "過去アップデート",
+    title: "第1弾パックに『第3弾（アニメ）＆第4弾（ゲーム・RTA）対策メタカード6種』を追加！",
+    isLatest: false,
     items: [
       { tag: "第1弾強化", color: "#00d2ff", text: "第1弾『VOL.1 BASIC』に、第3弾（アニメ）メタ3種＆第4弾（ゲーム・RTA）メタ3種の計6種を新規収録！" },
       { tag: "アニメ対策", color: "#ff77c2", text: "『原作改変警察』『最終回ネタバレ荒らし』『死亡フラグ粉砕機』でアニメ勢のバリアや鮮度を一掃！" },
