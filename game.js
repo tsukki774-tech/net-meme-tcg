@@ -970,6 +970,7 @@ window.addEventListener("error", function(ev) {
     var tab1 = document.getElementById("tab-pack-1");
     var tab2 = document.getElementById("tab-pack-2");
     var tab3 = document.getElementById("tab-pack-3");
+    var tab4 = document.getElementById("tab-pack-4");
     var pVisual = document.getElementById("preview-pack-visual");
     var pEmblem = document.getElementById("preview-pack-emblem");
     var pTitle = document.getElementById("preview-pack-title");
@@ -979,7 +980,8 @@ window.addEventListener("error", function(ev) {
     tab1.classList.remove("active");
     tab2.classList.remove("active", "vol2");
     if (tab3) tab3.classList.remove("active", "vol3");
-    pVisual.classList.remove("vol2", "vol3");
+    if (tab4) tab4.classList.remove("active", "vol4");
+    pVisual.classList.remove("vol2", "vol3", "vol4");
 
     if (packNo === 1) {
       tab1.classList.add("active");
@@ -992,18 +994,25 @@ window.addEventListener("error", function(ev) {
       pEmblem.innerText = "🔥";
       pTitle.innerText = "VOL.2 CHAOS";
       pSub.innerHTML = "第2弾：カオス＆深淵編（全" + count + "種）<br>GODレア2種＆メタ・GODキラー収録！";
-    } else {
+    } else if (packNo === 3) {
       if (tab3) tab3.classList.add("active", "vol3");
       pVisual.classList.add("vol3");
       pEmblem.innerText = "🎬";
       pTitle.innerText = "VOL.3 ANIME";
       pSub.innerHTML = "第3弾：アニメミーム＆名言編（全" + count + "種）<br>伝説の名セリフ＆フラグGOD2種収録！";
+    } else {
+      if (tab4) tab4.classList.add("active", "vol4");
+      pVisual.classList.add("vol4");
+      pEmblem.innerText = "🎮";
+      pTitle.innerText = "VOL.4 GAME";
+      pSub.innerHTML = "第4弾：ゲーム＆実況者・RTA編（全" + count + "種）<br>RTA完走者＆復活ラスボスGOD収録！";
     }
   }
 
   _on("tab-pack-1", "click", function() { selectPackTab(1); });
   _on("tab-pack-2", "click", function() { selectPackTab(2); });
   _on("tab-pack-3", "click", function() { selectPackTab(3); });
+  _on("tab-pack-4", "click", function() { selectPackTab(4); });
 
   function renderPackCardListModal() {
     var packCards = ALL_CARDS.filter(function(c) { return c.pack === selectedPackNo; });
@@ -1013,7 +1022,8 @@ window.addEventListener("error", function(ev) {
     var packTitles = {
       1: "📋 第1弾：基本ミームパック",
       2: "📋 第2弾：カオス＆深淵編",
-      3: "📋 第3弾：アニメミーム＆名言編"
+      3: "📋 第3弾：アニメミーム＆名言編",
+      4: "📋 第4弾：ゲーム＆実況者・RTA編"
     };
     document.getElementById("modal-pack-title").innerText =
       (packTitles[selectedPackNo] || "📋 パック一覧") + "（全" + packCards.length + "種）";
@@ -1673,9 +1683,9 @@ window.addEventListener("error", function(ev) {
     document.getElementById("pack-result-area").innerHTML = "";
     document.getElementById("stage-after-buttons").style.display = "none";
 
-    visual.className = "real-pack ready-to-tear" + (selectedPackNo === 2 ? " vol2" : (selectedPackNo === 3 ? " vol3" : ""));
-    emblem.innerText = selectedPackNo === 1 ? "🌐" : (selectedPackNo === 2 ? "🔥" : "🎬");
-    title.innerText = (selectedPackNo === 1 ? "VOL.1 BASIC" : (selectedPackNo === 2 ? "VOL.2 CHAOS" : "VOL.3 ANIME")) + (packCount === 10 ? " ×10連" : "");
+    visual.className = "real-pack ready-to-tear" + (selectedPackNo === 2 ? " vol2" : (selectedPackNo === 3 ? " vol3" : (selectedPackNo === 4 ? " vol4" : "")));
+    emblem.innerText = selectedPackNo === 1 ? "🌐" : (selectedPackNo === 2 ? "🔥" : (selectedPackNo === 3 ? "🎬" : "🎮"));
+    title.innerText = (selectedPackNo === 1 ? "VOL.1 BASIC" : (selectedPackNo === 2 ? "VOL.2 CHAOS" : (selectedPackNo === 3 ? "VOL.3 ANIME" : "VOL.4 GAME"))) + (packCount === 10 ? " ×10連" : "");
     sub.innerText = packCount === 10 ? "計50枚入り / SR以上1枚確定！" : "5枚入り / R以上1枚確定";
     bar.style.width = "0%";
     hint.innerText = "✂️ ここを右へスワイプ！";
@@ -3349,6 +3359,7 @@ window.addEventListener("error", function(ev) {
         niconico_elder: "niconico",
         enjo_streamer: "enjo",
         yaju_alliance: "chaos",
+        rta_master: "grass",
         god_admin: "god"
       };
       p2Playmat = bossMats[state.currentBoss.id] || "chaos";
@@ -3435,6 +3446,14 @@ window.addEventListener("error", function(ev) {
       fused_anime_god: {
         bg: "radial-gradient(circle at center, #2c003e 0%, #020005 100%)",
         quote: "「逃げちゃダメだ…！もう一人のボクと心が一つになった時、闇のゲームが幕を開ける――！」"
+      },
+      god_rta_runner: {
+        bg: "radial-gradient(circle at center, #004d40 0%, #020a08 100%)",
+        quote: "「" + summonerName + "、タイマーストップ！これが人類最速のAny%世界新記録だ――！」"
+      },
+      god_final_boss: {
+        bg: "radial-gradient(circle at center, #3b0764 0%, #05010a 100%)",
+        quote: "「" + summonerName + "の呼び声で第2形態が覚醒する！――ここからが本当のラスボス戦だ！」"
       }
     };
 
@@ -3505,7 +3524,16 @@ window.addEventListener("error", function(ev) {
     var opp = state[sideKey === "p1" ? "p2" : "p1"];
     if (!self || !opp) return;
 
-    if (fusedCard.id === "fused_aa_legion") {
+    if (fusedCard.id === "fused_rta_any_percent") {
+      opp.hp -= 3;
+      drawCard(who); drawCard(who);
+      log("🏅 【合体効果】Any%世界新記録！相手本体に3ダメージ＆2枚ドロー！");
+    } else if (fusedCard.id === "fused_legendary_gamer") {
+      fusedCard.shield = true;
+      opp.field.forEach(function(m) { dealDamageToMeme(m, 2); });
+      cleanupDeadMemes();
+      log("🕹️ 【合体効果】伝説のレトロゲーマー神！無敵バリア付与＆相手ミーム全体に2ダメージ！");
+    } else if (fusedCard.id === "fused_aa_legion") {
       opp.field.forEach(function(m) { dealDamageToMeme(m, 2); });
       cleanupDeadMemes();
       log("🏛️ 【合体効果】伝説のAA軍団！相手ミーム全体に2ダメージ！");
@@ -3681,6 +3709,20 @@ window.addEventListener("error", function(ev) {
   }
 
   function cleanupDeadMemes() {
+    ["p1", "p2"].forEach(function(sideKey) {
+      var p = state[sideKey];
+      p.field.forEach(function(m) {
+        if (m.hp <= 0 && m.id === "god_final_boss" && m.hasRevive) {
+          m.hasRevive = false;
+          m.name = "伝説のラスボス（真・最終形態）";
+          m.atk = 6;
+          m.hp = 6;
+          m.freshness = 3;
+          m.canAttack = false;
+          log("👿 【第2形態突破】「まだだ…ここからが本当の絶望だ！」ラスボスがATK6/HP6で復活した！");
+        }
+      });
+    });
     var hadDead = state.p1.field.some(function(m) { return m.hp <= 0; }) || state.p2.field.some(function(m) { return m.hp <= 0; });
     if (hadDead) BattleSFX.destroy();
     state.p1.field = state.p1.field.filter(function(m) { return m.hp > 0; });
@@ -3737,7 +3779,15 @@ window.addEventListener("error", function(ev) {
 
   function triggerBossPassive(boss) {
     var cpu = state.p2;
-    if (boss.id === "retro_2ch") {
+    if (boss.id === "rta_master") {
+      var gameTargets = cpu.field.filter(function(m) { return m.era === "ゲーム"; });
+      if (gameTargets.length > 0) {
+        var gt = gameTargets[Math.floor(Math.random() * gameTargets.length)];
+        gt.atk += 1;
+        gt.freshness += 1;
+        log("⏱️ 【ボス特性】最速チャート：「" + gt.name + "」の攻撃力+1＆鮮度+1！");
+      }
+    } else if (boss.id === "retro_2ch") {
       var targets2ch = cpu.field.filter(function(m) { return m.era === "2ch"; });
       if (targets2ch.length > 0) {
         var picked = targets2ch[Math.floor(Math.random() * targets2ch.length)];
