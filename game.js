@@ -96,6 +96,304 @@ window.addEventListener("error", function(ev) {
     }
   }
 
+  
+  // ================= プレイヤー称号ショップ（v2.6） =================
+  var PLAYER_TITLES = [
+    { id: "rom",      name: "【ROM専】",               price: 500,     style: "title-style-gray",    desc: "静かに戦況を見守るネット住民の証" },
+    { id: "kusa",     name: "【草生える】",           price: 1000,    style: "title-style-green",   desc: "どんな盤面でも笑い飛ばす余裕の証" },
+    { id: "rta",      name: "【RTA走者】",            price: 3000,    style: "title-style-cyan",    desc: "最速ターン決着を狙うスピード狂の証" },
+    { id: "ronpa",    name: "【論破王】",             price: 5000,    style: "title-style-blue",    desc: "数々のレスバを制してきた理論派の証" },
+    { id: "elder",    name: "【インターネット老人会】", price: 15000,   style: "title-style-sepia",   desc: "古のAA時代から生き残る歴戦の古参" },
+    { id: "enjo",     name: "【炎上常連】",           price: 30000,   style: "title-style-red",     desc: "高火力・ハイリスクを愛する危険人物" },
+    { id: "haijin",   name: "【廃人】",               price: 50000,   style: "title-style-rainbow", desc: "寝食を忘れてレスバに身を捧げた猛者" },
+    { id: "creator",  name: "【ネットの創造神】",     price: 1000000, style: "title-style-god",     desc: "100万BPを極めし真の創造神の称号" },
+    { id: "admin",    name: "【ADMIN】",              price: 0,       style: "title-style-admin",   desc: "運営・開発者権限を持つ者だけのシークレット称号", secret: true }
+  ];
+
+  function getTitleObj(id) {
+    return PLAYER_TITLES.find(function(t) { return t.id === id; }) || null;
+  }
+
+  function renderTitleBadgeHtml(titleId) {
+    var t = getTitleObj(titleId);
+    if (!t) return "";
+    return '<span class="player-title-pill ' + t.style + '">' + t.name + '</span>';
+  }
+
+  var currentShopTab = "titles";
+
+  function openBpShopModal(initialTab) {
+    if (initialTab) currentShopTab = initialTab;
+    document.querySelectorAll(".shop-tab-btn").forEach(function(b) {
+      b.classList.toggle("active", b.getAttribute("data-shoptab") === currentShopTab);
+    });
+    renderBpShopContent();
+    var m = document.getElementById("bp-shop-modal");
+    if (m) {
+      m.style.display = "flex";
+      m.style.pointerEvents = "auto";
+    }
+  }
+
+  function renderBpShopContent() {
+    var ptsEl = document.getElementById("shop-user-points");
+    if (ptsEl) ptsEl.innerText = (userData.points || 0).toLocaleString();
+
+    var container = document.getElementById("bp-shop-content");
+    if (!container) return;
+    container.innerHTML = "";
+
+    if (currentShopTab === "titles") {
+      var grid = document.createElement("div");
+      grid.className = "shop-grid";
+
+      var noneCard = document.createElement("div");
+      noneCard.className = "shop-item-card" + (!userData.equippedTitle ? " equipped" : "");
+      noneCard.innerHTML =
+        '<div><div style="font-size:0.84rem; font-weight:bold; color:#cbd5e1;">称号なし（デフォルト）</div>' +
+        '<div style="font-size:0.72rem; color:#94a3b8; margin-top:4px;">称号を外して名前のみ表示します</div></div>' +
+        '<button type="button" class="sub-btn" style="width:100%; padding:6px;">' + (!userData.equippedTitle ? "✅ 装備中" : "外す") + '</button>';
+      noneCard.querySelector("button").addEventListener("click", function() {
+        userData.equippedTitle = "";
+        saveUserData();
+        renderBpShopContent();
+      });
+      grid.appendChild(noneCard);
+
+      PLAYER_TITLES.forEach(function(t) {
+        var unlocked = (userData.unlockedTitles || []).indexOf(t.id) !== -1;
+        // シークレット称号（ADMIN）は未解放時は完全に隠す
+        if (t.secret && !unlocked) return;
+
+        var isEq = (userData.equippedTitle === t.id);
+        var card = document.createElement("div");
+        card.className = "shop-item-card" + (isEq ? " equipped" : (unlocked ? " owned" : ""));
+        var btnLabel = isEq ? "✅ 装備中" : (unlocked ? "装備する" : ("💎 " + t.price.toLocaleString() + " BPで購入"));
+        card.innerHTML =
+          '<div>' +
+            '<div style="margin-bottom:5px;"><span class="player-title-pill ' + t.style + '" style="font-size:0.78rem;">' + t.name + '</span></div>' +
+            '<div style="font-size:0.73rem; color:#cbd5e1; line-height:1.35;">' + t.desc + '</div>' +
+          '</div>' +
+          '<button type="button" class="' + (unlocked ? "sub-btn" : "primary-btn") + '" style="width:100%; padding:6px; font-size:0.78rem;">' + btnLabel + '</button>';
+
+        card.querySelector("button").addEventListener("click", function() {
+          if (unlocked) {
+            userData.equippedTitle = t.id;
+            saveUserData();
+            renderBpShopContent();
+            return;
+          }
+          if (userData.points < t.price) {
+            alert("バズポイントが足りません！（必要: " + t.price.toLocaleString() + " BP / 現在: " + userData.points.toLocaleString() + " BP）");
+            return;
+          }
+          if (!confirm(t.price.toLocaleString() + " BP を使って称号「" + t.name + "」を購入しますか？")) return;
+          userData.points -= t.price;
+          userData.unlockedTitles.push(t.id);
+          userData.equippedTitle = t.id;
+          saveUserData();
+          renderBpShopContent();
+          alert("🎉 称号「" + t.name + "」を獲得して装備しました！");
+        });
+        grid.appendChild(card);
+      });
+      container.appendChild(grid);
+    } else if (currentShopTab === "holo") {
+      if (!window.__holoShopState) {
+        window.__holoShopState = { query: "", rarity: "ALL", selectedId: null };
+      }
+      var hState = window.__holoShopState;
+
+      // 通常カード（シークレット除外）＋合体進化カードをすべて候補にまとめる
+      var candidateCards = ALL_CARDS.filter(function(c) {
+        return !c.isAdminOnly || (userData.collection[c.id] || 0) > 0;
+      }).slice();
+      if (typeof FUSION_RECIPES !== "undefined") {
+        FUSION_RECIPES.forEach(function(rec) {
+          if (rec && rec.result && !candidateCards.some(function(x) { return x.id === rec.result.id; })) {
+            candidateCards.push(Object.assign({}, rec.result, { isFusedCard: true }));
+          }
+        });
+      }
+
+      if (!hState.selectedId || !candidateCards.some(function(c) { return c.id === hState.selectedId; })) {
+        hState.selectedId = candidateCards[0] ? candidateCards[0].id : null;
+      }
+
+      var selectedCard = candidateCards.find(function(c) { return c.id === hState.selectedId; }) || candidateCards[0];
+      var isSelectedHolo = selectedCard && Array.isArray(userData.holoCards) && userData.holoCards.indexOf(selectedCard.id) !== -1;
+
+      // 上部：選択中カードのホロ加工プレビュー＆実行パネル
+      var previewBox = document.createElement("div");
+      previewBox.style.cssText = "background:rgba(15,23,42,0.95); border:1px solid #ffd32a; border-radius:12px; padding:12px; margin-bottom:12px; display:flex; gap:14px; align-items:center; flex-wrap:wrap;";
+
+      var previewCardWrap = document.createElement("div");
+      previewCardWrap.style.cssText = "flex-shrink:0;";
+      if (selectedCard) {
+        var previewCardEl = createCardElement(selectedCard, null, {});
+        previewCardEl.classList.add("holo-foil");
+        previewCardEl.style.width = "108px";
+        previewCardEl.style.minWidth = "108px";
+        previewCardEl.style.height = "148px";
+        previewCardWrap.appendChild(previewCardEl);
+      }
+      previewBox.appendChild(previewCardWrap);
+
+      var previewInfo = document.createElement("div");
+      previewInfo.style.cssText = "flex:1; min-width:190px; display:flex; flex-direction:column; gap:6px;";
+      if (selectedCard) {
+        var ownedCnt = userData.collection[selectedCard.id] || 0;
+        var statusLine = selectedCard.isFusedCard
+          ? '<span style="color:#00ff88; font-weight:bold;">🧬 合体進化カード</span>'
+          : (ownedCnt > 0 ? '<span style="color:#38bdf8; font-weight:bold;">所持枚数: ' + ownedCnt + '枚</span>' : '<span style="color:#94a3b8;">未所持（入手後から輝きが反映されます）</span>');
+        previewInfo.innerHTML =
+          '<div style="font-size:0.74rem; color:#ffd32a; font-weight:bold;">✨ ホロ加工プレビュー（選択中）</div>' +
+          '<div style="font-size:1rem; font-weight:900; color:#fff;">' + selectedCard.icon + ' ' + selectedCard.name + '</div>' +
+          '<div style="font-size:0.76rem; color:#cbd5e1;">レアリティ: <strong>' + selectedCard.rarity + '</strong> ／ ' + statusLine + '</div>' +
+          '<div style="font-size:0.74rem; color:#94a3b8; line-height:1.4;">' + (selectedCard.desc || "") + '</div>';
+
+        var execBtn = document.createElement("button");
+        execBtn.type = "button";
+        execBtn.className = isSelectedHolo ? "sub-btn" : "primary-btn";
+        execBtn.style.cssText = "margin-top:4px; padding:8px 12px; font-size:0.84rem; font-weight:bold;";
+        execBtn.disabled = isSelectedHolo;
+        execBtn.innerText = isSelectedHolo ? "✅ このカードはホロ加工済みです" : "🌟 2,000 BPでこのカードをホロ加工する";
+        if (!isSelectedHolo) {
+          execBtn.addEventListener("click", function() {
+            if (userData.points < 2000) {
+              alert("バズポイントが足りません！（必要: 2,000 BP / 現在: " + userData.points.toLocaleString() + " BP）");
+              return;
+            }
+            if (!confirm("2,000 BP を使って「" + selectedCard.name + "」に虹色ホログラム加工を施しますか？")) return;
+            userData.points -= 2000;
+            if (!Array.isArray(userData.holoCards)) userData.holoCards = [];
+            userData.holoCards.push(selectedCard.id);
+            saveUserData();
+            renderBpShopContent();
+            alert("✨ 「" + selectedCard.name + "」がプレミアムホロ仕様になりました！");
+          });
+        }
+        previewInfo.appendChild(execBtn);
+      }
+      previewBox.appendChild(previewInfo);
+      container.appendChild(previewBox);
+
+      // 中段：カード変更用の検索＆レアリティ絞り込みバー
+      var filterBar = document.createElement("div");
+      filterBar.style.cssText = "display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; align-items:center;";
+      filterBar.innerHTML =
+        '<input type="text" id="holo-search-input" placeholder="🔍 カード名で検索して変更..." style="flex:1; min-width:150px; padding:6px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:0.8rem;">' +
+        '<select id="holo-rarity-select" style="padding:6px 8px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#ffd32a; font-size:0.8rem; font-weight:bold;">' +
+          '<option value="ALL">全レアリティ</option>' +
+          '<option value="GOD">GOD</option>' +
+          '<option value="UR">UR</option>' +
+          '<option value="SR">SR</option>' +
+          '<option value="R">R</option>' +
+          '<option value="N">N</option>' +
+          '<option value="FUSED">🧬 合体進化</option>' +
+        '</select>';
+      container.appendChild(filterBar);
+
+      var searchInput = filterBar.querySelector("#holo-search-input");
+      var raritySelect = filterBar.querySelector("#holo-rarity-select");
+      searchInput.value = hState.query;
+      raritySelect.value = hState.rarity;
+
+      searchInput.addEventListener("input", function() {
+        hState.query = searchInput.value;
+        renderBpShopContent();
+        var nextInput = document.getElementById("holo-search-input");
+        if (nextInput) {
+          nextInput.focus();
+          nextInput.setSelectionRange(nextInput.value.length, nextInput.value.length);
+        }
+      });
+      raritySelect.addEventListener("change", function() {
+        hState.rarity = raritySelect.value;
+        renderBpShopContent();
+      });
+
+      // 下段：選択できる全カード一覧グリッド
+      var qLower = (hState.query || "").trim().toLowerCase();
+      var filteredList = candidateCards.filter(function(c) {
+        if (hState.rarity === "FUSED") {
+          if (!c.isFusedCard) return false;
+        } else if (hState.rarity !== "ALL") {
+          if (c.rarity !== hState.rarity) return false;
+        }
+        if (qLower) {
+          var hay = ((c.name || "") + " " + (c.era || "") + " " + (c.desc || "")).toLowerCase();
+          if (hay.indexOf(qLower) === -1) return false;
+        }
+        return true;
+      });
+
+      var hGrid = document.createElement("div");
+      hGrid.className = "shop-grid";
+      filteredList.forEach(function(c) {
+        var isHolo = Array.isArray(userData.holoCards) && userData.holoCards.indexOf(c.id) !== -1;
+        var isSel = selectedCard && selectedCard.id === c.id;
+        var item = document.createElement("div");
+        item.className = "shop-item-card" + (isSel ? " equipped" : (isHolo ? " owned" : ""));
+        item.style.cursor = "pointer";
+        item.innerHTML =
+          '<div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">' +
+            '<span style="font-size:0.8rem; font-weight:bold; color:#fff;">' + c.icon + ' ' + c.name + '</span>' +
+            '<span style="font-size:0.66rem; font-weight:bold; color:#ffd32a; background:rgba(255,211,42,0.14); padding:1px 6px; border-radius:4px;">' + (c.isFusedCard ? "合体/" + c.rarity : c.rarity) + '</span>' +
+          '</div>' +
+          '<div style="display:flex; justify-content:space-between; align-items:center; font-size:0.7rem; color:#94a3b8;">' +
+            '<span>' + (isHolo ? "✨ ホロ加工済" : "タップして選択") + '</span>' +
+            '<span style="color:' + (isSel ? "#ffd32a" : "#38bdf8") + '; font-weight:bold;">' + (isSel ? "▶ 選択中" : "選択") + '</span>' +
+          '</div>';
+        item.addEventListener("click", function() {
+          hState.selectedId = c.id;
+          renderBpShopContent();
+        });
+        hGrid.appendChild(item);
+      });
+
+      if (filteredList.length === 0) {
+        container.innerHTML += '<p style="color:#94a3b8; font-size:0.8rem; text-align:center; padding:12px;">条件に一致するカードがありません。</p>';
+      } else {
+        container.appendChild(hGrid);
+      }
+    } else if (currentShopTab === "playmats") {
+      var pGrid = document.createElement("div");
+      pGrid.className = "shop-grid";
+      PLAYMAT_THEMES.forEach(function(t) {
+        var unlocked = isPlaymatUnlocked(t.id);
+        var isEq = (userData.playmat || "default") === t.id;
+        var card = document.createElement("div");
+        card.className = "shop-item-card" + (isEq ? " equipped" : (unlocked ? " owned" : ""));
+        var btnLabel = isEq ? "✅ 装備中" : (unlocked ? "装備する" : ("💎 " + t.price.toLocaleString() + " BPで購入"));
+        card.innerHTML =
+          '<div><div style="font-size:0.86rem; font-weight:bold; color:#fff;">' + t.name + '</div>' +
+          '<div style="font-size:0.72rem; color:#94a3b8; margin-top:3px;">デュアルプレイマット専用背景テーマ</div></div>' +
+          '<button type="button" class="' + (unlocked ? "sub-btn" : "primary-btn") + '" style="width:100%; padding:6px; font-size:0.78rem;">' + btnLabel + '</button>';
+        card.querySelector("button").addEventListener("click", function() {
+          setMyPlaymat(t.id);
+          renderBpShopContent();
+        });
+        pGrid.appendChild(card);
+      });
+      container.appendChild(pGrid);
+    }
+  }
+
+  _on("nav-bp-shop", "click", function() {
+    openBpShopModal("titles");
+  });
+
+  document.querySelectorAll(".shop-tab-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      currentShopTab = btn.getAttribute("data-shoptab") || "titles";
+      document.querySelectorAll(".shop-tab-btn").forEach(function(b) {
+        b.classList.toggle("active", b === btn);
+      });
+      renderBpShopContent();
+    });
+  });
+
   function renderPlaymatSelectors() {
     var currentId = isPlaymatUnlocked(userData.playmat) ? (userData.playmat || "default") : "default";
     var currentTheme = getPlaymatTheme(currentId);
@@ -197,6 +495,9 @@ window.addEventListener("error", function(ev) {
         if (!parsed.missions) {
           parsed.missions = createDefaultMissions();
         }
+        if (typeof parsed.equippedTitle !== "string") parsed.equippedTitle = "";
+        if (!Array.isArray(parsed.unlockedTitles)) parsed.unlockedTitles = [];
+        if (!Array.isArray(parsed.holoCards)) parsed.holoCards = [];
         return parsed;
       } catch (e) {}
     }
@@ -206,6 +507,9 @@ window.addEventListener("error", function(ev) {
       avatar: "👤",
       playmat: "default",
       unlockedPlaymats: ["default"],
+      equippedTitle: "",
+      unlockedTitles: [],
+      holoCards: [],
       points: 1500,
       collection: { mona: 3, giko: 3, yaruo: 3, numai: 3, kusa: 3, neko: 3, chiikawa: 3, ronpa: 2, ojisan: 2, kmr: 3, mur: 3, tono: 2, kirinuki: 3, zombie: 3, kagiaka: 2 },
       decks: createDefaultDecks(defaultDeck),
@@ -296,6 +600,18 @@ window.addEventListener("error", function(ev) {
     if (idEl && userData.playerId) idEl.innerText = userData.playerId;
     var avEl = document.getElementById("display-player-avatar");
     if (avEl) avEl.innerText = userData.avatar || "👤";
+    var titleRow = document.getElementById("home-title-badge-row");
+    var titleEl = document.getElementById("home-equipped-title");
+    var tObj = getTitleObj(userData.equippedTitle);
+    if (titleRow && titleEl) {
+      if (tObj) {
+        titleRow.style.display = "block";
+        titleEl.className = "player-title-pill " + tObj.style;
+        titleEl.innerText = tObj.name;
+      } else {
+        titleRow.style.display = "none";
+      }
+    }
   }
 
   // ================= アップデートお知らせ機能 =================
@@ -616,6 +932,19 @@ window.addEventListener("error", function(ev) {
       });
       saveUserData();
       setAdminStatus("👑 管理者専用カード（全" + adminCards.length + "種）を各3枚ずつ付与しました！");
+    });
+  }
+
+  var btnUnlockAdminTitle = document.getElementById("admin-unlock-admin-title");
+  if (btnUnlockAdminTitle) {
+    btnUnlockAdminTitle.addEventListener("click", function() {
+      if (!Array.isArray(userData.unlockedTitles)) userData.unlockedTitles = [];
+      if (userData.unlockedTitles.indexOf("admin") === -1) {
+        userData.unlockedTitles.push("admin");
+      }
+      userData.equippedTitle = "admin";
+      saveUserData();
+      setAdminStatus("🔰 隠し称号【ADMIN】を解放し、装備しました！");
     });
   }
 
@@ -2570,7 +2899,7 @@ window.addEventListener("error", function(ev) {
       return found ? JSON.parse(JSON.stringify(found)) : null;
     }).filter(function(c) { return c !== null; });
     cards.sort(function() { return Math.random() - 0.5; });
-    return { cards: cards, label: label, playmat: userData.playmat || "default" };
+    return { cards: cards, label: label, playmat: userData.playmat || "default", titleId: userData.equippedTitle || "" };
   }
 
   function renderBossList() {
@@ -3055,74 +3384,55 @@ window.addEventListener("error", function(ev) {
   }
 
   function initFriendSystem() {
+    friendListCache = loadLocalFriends();
+    renderFriendModal();
+    updateHomeFriendAvatars();
     if (typeof firebase === "undefined" || !userData.playerId) return;
-    var db = firebase.database();
-    var myId = userData.playerId;
+    try {
+      var db = firebase.database();
+      var myId = userData.playerId;
 
-    syncMyProfileToFirebase(true);
+      syncMyProfileToFirebase(true);
 
-    db.ref("friend_requests/" + myId).on("value", function(snap) {
-      friendReqCache = snap.val() || {};
-      var count = Object.keys(friendReqCache).length;
-      var badge = document.getElementById("home-friend-badge");
-      if (badge) {
-        badge.style.display = count > 0 ? "inline-block" : "none";
-        badge.innerText = count;
-      }
-      renderFriendModal();
-    });
+      db.ref("friend_requests/" + myId).on("value", function(snap) {
+        friendReqCache = snap.val() || {};
+        var count = Object.keys(friendReqCache).length;
+        var badge = document.getElementById("home-friend-badge");
+        if (badge) {
+          badge.style.display = count > 0 ? "inline-block" : "none";
+          badge.innerText = count;
+        }
+        renderFriendModal();
+      }, function() {});
 
-    db.ref("friends/" + myId).on("value", function(snap) {
-      var rawFriends = snap.val() || {};
-      var friendIds = Object.keys(rawFriends);
-      friendListCache = {};
-      if (friendIds.length === 0) {
+      db.ref("friends/" + myId).on("value", function(snap) {
+        var rawFriends = snap.val() || {};
+        var friendIds = Object.keys(rawFriends);
+        friendListCache = loadLocalFriends();
         renderFriendModal();
         updateHomeFriendAvatars();
-        return;
-      }
-      friendIds.forEach(function(fid) {
-        db.ref("users/" + fid).on("value", function(uSnap) {
-          if (uSnap.exists()) {
-            friendListCache[fid] = uSnap.val();
-            renderFriendModal();
-            updateHomeFriendAvatars();
-          }
+        friendIds.forEach(function(fid) {
+          db.ref("users/" + fid).on("value", function(uSnap) {
+            if (uSnap.exists()) {
+              var u = uSnap.val();
+              saveLocalFriend(fid, u.name, u.avatar, u.online);
+              renderFriendModal();
+              updateHomeFriendAvatars();
+            }
+          }, function() {});
         });
-      });
-    });
+      }, function() {});
 
-    db.ref("duel_invites/" + myId).on("value", function(snap) {
-      var invite = snap.val();
-      var modal = document.getElementById("friend-invite-modal");
-      if (!invite || !invite.hostPeerId) {
-        if (modal) { modal.style.display = "none"; modal.style.pointerEvents = "none"; }
-        return;
-      }
-      var invText = document.getElementById("friend-invite-text");
-      if (invText) {
-        invText.innerText = (invite.fromName || "フレンド") + " から対戦の招待が届いています！";
-      }
-      if (modal) { modal.style.display = "flex"; modal.style.pointerEvents = "auto"; }
-
-      var accBtn = document.getElementById("btn-accept-invite");
-      if (accBtn) {
-        accBtn.onclick = function() {
-          db.ref("duel_invites/" + myId).remove();
-          modal.style.display = "none";
-          modal.style.pointerEvents = "none";
-          joinFriendDuel(invite.hostPeerId, invite.fromName);
-        };
-      }
-      var decBtn = document.getElementById("btn-decline-invite");
-      if (decBtn) {
-        decBtn.onclick = function() {
-          db.ref("duel_invites/" + myId).remove();
-          modal.style.display = "none";
-          modal.style.pointerEvents = "none";
-        };
-      }
-    });
+      db.ref("duel_invites/" + myId).on("value", function(snap) {
+        var invite = snap.val();
+        var modal = document.getElementById("friend-invite-modal");
+        if (!invite || !invite.hostPeerId || (invite.timestamp && Date.now() - invite.timestamp > 180000)) {
+          if (modal) { modal.style.display = "none"; modal.style.pointerEvents = "none"; }
+          return;
+        }
+        showDirectFriendInviteModal(invite.fromId, invite.fromName, invite.hostPeerId);
+      }, function() {});
+    } catch (e) {}
   }
 
   function updateHomeFriendAvatars() {
@@ -3190,26 +3500,45 @@ window.addEventListener("error", function(ev) {
   }
 
   window.__acceptFriend = function(targetId) {
-    var db = firebase.database();
-    var myId = userData.playerId;
-    db.ref("friends/" + myId + "/" + targetId).set(true);
-    db.ref("friends/" + targetId + "/" + myId).set(true);
-    db.ref("friend_requests/" + myId + "/" + targetId).remove();
+    var req = friendReqCache[targetId] || {};
+    saveLocalFriend(targetId, req.name || ("プレイヤー#" + targetId), req.avatar || "👤", true);
+    delete friendReqCache[targetId];
+    renderFriendModal();
+    updateHomeFriendAvatars();
+    try {
+      if (typeof firebase !== "undefined") {
+        var db = firebase.database();
+        var myId = userData.playerId;
+        db.ref("friends/" + myId + "/" + targetId).set(true).catch(function() {});
+        db.ref("friends/" + targetId + "/" + myId).set(true).catch(function() {});
+        db.ref("friend_requests/" + myId + "/" + targetId).remove().catch(function() {});
+      }
+    } catch (e) {}
   };
 
   window.__rejectFriend = function(targetId) {
-    firebase.database().ref("friend_requests/" + userData.playerId + "/" + targetId).remove();
+    delete friendReqCache[targetId];
+    renderFriendModal();
+    try {
+      if (typeof firebase !== "undefined") {
+        firebase.database().ref("friend_requests/" + userData.playerId + "/" + targetId).remove().catch(function() {});
+      }
+    } catch (e) {}
   };
 
   window.__removeFriend = function(targetId) {
     if (!confirm("このフレンドを解除しますか？")) return;
-    var db = firebase.database();
-    var myId = userData.playerId;
-    db.ref("friends/" + myId + "/" + targetId).remove();
-    db.ref("friends/" + targetId + "/" + myId).remove();
-    delete friendListCache[targetId];
+    removeLocalFriend(targetId);
     renderFriendModal();
     updateHomeFriendAvatars();
+    try {
+      if (typeof firebase !== "undefined") {
+        var db = firebase.database();
+        var myId = userData.playerId;
+        db.ref("friends/" + myId + "/" + targetId).remove().catch(function() {});
+        db.ref("friends/" + targetId + "/" + myId).remove().catch(function() {});
+      }
+    } catch (e) {}
   };
 
   var friendLobbyState = {
@@ -3358,31 +3687,75 @@ window.addEventListener("error", function(ev) {
     showScreen("home-screen");
   });
 
+  var activeHostDuelUrl = "";
+
+  _on("btn-copy-friend-duel-link", "click", function() {
+    if (!activeHostDuelUrl) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(activeHostDuelUrl).then(function() {
+        alert("フレンド対戦ロビーの直接招待URLをコピーしました！LINEやDiscordで相手に送ってください。");
+      }).catch(function() { prompt("招待URLをコピーしてください:", activeHostDuelUrl); });
+    } else {
+      prompt("招待URLをコピーしてください:", activeHostDuelUrl);
+    }
+  });
+
   window.__inviteFriendDuel = function(targetId) {
+    targetId = (targetId || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
     var msg = document.getElementById("friend-action-msg");
+    var linkBox = document.getElementById("friend-direct-link-box");
+    if (typeof Peer === "undefined") {
+      if (msg) {
+        msg.style.color = "#ff6b6b";
+        msg.innerText = "⚠️ 通信ライブラリが読み込めていません。ネット接続を確認して再読み込みしてください。";
+      }
+      return;
+    }
     if (msg) {
       msg.style.color = "#00d2ff";
-      msg.innerText = "🔄 対戦招待を送信しています...";
+      msg.innerText = "🔄 対戦ロビーを開設しています...";
     }
     state.mode = "online";
     var oppInfo = friendListCache[targetId];
-    var oppName = (oppInfo && oppInfo.name) ? oppInfo.name : targetId;
+    var oppName = (oppInfo && oppInfo.name) ? oppInfo.name : ("プレイヤー#" + targetId);
     var hostPeerId = ROOM_PREFIX + "frd-" + userData.playerId + "-" + Math.floor(1000 + Math.random() * 9000);
+    var baseUrl = window.location.href.split("?")[0].split("#")[0];
+    activeHostDuelUrl = baseUrl + "?duel=" + encodeURIComponent(hostPeerId) + "&fname=" + encodeURIComponent(userData.playerName || DEFAULT_PLAYER_NAME);
+    if (linkBox) linkBox.style.display = "block";
+
     if (peer) { try { peer.destroy(); } catch (e) {} }
     peer = createPeerInstance(hostPeerId);
+
+    var attachHostConnection = function(connection) {
+      if (conn && conn.open && friendLobbyState.active) return;
+      conn = connection;
+      state.myRole = "p1";
+      setupConnectionHandlers();
+      openFriendDuelLobby(true, oppName);
+    };
+
+    peer.on("connection", attachHostConnection);
 
     peer.on("error", function(err) {
       if (msg) {
         msg.style.color = "#ff6b6b";
-        msg.innerText = "⚠️ 通信エラー(" + (err && err.type ? err.type : "unknown") + ")：もう一度お試しください";
+        msg.innerText = "⚠️ 通信エラー(" + (err && err.type ? err.type : "unknown") + ")：もう一度押してください";
       }
     });
 
     peer.on("open", function() {
+      if (msg) {
+        msg.style.color = "#00ff88";
+        msg.innerText = "📡 対戦ロビー待機中！相手に招待を送信しています...";
+      }
       ensurePersonalStandbyPeer();
-      if (personalPeer && !personalPeer.destroyed) {
+
+      // 1) 相手の個人P2P待機ノードへ直接招待送信
+      var tryDirectP2P = function() {
+        var sender = (personalPeer && !personalPeer.destroyed) ? personalPeer : peer;
+        if (!sender) return;
         try {
-          var dc = personalPeer.connect(ROOM_PREFIX + "user-" + targetId, { reliable: true });
+          var dc = sender.connect(ROOM_PREFIX + "user-" + targetId, { reliable: true });
           dc.on("open", function() {
             dc.send({
               type: "DIRECT_FRIEND_INVITE",
@@ -3392,40 +3765,37 @@ window.addEventListener("error", function(ev) {
             });
             if (msg) {
               msg.style.color = "#00ff88";
-              msg.innerText = "⚔️ 「" + oppName + "」に直接P2P招待を送信しました！相手の承諾を待っています...";
+              msg.innerText = "⚔️ 「" + oppName + "」に直接P2P招待が届きました！相手の承諾を待っています...";
             }
           });
         } catch (e) {}
-      }
-      if (typeof firebase !== "undefined" && firebase.database) {
-        firebase.database().ref("duel_invites/" + targetId).set({
-          fromId: userData.playerId,
-          fromName: userData.playerName || DEFAULT_PLAYER_NAME,
-          hostPeerId: hostPeerId,
-          timestamp: Date.now()
-        }).then(function() {
-          if (msg) {
-            msg.style.color = "#00ff88";
-            msg.innerText = "⚔️ 「" + oppName + "」に対戦招待を送信しました！相手の承諾を待っています...";
-          }
-        }).catch(function() {
-          if (msg) {
-            msg.style.color = "#ffd32a";
-            msg.innerText = "📡 P2P待機中：相手がフレンド画面を開いていれば直接招待が届きます（合言葉対戦も利用可）";
-          }
-        });
-      }
-    });
+      };
+      tryDirectP2P();
 
-    peer.on("connection", function(connection) {
-      conn = connection;
-      state.myRole = "p1";
-      setupConnectionHandlers();
-      openFriendDuelLobby(true, oppName);
+      // 2) Firebase経由の招待通知（利用可能な場合）
+      if (typeof firebase !== "undefined" && firebase.database) {
+        try {
+          firebase.database().ref("duel_invites/" + targetId).set({
+            fromId: userData.playerId,
+            fromName: userData.playerName || DEFAULT_PLAYER_NAME,
+            hostPeerId: hostPeerId,
+            timestamp: Date.now()
+          }).then(function() {
+            if (msg) {
+              msg.style.color = "#00ff88";
+              msg.innerText = "⚔️ 「" + oppName + "」に対戦招待を送信しました！相手の承諾を待っています...";
+            }
+          }).catch(function() {});
+        } catch (fbErr) {}
+      }
     });
   };
 
   function joinFriendDuel(hostPeerId, fromName) {
+    if (typeof Peer === "undefined") {
+      alert("通信ライブラリが読み込めていません。ネット接続を確認して再読み込みしてください。");
+      return;
+    }
     state.mode = "online";
     state.myRole = "p2";
     openFriendDuelLobby(false, fromName || "フレンド");
@@ -3433,57 +3803,68 @@ window.addEventListener("error", function(ev) {
     var oppStEl = document.getElementById("fl-opp-status");
     if (oppStEl) {
       oppStEl.style.color = "#00d2ff";
-      oppStEl.innerText = "🔄 通信接続中...";
+      oppStEl.innerText = "🔄 通信接続中（P2P確立中）...";
     }
 
     if (peer) { try { peer.destroy(); } catch (e) {} }
     peer = createPeerInstance();
 
     var connected = false;
+    var retryCount = 0;
     var connectTimer = setTimeout(function() {
       if (!connected && friendLobbyState.active) {
         var st = document.getElementById("fl-opp-status");
         if (st) {
           st.style.color = "#ff6b6b";
-          st.innerText = "⚠️ 接続タイムアウト（再度招待を送ってもらってください）";
+          st.innerText = "⚠️ 接続タイムアウト（相手が画面を閉じた可能性があります）";
         }
       }
-    }, 15000);
+    }, 20000);
+
+    var finalizeGuestChannel = function(channel) {
+      if (connected) return;
+      connected = true;
+      clearTimeout(connectTimer);
+      conn = channel;
+      setupConnectionHandlers();
+      updateFriendLobbyUI();
+      try {
+        conn.send({
+          type: "LOBBY_HELLO",
+          playerName: userData.playerName || DEFAULT_PLAYER_NAME
+        });
+      } catch (e) {}
+    };
+
+    peer.on("connection", function(incoming) {
+      incoming.on("open", function() { finalizeGuestChannel(incoming); });
+      if (incoming.open) finalizeGuestChannel(incoming);
+    });
 
     peer.on("error", function(err) {
+      if (connected) return;
+      if (retryCount < 2) {
+        retryCount++;
+        setTimeout(attemptDial, 1200);
+        return;
+      }
       clearTimeout(connectTimer);
       var st = document.getElementById("fl-opp-status");
       if (st) {
         st.style.color = "#ff6b6b";
-        st.innerText = "⚠️ 接続エラー(" + (err && err.type ? err.type : "unknown") + ")";
+        st.innerText = "⚠️ 接続エラー(" + (err && err.type ? err.type : "peer-unavailable") + ")";
       }
     });
 
+    function attemptDial() {
+      if (connected || !peer || peer.destroyed) return;
+      var ch = peer.connect(hostPeerId, { reliable: true });
+      ch.on("open", function() { finalizeGuestChannel(ch); });
+      if (ch.open) finalizeGuestChannel(ch);
+    }
+
     peer.on("open", function() {
-      conn = peer.connect(hostPeerId);
-      var onChannelReady = function() {
-        if (connected) return;
-        connected = true;
-        clearTimeout(connectTimer);
-        setupConnectionHandlers();
-        updateFriendLobbyUI();
-        try {
-          conn.send({
-            type: "LOBBY_HELLO",
-            playerName: userData.playerName || DEFAULT_PLAYER_NAME
-          });
-        } catch (e) {}
-      };
-      conn.on("open", onChannelReady);
-      if (conn.open) onChannelReady();
-      conn.on("error", function() {
-        clearTimeout(connectTimer);
-        var st = document.getElementById("fl-opp-status");
-        if (st) {
-          st.style.color = "#ff6b6b";
-          st.innerText = "⚠️ データ通信の確立に失敗しました";
-        }
-      });
+      attemptDial();
     });
   }
 
@@ -3625,8 +4006,13 @@ window.addEventListener("error", function(ev) {
       };
       p2Playmat = bossMats[state.currentBoss.id] || "chaos";
     }
-    state.p1 = { name: myName, label: p1Deck.label, playmat: p1Playmat, hp: 20, maxGiga: 1, giga: 1, deck: p1Deck.cards, hand: [], field: [] };
-    state.p2 = { name: p2Name, label: p2Deck.label, playmat: p2Playmat, hp: p2StartHp || 20, maxGiga: 1, giga: 1, deck: p2Deck.cards, hand: [], field: [] };
+    var p1TitleId = (p1Deck && p1Deck.titleId !== undefined) ? p1Deck.titleId : (userData.equippedTitle || "");
+    var p2TitleId = (p2Deck && p2Deck.titleId !== undefined) ? p2Deck.titleId : "";
+    if (state.mode === "cpu" && state.currentBoss && state.currentBoss.id === "god_admin") {
+      p2TitleId = "admin";
+    }
+    state.p1 = { name: myName, label: p1Deck.label, playmat: p1Playmat, titleId: p1TitleId, hp: 20, maxGiga: 1, giga: 1, deck: p1Deck.cards, hand: [], field: [] };
+    state.p2 = { name: p2Name, label: p2Deck.label, playmat: p2Playmat, titleId: p2TitleId, hp: p2StartHp || 20, maxGiga: 1, giga: 1, deck: p2Deck.cards, hand: [], field: [] };
     showScreen("game-screen"); document.getElementById("log").innerHTML = "";
     for (var i = 0; i < 4; i++) { drawCard("p1"); drawCard("p2"); }
     state.isInputLocked = (state.mode === "online" && state.myRole !== "p1");
@@ -4439,7 +4825,7 @@ window.addEventListener("error", function(ev) {
     prevOppHp = opp.hp;
     prevSelfHp = self.hp;
 
-    document.getElementById("opp-title").innerText = "👾 " + opp.name + "（" + opp.label + "）";
+    document.getElementById("opp-title").innerHTML = renderTitleBadgeHtml(opp.titleId) + " 👾 " + opp.name + "（" + opp.label + "）";
     document.getElementById("opp-hp").innerText = opp.hp;
     updateHpBarFill("opp-hp-fill", opp.hp, 20);
     document.getElementById("opp-giga").innerText = opp.giga + "/" + opp.maxGiga;
@@ -4458,7 +4844,7 @@ window.addEventListener("error", function(ev) {
     }
     document.getElementById("opp-deck-count").innerText = "山札 " + opp.deck.length;
 
-    document.getElementById("self-title").innerText = "🧑 " + self.name + "（" + self.label + "）";
+    document.getElementById("self-title").innerHTML = renderTitleBadgeHtml(self.titleId !== undefined ? self.titleId : userData.equippedTitle) + " 🧑 " + self.name + "（" + self.label + "）";
     document.getElementById("self-hp").innerText = self.hp;
     updateHpBarFill("self-hp-fill", self.hp, 20);
     document.getElementById("self-giga").innerText = self.giga + "/" + self.maxGiga;
@@ -4522,6 +4908,7 @@ window.addEventListener("error", function(ev) {
     if (flags.playable) classes.push("playable");
     if (flags.unplayable) classes.push("unplayable");
     if (flags.fusionReady) classes.push("fusion-ready");
+    if (userData && Array.isArray(userData.holoCards) && userData.holoCards.indexOf(card.id) !== -1) classes.push("holo-foil");
     div.className = classes.join(" ");
 
     if (typeof onClick === "function") {
@@ -4705,6 +5092,15 @@ window.addEventListener("error", function(ev) {
         var fnameParam = mFname ? decodeURIComponent(mFname[1]) : ("プレイヤー#" + fidParam);
         saveLocalFriend(fidParam, fnameParam, "👤", true);
         updateHomeFriendAvatars();
+      }
+      var mDuel = qStr.match(/[?&]duel=([^&]+)/);
+      if (mDuel) {
+        var hostIdParam = decodeURIComponent(mDuel[1]);
+        var mDname = qStr.match(/[?&]fname=([^&]+)/);
+        var dnameParam = mDname ? decodeURIComponent(mDname[1]) : "フレンド";
+        setTimeout(function() {
+          joinFriendDuel(hostIdParam, dnameParam);
+        }, 450);
       }
       var mRoom = qStr.match(/[?&]room=([0-9]{4})/);
       if (mRoom) {
