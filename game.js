@@ -2805,7 +2805,8 @@ window.addEventListener("error", function(ev) {
     mode: "cpu", myRole: "p1", turn: 1, activeSide: "p1", isInputLocked: false, currentBoss: null,
     p1: { name: "プレイヤー1", label: "マイデッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
     p2: { name: "CPU", label: "相手デッキ", hp: 20, maxGiga: 1, giga: 1, deck: [], hand: [], field: [] },
-    selectedAttackerIndex: null
+    selectedAttackerIndex: null,
+    pendingEffectTarget: null
   };
   var peer = null, conn = null, p1OnlineDeck = null, p2OnlineDeck = null, ROOM_PREFIX = "netmeme-tcg-v10-";
   var myQueueRef = null, randomHeartbeatTimer = null;
@@ -4382,11 +4383,30 @@ window.addEventListener("error", function(ev) {
     var _m_fusion_guide_modal = document.getElementById("fusion-guide-modal"); if(_m_fusion_guide_modal) { _m_fusion_guide_modal.style.display = "none"; _m_fusion_guide_modal.style.pointerEvents = "none"; }
   });
 
-  function playCard(handIndex) {
-    if (state.isInputLocked) return;
+
+  function getValidTargetIndicesForStep(step, selfField, oppField) {
+    var field = (step.side === "opp") ? oppField : selfField;
+    var res = [];
+    for (var i = 0; i < field.length; i++) {
+      if (!step.filter || step.filter(field[i], field)) {
+        res.push(i);
+      }
+    }
+    return res;
+  }
+
+  function cancelPendingEffectTarget() {
+    if (!state.pendingEffectTarget) return;
+    var pending = state.pendingEffectTarget;
+    state.pendingEffectTarget = null;
+    log("↩️ 「" + pending.card.name + "」の対象指定をキャンセルしました。");
+    render();
+  }
+
+  function commitCardPlayWithTargets(handIndex, chosenTargets) {
     var self = getViewSelf(), card = self.hand[handIndex];
-    if (!card) return;
-    if (self.giga < card.cost) { log("⚠️ ギガ（コスト）が足りません！"); return; }
+    if (!card) { state.pendingEffectTarget = null; render(); return; }
+    if (self.giga < card.cost) { state.pendingEffectTarget = null; log("⚠️ ギガ（コスト）が足りません！"); render(); return; }
     var actionLog = "";
     var summonedGodCard = null;
     var isPlayerAction = (state.mode === "cpu" && state.activeSide === "p1") || (state.mode === "online" && state.activeSide === state.myRole) || (state.mode === "local");
@@ -4420,7 +4440,7 @@ window.addEventListener("error", function(ev) {
           card.canAttack = true; card.isBuzz = true; self.field.push(card);
           BattleSFX.summon(card.rarity); actionLog = "📱 " + self.name + "が「" + card.name + "」を投稿！"; log(actionLog);
           try {
-            window.CardEffects.triggerSummonEffect(effectCtx, state.activeSide, card);
+            window.CardEffects.triggerSummonEffect(effectCtx, state.activeSide, card, chosenTargets);
           } catch (effErr) {
             console.error("SummonEffect error:", effErr);
           }
@@ -4435,12 +4455,13 @@ window.addEventListener("error", function(ev) {
         if (isPlayerAction) addMissionStat("spells", 1);
         BattleSFX.spell(); actionLog = "⚡ " + self.name + "が構文「" + card.name + "」を発動！"; log(actionLog);
         try {
-          window.CardEffects.executeSpell(effectCtx, state.activeSide, card);
+          window.CardEffects.executeSpell(effectCtx, state.activeSide, card, chosenTargets);
         } catch (spellErr) {
           console.error("SpellEffect error:", spellErr);
         }
       }
     } finally {
+      state.pendingEffectTarget = null;
       state.selectedAttackerIndex = null;
       sendSync(actionLog, null, summonedGodCard, self.name);
       checkGameOver();
@@ -4448,8 +4469,108 @@ window.addEventListener("error", function(ev) {
     }
   }
 
+  function selectEffectTarget(side, fieldIndex) {
+    var pending = state.pendingEffectTarget;
+    if (!pending) return;
+    var step = pending.steps[pending.stepIndex];
+    if (!step || step.side !== side) return;
+    var self = getViewSelf(), opp = getViewOpp();
+    var validIndices = getValidTargetIndicesForStep(step, self.field, opp.field);
+    if (validIndices.indexOf(fieldIndex) === -1) return;
+
+    BattleSFX.select();
+    pending.chosenTargets.push(fieldIndex);
+    pending.stepIndex++;
+
+    // 次のステップがある場合、有効対象がいれば選択継続、いなければスキップ
+    while (pending.stepIndex < pending.steps.length) {
+      var nextStep = pending.steps[pending.stepIndex];
+      var nextValid = getValidTargetIndicesForStep(nextStep, self.field, opp.field);
+      if (nextValid.length > 0) {
+        render();
+        return;
+      }
+      pending.chosenTargets.push(-1);
+      pending.stepIndex++;
+    }
+
+    commitCardPlayWithTargets(pending.handIndex, pending.chosenTargets);
+  }
+
+  function playCard(handIndex) {
+    if (state.isInputLocked) return;
+    var self = getViewSelf(), opp = getViewOpp(), card = self.hand[handIndex];
+    if (!card) return;
+
+    // 既に対象指定モード中なら、同じ手札タップでキャンセル、別手札なら一旦キャンセルして切り替え
+    if (state.pendingEffectTarget) {
+      var prevHandIdx = state.pendingEffectTarget.handIndex;
+      state.pendingEffectTarget = null;
+      if (prevHandIdx === handIndex) {
+        log("↩️ 「" + card.name + "」の対象指定をキャンセルしました。");
+        render();
+        return;
+      }
+    }
+
+    if (self.giga < card.cost) { log("⚠️ ギガ（コスト）が足りません！"); return; }
+
+    var isFusion = (card.type === "meme") && !!findAvailableFusion(self.field, card);
+    if (card.type === "meme" && !isFusion && self.field.length >= 3) {
+      log("⚠️ タイムラインがいっぱいです（最大3体）。");
+      return;
+    }
+
+    // 合体進化以外で単体対象ステップを持つカードなら、盤面の対象指定モードへ移行
+    var steps = (!isFusion && window.CardEffects && window.CardEffects.getTargetSteps)
+      ? window.CardEffects.getTargetSteps(card)
+      : null;
+
+    if (steps && steps.length > 0) {
+      // 自分場に出るミームで自分場対象（エルシャダイ・スピードワゴン等）は、召喚後の自身も含めて選べるように仮想場を計算
+      var simulatedSelfField = self.field.slice();
+      if (card.type === "meme") {
+        simulatedSelfField.push(card);
+      }
+
+      var firstStepIdx = 0;
+      var autoTargets = [];
+      while (firstStepIdx < steps.length) {
+        var st = steps[firstStepIdx];
+        var vIndices = getValidTargetIndicesForStep(st, simulatedSelfField, opp.field);
+        if (vIndices.length > 0) {
+          break;
+        }
+        autoTargets.push(-1);
+        firstStepIdx++;
+      }
+
+      // 選べる対象が盤面に存在する場合はターゲット選択待機モードにする
+      if (firstStepIdx < steps.length) {
+        state.selectedAttackerIndex = null;
+        state.pendingEffectTarget = {
+          handIndex: handIndex,
+          card: card,
+          steps: steps,
+          stepIndex: firstStepIdx,
+          chosenTargets: autoTargets
+        };
+        BattleSFX.select();
+        log("🎯 「" + card.name + "」の対象を選択してください（" + steps[firstStepIdx].label + "）");
+        render();
+        return;
+      }
+    }
+
+    commitCardPlayWithTargets(handIndex, []);
+  }
+
   function selectAttacker(index) {
     if (state.isInputLocked) return;
+    if (state.pendingEffectTarget) {
+      selectEffectTarget("self", index);
+      return;
+    }
     var meme = getViewSelf().field[index];
     if (!meme.canAttack) { log("⚠️ このミームは既に行動済みです。"); return; }
     state.selectedAttackerIndex = (state.selectedAttackerIndex === index) ? null : index; if (state.selectedAttackerIndex !== null) BattleSFX.select();
@@ -4500,6 +4621,7 @@ window.addEventListener("error", function(ev) {
   function endTurn() {
     if (state.isInputLocked) return;
     BattleSFX.turnEnd();
+    state.pendingEffectTarget = null;
     state.selectedAttackerIndex = null;
     if (state.mode === "cpu") {
       state.activeSide = "p2";
@@ -4718,6 +4840,15 @@ window.addEventListener("error", function(ev) {
   function updateGuideBanner() {
     var banner = document.getElementById("guide-banner"), self = getViewSelf(), opp = getViewOpp();
     if (state.isInputLocked) { banner.innerText = state.mode === "online" ? "⏳ " + opp.name + "のターンです...（長押しで詳細）" : "⏳ CPUのターンです..."; banner.style.borderColor = "#ff6b6b"; return; }
+    if (state.pendingEffectTarget) {
+      var pending = state.pendingEffectTarget;
+      var curStep = pending.steps[pending.stepIndex];
+      banner.style.borderColor = "#ffd32a";
+      banner.innerHTML = '🎯 <strong>「' + pending.card.name + '」</strong>：光っている<strong>' + curStep.label + '</strong>をタップ！ <button type="button" id="btn-cancel-effect-target" style="margin-left:6px; padding:2px 8px; border-radius:6px; border:1px solid #ff6b6b; background:rgba(255,71,87,0.22); color:#fff; font-size:0.74rem; font-weight:bold; cursor:pointer;">✕ キャンセル</button>';
+      var cBtn = document.getElementById("btn-cancel-effect-target");
+      if (cBtn) cBtn.addEventListener("click", function(e) { e.stopPropagation(); cancelPendingEffectTarget(); });
+      return;
+    }
     banner.style.borderColor = "#00d2ff";
     if (state.selectedAttackerIndex !== null) {
       var attacker = self.field[state.selectedAttackerIndex];
@@ -4858,6 +4989,14 @@ window.addEventListener("error", function(ev) {
     if (canDirect) directBtn.classList.add("ready"); else directBtn.classList.remove("ready");
     document.getElementById("end-turn-btn").disabled = state.isInputLocked;
 
+    var pendingEff = (!state.isInputLocked) ? state.pendingEffectTarget : null;
+    var curEffStep = pendingEff ? pendingEff.steps[pendingEff.stepIndex] : null;
+    var simSelfForRender = self.field.slice();
+    if (pendingEff && pendingEff.card.type === "meme") {
+      simSelfForRender.push(pendingEff.card);
+    }
+    var validEffIndices = curEffStep ? getValidTargetIndicesForStep(curEffStep, simSelfForRender, opp.field) : [];
+
     var oppFieldEl = document.getElementById("opp-field");
     var oppTheme = getPlaymatTheme(opp.playmat || "default");
     oppFieldEl.className = "field-area " + oppTheme.oppClass;
@@ -4866,10 +5005,12 @@ window.addEventListener("error", function(ev) {
     opp.field.forEach(function(c, idx) {
       if (!c) return;
       try {
-        var action = (!state.isInputLocked && state.selectedAttackerIndex !== null)
-          ? function() { attackMeme(idx); }
-          : null;
-        oppFieldEl.appendChild(createCardElement(c, action, { isTarget: !state.isInputLocked && state.selectedAttackerIndex !== null }));
+        var isOppEffectTarget = curEffStep && curEffStep.side === "opp" && validEffIndices.indexOf(idx) !== -1;
+        var isOppAttackTarget = !curEffStep && !state.isInputLocked && state.selectedAttackerIndex !== null;
+        var action = isOppEffectTarget
+          ? function() { selectEffectTarget("opp", idx); }
+          : (isOppAttackTarget ? function() { attackMeme(idx); } : null);
+        oppFieldEl.appendChild(createCardElement(c, action, { isTarget: isOppEffectTarget || isOppAttackTarget }));
       } catch (e) { console.error("oppField render err:", e); }
     });
 
@@ -4881,9 +5022,25 @@ window.addEventListener("error", function(ev) {
     self.field.forEach(function(c, idx) {
       if (!c) return;
       try {
-        selfFieldEl.appendChild(createCardElement(c, function() { selectAttacker(idx); }, { isSelected: state.selectedAttackerIndex === idx, canAttack: !state.isInputLocked && c.canAttack }));
+        var isSelfEffectTarget = curEffStep && curEffStep.side === "self" && validEffIndices.indexOf(idx) !== -1;
+        var selfAction = isSelfEffectTarget
+          ? function() { selectEffectTarget("self", idx); }
+          : (!curEffStep ? function() { selectAttacker(idx); } : null);
+        selfFieldEl.appendChild(createCardElement(c, selfAction, {
+          isSelected: (!curEffStep && state.selectedAttackerIndex === idx) || isSelfEffectTarget,
+          canAttack: !curEffStep && !state.isInputLocked && c.canAttack
+        }));
       } catch (e) { console.error("selfField render err:", e); }
     });
+    if (pendingEff && pendingEff.card.type === "meme" && curEffStep && curEffStep.side === "self") {
+      var selfPreviewIdx = self.field.length;
+      if (validEffIndices.indexOf(selfPreviewIdx) !== -1) {
+        var ghostCard = Object.assign({}, pendingEff.card, { isBuzz: true });
+        selfFieldEl.appendChild(createCardElement(ghostCard, function() { selectEffectTarget("self", selfPreviewIdx); }, {
+          isSelected: true
+        }));
+      }
+    }
 
     var handEl = document.getElementById("self-hand");
     handEl.innerHTML = "";
