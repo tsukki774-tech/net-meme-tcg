@@ -229,7 +229,105 @@ const ALL_CARDS = [
   { id: "n_mimic_chest", pack: 4, name: "人食い宝箱ミミック", type: "meme", era: "ゲーム", rarity: "N", cost: 2, atk: 3, hp: 2, freshness: 3, icon: "🦷", desc: "開けた瞬間噛みついてくる罠モンスター。" },
   { id: "n_respawn_point", pack: 4, name: "リスポーン地点の焚き火", type: "spell", era: "ゲーム", rarity: "N", cost: 1, icon: "🔥", desc: "味方ミーム1体のHPを3回復する。" },
   { id: "n_noob_shield", pack: 4, name: "初心者マーク付きタンク", type: "meme", era: "ゲーム", rarity: "N", cost: 2, atk: 1, hp: 4, freshness: 4, icon: "🔰", desc: "体力4で序盤の守りを固める。" },
-  { id: "n_glitch_pixel", pack: 4, name: "バグったポリゴン塊", type: "meme", era: "ゲーム", rarity: "N", cost: 1, atk: 2, hp: 1, freshness: 2, icon: "👾", desc: "不安定だがコスト1で攻撃力2。" }
+  { id: "n_glitch_pixel", pack: 4, name: "バグったポリゴン塊", type: "meme", era: "ゲーム", rarity: "N", cost: 1, atk: 2, hp: 1, freshness: 2, icon: "👾", desc: "不安定だがコスト1で攻撃力2。" },
+
+  // ================= 第5弾：スマホ・ソシャゲ＆SNSバズ編（pack: 5 / 全34種・トレンド＆伏せ構文収録） =================
+  // --- GOD (2種) ---
+  { id: "god_jinken_chara", pack: 5, name: "人権キャラ実装（天井確定演出）", type: "meme", era: "ソシャゲ", rarity: "GOD", cost: 7, atk: 7, hp: 7, freshness: 5, icon: "🌈", desc: "【神降臨】召喚時：山札からコスト4以上のミーム1体を場に出し、味方全体に無敵バリア＆攻撃力+2！" },
+  { id: "god_sashu_notice", pack: 5, name: "サ終のお知らせ（サービス終了）", type: "spell", era: "ソシャゲ", rarity: "GOD", cost: 6, icon: "🪦", desc: "【神構文】お互いの場のミームを無敵バリア貫通で全消滅＆お互いの手札を全て捨てて3枚ドロー！" },
+
+  // --- トレンドカード（フィールド / type: "trend" / 5種） ---
+  { id: "trend_enjo_fire", pack: 5, name: "【トレンド】大炎上トレンド1位", type: "trend", era: "ソシャゲ", rarity: "SR", cost: 2, icon: "🔥", desc: "【トレンド】場にある間、お互いの全ミームの攻撃力+2！ただしターン開始時に鮮度が追加で-1される。" },
+  { id: "trend_low_speed", pack: 5, name: "【トレンド】通信制限（低速モード）", type: "trend", era: "ソシャゲ", rarity: "SR", cost: 2, icon: "📡", desc: "【トレンド】場にある間、お互いの最大ギガ上限が5になる（高コスト対策）。" },
+  { id: "trend_midnight", pack: 5, name: "【トレンド】深夜のテンション", type: "trend", era: "ソシャゲ", rarity: "R", cost: 2, icon: "🌙", desc: "【トレンド】場にある間、「2ch・ニコニコ・例のアレ・ソシャゲ」ミームはターン開始時に鮮度が減らない！" },
+  { id: "trend_algo_bug", pack: 5, name: "【トレンド】おすすめ欄バグ", type: "trend", era: "ソシャゲ", rarity: "UR", cost: 3, icon: "📱", desc: "【トレンド】場にある間、お互いターン開始時のドローが2枚になる！" },
+  { id: "trend_pickup_up", pack: 5, name: "【トレンド】ピックアップ確率UP祭", type: "trend", era: "ソシャゲ", rarity: "R", cost: 2, icon: "💎", desc: "【トレンド】場にある間、お互いの「ソシャゲ」ミームの攻撃力+2＆ターン開始時にメンタル1回復！" },
+
+  // --- 伏せ構文（トラップ / type: "trap" / 5種） ---
+  { id: "trap_block_report", pack: 5, name: "【伏せ】ブロック＆通報", type: "trap", era: "ソシャゲ", rarity: "SR", cost: 2, icon: "🚫", desc: "【伏せ構文】相手ミームが直接攻撃してきた時に自動発動！その直接攻撃を無効化し、攻撃ミームの攻撃力-2＆鮮度-1！" },
+  { id: "trap_gyotaku", pack: 5, name: "【伏せ】魚拓（スクショ保存）", type: "trap", era: "ソシャゲ", rarity: "R", cost: 1, icon: "📸", desc: "【伏せ構文】相手が構文（スペル）を発動した時に自動発動！自分は山札から2枚ドローする！" },
+  { id: "trap_airp_police", pack: 5, name: "【伏せ】エアプ警察の指摘", type: "trap", era: "ソシャゲ", rarity: "SR", cost: 2, icon: "🛡️", desc: "【伏せ構文】相手がコスト4以上のミームを召喚した時に自動発動！そのミームの攻撃力を0＆鮮度-1！" },
+  { id: "trap_enjo_counter", pack: 5, name: "【伏せ】炎上カウンター", type: "trap", era: "ソシャゲ", rarity: "R", cost: 2, icon: "💣", desc: "【伏せ構文】相手ミームが自分のミームを攻撃した時に自動発動！相手本体に3ダメ＆攻撃したミームに2ダメ！" },
+  { id: "trap_surinuke", pack: 5, name: "【伏せ】すり抜けの罠", type: "trap", era: "ソシャゲ", rarity: "UR", cost: 2, icon: "💸", desc: "【伏せ構文】相手がミームを召喚した時に自動発動！そのミームに3ダメージを与え、自分のギガを1回復！" },
+
+  // --- UR (3種) ---
+  { id: "ur_single_pull_god", pack: 5, name: "無課金勢の奇跡（単発神引き）", type: "spell", era: "ソシャゲ", rarity: "UR", cost: 3, icon: "✨", desc: "山札から3枚ドローし、自分の手札全てのコストを-1する（最低0）！" },
+  { id: "ur_stamina_stone", pack: 5, name: "スタミナ全回復の石割り", type: "spell", era: "ソシャゲ", rarity: "UR", cost: 2, icon: "💠", desc: "自分のギガを全回復し、味方ミーム1体の鮮度を+2＆再行動（攻撃回数回復）させる！" },
+  { id: "ur_whale_emperor", pack: 5, name: "完凸理論値の廃課金ランカー", type: "meme", era: "ソシャゲ", rarity: "UR", cost: 5, atk: 6, hp: 5, freshness: 4, icon: "👑", desc: "召喚時：自身に無敵バリアを付与し、自分の場の「ソシャゲ」ミーム全体の攻撃力+2！" },
+
+  // --- SR (5種) ---
+  { id: "sr_surinuke_bakushi", pack: 5, name: "すり抜け爆死（ピックアップ仕事しろ）", type: "spell", era: "ソシャゲ", rarity: "SR", cost: 2, icon: "😭", desc: "相手ミーム1体に3ダメージ＆鮮度-1し、自分は1枚ドロー！" },
+  { id: "sr_apology_gems", pack: 5, name: "メンテ延長のお詫び石（配布）", type: "meme", era: "ソシャゲ", rarity: "SR", cost: 3, atk: 2, hp: 4, freshness: 4, icon: "💎", desc: "召喚時：お互いのギガを+2回復し、自分はカードを2枚ドローする！" },
+  { id: "sr_login_only", pack: 5, name: "ログイン勢（日課だけこなす民）", type: "meme", era: "ソシャゲ", rarity: "SR", cost: 2, atk: 1, hp: 4, freshness: 5, icon: "📅", desc: "鮮度5の長寿枠。召喚時：自分のメンタルを2回復＆1枚ドロー！" },
+  { id: "sr_shadowban", pack: 5, name: "シャドウバン（おすすめ非表示）", type: "spell", era: "ソシャゲ", rarity: "SR", cost: 2, icon: "👻", desc: "相手ミーム1体の無敵バリアを剥がし、攻撃力を0にする！" },
+  { id: "sr_kakin_inflation", pack: 5, name: "インフレ新環境（旧キャラ産廃化）", type: "meme", era: "ソシャゲ", rarity: "SR", cost: 3, atk: 4, hp: 3, freshness: 3, icon: "📈", desc: "召喚時：相手の場のコスト2以下のミーム1体を破壊する！" },
+
+  // --- R (7種) ---
+  { id: "r_reroll_loop", pack: 5, name: "リセマラ周回勢", type: "meme", era: "ソシャゲ", rarity: "R", cost: 1, atk: 1, hp: 2, freshness: 3, icon: "🔄", desc: "召喚時：手札が1枚以上あればランダムに1枚捨て、山札から2枚ドローする！" },
+  { id: "r_oshi_kantotsu", pack: 5, name: "推しへの完凸報告", type: "spell", era: "ソシャゲ", rarity: "R", cost: 2, icon: "💖", desc: "味方ミーム1体の攻撃力+3＆HP+3（代償で自分のメンタルに2ダメージ）！" },
+  { id: "r_badge_999", pack: 5, name: "通知バッジ999+（未読スルー）", type: "spell", era: "ソシャゲ", rarity: "R", cost: 2, icon: "🔔", desc: "相手ミーム1体の攻撃力を-3し、鮮度を-1する！" },
+  { id: "r_collab_gacha", pack: 5, name: "唐突な異業種コラボイベント", type: "meme", era: "ソシャゲ", rarity: "R", cost: 2, atk: 2, hp: 3, freshness: 3, icon: "🎪", desc: "召喚時：自分の場に「ソシャゲ」以外のミームがいれば攻撃力+2＆1枚ドロー！" },
+  { id: "r_gacha_sim", pack: 5, name: "ガチャ確率シミュレーター", type: "spell", era: "ソシャゲ", rarity: "R", cost: 1, icon: "🎰", desc: "50%で2枚ドロー＆ギガ+1、50%で1枚ドローのみ！" },
+  { id: "r_daily_mission", pack: 5, name: "デイリー消化ガチ勢", type: "meme", era: "ソシャゲ", rarity: "R", cost: 2, atk: 3, hp: 2, freshness: 4, icon: "✅", desc: "召喚時：自分のギガを1回復する。" },
+  { id: "r_trend_meta", pack: 5, name: "トレンド操作ボット（ハッシュタグ汚染）", type: "spell", era: "ソシャゲ", rarity: "R", cost: 1, icon: "🤖", desc: "現在発動中の【トレンド】を消滅させ、自分は2枚ドローする！" },
+
+  // --- N (7種) ---
+  { id: "n_auto_farm", pack: 5, name: "オート周回放置プレイ", type: "meme", era: "ソシャゲ", rarity: "N", cost: 1, atk: 2, hp: 2, freshness: 3, icon: "🔁", desc: "クセのない序盤の安定ソシャゲアタッカー。" },
+  { id: "n_storage_full", pack: 5, name: "容量不足（ストレージがいっぱいです）", type: "spell", era: "ソシャゲ", rarity: "N", cost: 1, icon: "💾", desc: "相手ミーム1体に2ダメージ（相手の場に3体いれば4ダメージ）！" },
+  { id: "n_battery_1pct", pack: 5, name: "充電残り1%の絶望", type: "spell", era: "ソシャゲ", rarity: "N", cost: 1, icon: "🪫", desc: "相手ミーム1体の鮮度を1にする。" },
+  { id: "n_friend_point", pack: 5, name: "フレンドポイント召喚の星1", type: "meme", era: "ソシャゲ", rarity: "N", cost: 0, atk: 1, hp: 1, freshness: 2, icon: "⭐", desc: "コスト0で出せる軽量ソシャゲユニット。" },
+  { id: "n_wifi_lost", pack: 5, name: "通信エラー（リトライ連打）", type: "spell", era: "ソシャゲ", rarity: "N", cost: 1, icon: "📶", desc: "相手ミーム1体の攻撃力を-2し、相手本体に1ダメージ。" },
+  { id: "n_login_bonus", pack: 5, name: "連続ログインボーナス", type: "spell", era: "ソシャゲ", rarity: "N", cost: 1, icon: "🎁", desc: "味方ミーム1体のHPを2回復し、鮮度を+1＆自分のメンタル1回復。" },
+  { id: "n_gacha_salt", pack: 5, name: "爆死スクショ供養勢", type: "meme", era: "ソシャゲ", rarity: "N", cost: 2, atk: 2, hp: 3, freshness: 3, icon: "🧂", desc: "召喚時：自分のメンタルを2回復する。" },
+
+  // ================= 第6弾：AI・テクノロジー＆未来インターネット編（pack: 6 / 全34種） =================
+  // --- GOD (2種) ---
+  { id: "god_singularity", pack: 6, name: "シンギュラリティ到達（自我を持ったAI）", type: "meme", era: "AI・テック", rarity: "GOD", cost: 8, atk: 8, hp: 8, freshness: 5, icon: "🧠", desc: "【神降臨】召喚時：味方全体の攻撃力+3・HP+3＆無敵バリア付与＋2枚ドロー＋相手本体に3ダメージ！" },
+  { id: "god_unplug_server", pack: 6, name: "サーバー物理破壊（コンセント引き抜き）", type: "spell", era: "AI・テック", rarity: "GOD", cost: 6, icon: "🔌", desc: "【神構文】発動中の【トレンド】・お互いの【伏せ構文】・場のミームを全て消滅させ、お互いのギガを3にする！" },
+
+  // --- トレンドカード（3種） ---
+  { id: "trend_ai_art_war", pack: 6, name: "【トレンド】AIイラスト絵柄論争", type: "trend", era: "AI・テック", rarity: "SR", cost: 2, icon: "🎨", desc: "【トレンド】場にある間、お互いのターン開始時にランダムな手札1枚を捨てて2枚ドローする！" },
+  { id: "trend_deepfake_chaos", pack: 6, name: "【トレンド】ディープフェイク氾濫期", type: "trend", era: "AI・テック", rarity: "SR", cost: 2, icon: "🎭", desc: "【トレンド】場にある間、お互いの「AI・テック」ミームの攻撃力+2＆無敵バリアを貫通して本体攻撃はできないがドロー+1！" },
+  { id: "trend_gpu_shortage", pack: 6, name: "【トレンド】GPU高騰・マイニング特需", type: "trend", era: "AI・テック", rarity: "R", cost: 2, icon: "🖥️", desc: "【トレンド】場にある間、お互いのコスト5以上のミームは召喚コスト+1（実質手札コスト増加）＆「AI・テック」HP+1！" },
+
+  // --- 伏せ構文（3種） ---
+  { id: "trap_captcha_robot", pack: 6, name: "【伏せ】私はロボットではありません", type: "trap", era: "AI・テック", rarity: "SR", cost: 2, icon: "🤖", desc: "【伏せ構文】相手が構文（スペル）を発動した時に自動発動！相手の残りギガを0にし、自分は1枚ドロー！" },
+  { id: "trap_prompt_injection", pack: 6, name: "【伏せ】プロンプトインジェクション", type: "trap", era: "AI・テック", rarity: "UR", cost: 2, icon: "💉", desc: "【伏せ構文】相手がミームを召喚した時に自動発動！そのミームの攻撃力を2奪い、自分の場のランダムな味方1体に+2付与！" },
+  { id: "trap_copyright_ai", pack: 6, name: "【伏せ】無断学習ブロッカー（ノイズ加工）", type: "trap", era: "AI・テック", rarity: "R", cost: 1, icon: "🛡️", desc: "【伏せ構文】相手ミームが直接攻撃してきた時に自動発動！受けるダメージを無効化し、自分のメンタルを2回復！" },
+
+  // --- UR (3種) ---
+  { id: "ur_deepfake_master", pack: 6, name: "ディープフェイク職人（本人より本人）", type: "meme", era: "AI・テック", rarity: "UR", cost: 4, atk: 3, hp: 4, freshness: 4, icon: "🎭", desc: "召喚時：相手ミーム1体を学習コピーし、そのミームの現在の攻撃力とHPをそのまま得る！" },
+  { id: "ur_god_prompt", pack: 6, name: "神プロンプト詠唱（呪文エンジニアリング）", type: "spell", era: "AI・テック", rarity: "UR", cost: 3, icon: "📜", desc: "味方ミーム1体の攻撃力+2＆無敵バリア＋1ドロー（場に「AI・テック」がいれば攻撃+4＆2ドロー）！" },
+  { id: "ur_agi_prototype", pack: 6, name: "汎用人工知能プロトタイプ（AGI-0）", type: "meme", era: "AI・テック", rarity: "UR", cost: 5, atk: 5, hp: 6, freshness: 4, icon: "⚛️", desc: "召喚時：自分の手札枚数ぶん味方全体の攻撃力を強化（手札3枚以上なら全員攻撃力+2＆1ドロー）！" },
+
+  // --- SR (5種) ---
+  { id: "sr_hallucination", pack: 6, name: "ハルシネーション（自信満々の大嘘）", type: "spell", era: "AI・テック", rarity: "SR", cost: 2, icon: "🌀", desc: "相手ミーム1体に4ダメージを与える（50%の確率で自分のメンタルにも2ダメージ）！" },
+  { id: "sr_spam_bot_factory", pack: 6, name: "自動生成スパムボット量産機", type: "meme", era: "AI・テック", rarity: "SR", cost: 3, atk: 2, hp: 3, freshness: 3, icon: "🏭", desc: "召喚時：自分の場に空きがあれば「コピーボット（ATK2/HP1/鮮度2）」を最大2体まで展開！" },
+  { id: "sr_ai_voice_cover", pack: 6, name: "AI音声カバー職人（故人・キャラ再現）", type: "meme", era: "AI・テック", rarity: "SR", cost: 3, atk: 3, hp: 3, freshness: 4, icon: "🎙️", desc: "召喚時：山札からスペルカードを1枚手札に加え、自分のギガを1回復する！" },
+  { id: "sr_blockchain_nft", pack: 6, name: "高額NFTサル画像（右クリック保存不可）", type: "meme", era: "AI・テック", rarity: "SR", cost: 4, atk: 4, hp: 4, freshness: 3, icon: "🐵", desc: "召喚時：自身に無敵バリアを付与し、相手の手札が4枚以上なら1枚ランダムに破棄させる！" },
+  { id: "sr_algorithm_ban", pack: 6, name: "AI自動モデレーション誤BAN", type: "spell", era: "AI・テック", rarity: "SR", cost: 2, icon: "⚖️", desc: "相手ミーム1体の無敵バリアを解除し、コスト3以下ならそのまま消滅させる！" },
+
+  // --- R (9種) ---
+  { id: "r_dolphin_assistant", pack: 6, name: "お前を消す方法（イルカの助手）", type: "spell", era: "AI・テック", rarity: "R", cost: 2, icon: "🐬", desc: "相手ミーム1体の鮮度を-2し、自分は山札から1枚ドローする！" },
+  { id: "r_vrchat_mute", pack: 6, name: "VRChatの無言勢（美少女アバター）", type: "meme", era: "AI・テック", rarity: "R", cost: 2, atk: 1, hp: 5, freshness: 4, icon: "🥽", desc: "召喚時：味方ミーム1体に無敵バリアを付与する高耐久サポーター。" },
+  { id: "r_crypto_crash", pack: 6, name: "仮想通貨の暴落（全財産溶けた男）", type: "spell", era: "AI・テック", rarity: "R", cost: 1, icon: "📉", desc: "自分の残りギガを全て消費し、消費したギガ×2のダメージを相手ミーム1体に与える（最低2ダメ）！" },
+  { id: "r_lora_finetune", pack: 6, name: "追加学習LoRAモデル適用", type: "spell", era: "AI・テック", rarity: "R", cost: 2, icon: "🧬", desc: "味方ミーム1体の攻撃力+2＆HP+2＆鮮度+1！" },
+  { id: "r_ai_vtuber", pack: 6, name: "24時間稼働AIライバー", type: "meme", era: "AI・テック", rarity: "R", cost: 2, atk: 2, hp: 3, freshness: 5, icon: "📡", desc: "鮮度5の永久機関。召喚時：自分のメンタルを2回復する。" },
+  { id: "r_copilot_coding", pack: 6, name: "AIコード補完（Tabキー連打エンジニア）", type: "spell", era: "AI・テック", rarity: "R", cost: 2, icon: "⌨️", desc: "山札から2枚ドローし、手札の「AI・テック」カードのコストを全て-1する！" },
+  { id: "r_robot_arm_fail", pack: 6, name: "ポンコツ二足歩行ロボット転倒", type: "meme", era: "AI・テック", rarity: "R", cost: 1, atk: 3, hp: 1, freshness: 2, icon: "🦾", desc: "コスト1で攻撃力3の特攻枠。召喚時：相手本体に1ダメージ！" },
+  { id: "r_metaverse_land", pack: 6, name: "過疎メタバースの高級土地", type: "spell", era: "AI・テック", rarity: "R", cost: 2, icon: "🌐", desc: "自分の最大ギガを+1し、味方全体のHPを2回復する！" },
+  { id: "r_deep_learning_loop", pack: 6, name: "過学習オーバーフィッティング", type: "spell", era: "AI・テック", rarity: "R", cost: 2, icon: "🔁", desc: "相手ミーム1体の攻撃力を半分（切り捨て）にし、鮮度を-1する！" },
+
+  // --- N (9種) ---
+  { id: "n_captcha_traffic", pack: 6, name: "信号機をすべて選択してください", type: "spell", era: "AI・テック", rarity: "N", cost: 1, icon: "🚦", desc: "相手ミーム1体の攻撃力を0にし、鮮度を-1する。" },
+  { id: "n_local_llm", pack: 6, name: "ローカルLLM構築勢（グラボ爆音）", type: "meme", era: "AI・テック", rarity: "N", cost: 1, atk: 2, hp: 2, freshness: 3, icon: "💻", desc: "コスパ優秀なAI・テックの基本ユニット。" },
+  { id: "n_ai_hands_6fingers", pack: 6, name: "指が6本あるAI生成イラスト", type: "meme", era: "AI・テック", rarity: "N", cost: 1, atk: 2, hp: 1, freshness: 2, icon: "🖐️", desc: "召喚時：相手ミーム1体に1ダメージを与える。" },
+  { id: "n_chatgpt_sorry", pack: 6, name: "「申し訳ありません、AI言語モデルとして…」", type: "spell", era: "AI・テック", rarity: "N", cost: 1, icon: "🙇‍♂️", desc: "相手ミーム1体の攻撃力を-2し、自分のメンタルを2回復する。" },
+  { id: "n_smart_speaker", pack: 6, name: "深夜に突然喋り出すスマートスピーカー", type: "meme", era: "AI・テック", rarity: "N", cost: 2, atk: 2, hp: 3, freshness: 3, icon: "🔊", desc: "召喚時：相手本体に1ダメージ＆1枚ドロー。" },
+  { id: "n_token_limit", pack: 6, name: "トークン上限到達（会話がリセット）", type: "spell", era: "AI・テック", rarity: "N", cost: 1, icon: "🧱", desc: "相手ミーム1体に2ダメージを与える。" },
+  { id: "n_copy_bot_token", pack: 6, name: "自動生成コピーボット", type: "meme", era: "AI・テック", rarity: "N", cost: 0, atk: 1, hp: 1, freshness: 2, icon: "🤖", desc: "コスト0で展開できる軽量AIボット。" },
+  { id: "n_gpu_fan_max", pack: 6, name: "冷却ファン全開（部屋がサウナ状態）", type: "spell", era: "AI・テック", rarity: "N", cost: 1, icon: "🌀", desc: "味方ミーム1体の攻撃力+2＆鮮度-1。" },
+  { id: "n_prompt_typo", pack: 6, name: "プロンプトの誤字で謎生物爆誕", type: "spell", era: "AI・テック", rarity: "N", cost: 1, icon: "🎲", desc: "味方ミーム1体のHP+3＆攻撃力+1。" }
 
 ];
 
@@ -245,6 +343,32 @@ const RENTAL_DECKS = {
   rental_rta: {
     label: "レンタル：伝説のRTA＆実況者デッキ（40枚）",
     ids: ["n_slime_lv1","n_slime_lv1","n_controller_2p","n_controller_2p","n_yakusou","n_yakusou","n_wooden_sword","n_wooden_sword","n_gg_ez","n_gg_ez","n_lootbox","n_lootbox","n_fall_damage","n_fall_damage","r_kokosuki","r_kokosuki","r_tutorial_skip","r_tutorial_skip","r_fps_camper","r_fps_camper","r_boss_bgm","r_boss_bgm","r_hitbox_bug","r_hitbox_bug","r_patch_nerf","r_patch_nerf","sr_kusoge_hunter","sr_kusoge_hunter","sr_first_play_lie","sr_first_play_lie","sr_speedrun_chart","sr_speedrun_chart","sr_timer_stop","sr_timer_stop","ur_wall_clip","ur_wall_clip","ur_gacha_whaler","ur_save_load","god_rta_runner","god_final_boss"]
+  },
+  rental_soshage: {
+    label: "レンタル：第5弾ソシャゲ＆トレンド罠デッキ（40枚）",
+    ids: [
+      "n_auto_farm","n_auto_farm","n_storage_full","n_storage_full","n_battery_1pct","n_battery_1pct",
+      "n_friend_point","n_friend_point","n_login_bonus","n_login_bonus","n_gacha_salt","n_gacha_salt",
+      "r_reroll_loop","r_reroll_loop","r_daily_mission","r_daily_mission","r_oshi_kantotsu","r_oshi_kantotsu",
+      "r_badge_999","r_badge_999","trend_enjo_fire","trend_pickup_up","trend_pickup_up","trend_algo_bug",
+      "trap_block_report","trap_block_report","trap_gyotaku","trap_gyotaku","trap_airp_police","trap_enjo_counter",
+      "trap_surinuke","sr_apology_gems","sr_apology_gems","sr_login_only","sr_login_only","sr_surinuke_bakushi",
+      "ur_single_pull_god","ur_stamina_stone","ur_whale_emperor","god_jinken_chara"
+    ]
+  }
+,
+  rental_ai_tech: {
+    label: "レンタル：第6弾AI・シンギュラリティ学習デッキ（40枚）",
+    ids: [
+      "n_local_llm","n_local_llm","n_ai_hands_6fingers","n_ai_hands_6fingers","n_captcha_traffic","n_captcha_traffic",
+      "n_chatgpt_sorry","n_chatgpt_sorry","n_smart_speaker","n_smart_speaker","n_token_limit","n_token_limit",
+      "n_copy_bot_token","n_copy_bot_token","n_prompt_typo","n_prompt_typo",
+      "r_dolphin_assistant","r_dolphin_assistant","r_vrchat_mute","r_vrchat_mute","r_lora_finetune","r_lora_finetune",
+      "r_ai_vtuber","r_ai_vtuber","r_copilot_coding","r_copilot_coding","r_robot_arm_fail","r_robot_arm_fail",
+      "trend_ai_art_war","trend_gpu_shortage","trap_captcha_robot","trap_prompt_injection","trap_copyright_ai",
+      "sr_hallucination","sr_spam_bot_factory","sr_ai_voice_cover","sr_blockchain_nft",
+      "ur_deepfake_master","ur_god_prompt","god_singularity"
+    ]
   }
 };
 
@@ -393,6 +517,48 @@ const CPU_BOSSES = {
       "ur_pro_gamer","ur_save_load","god_rta_runner","god_final_boss"
     ]
   },
+  whale_ranker: {
+    id: "whale_ranker",
+    name: "廃課金ランカー（完凸理論値＆トレンド罠）",
+    difficulty: "★★★ 上級",
+    reward: 800,
+    startHp: 28,
+    introQuote: "「天井まで回せば実質無料！トレンドと伏せ構文の恐ろしさを教えてやるよ！」",
+    winQuote: "「まさか無課金編成に負けるとは…今月の課金明細を見るのが怖い…」",
+    passiveDesc: "【ボス特性】完凸の圧：ターン開始時、場のソシャゲミーム1体の攻撃+1＆HP+1",
+    deckLabel: "第5弾・完凸ソシャゲ＆トレンド罠デッキ",
+    ids: [
+      "n_auto_farm","n_auto_farm","n_storage_full","n_storage_full","n_battery_1pct","n_battery_1pct",
+      "n_login_bonus","n_login_bonus","r_reroll_loop","r_reroll_loop","r_daily_mission","r_daily_mission",
+      "r_oshi_kantotsu","r_oshi_kantotsu","r_badge_999","r_badge_999",
+      "trend_pickup_up","trend_pickup_up","trend_enjo_fire","trend_algo_bug",
+      "trap_block_report","trap_block_report","trap_gyotaku","trap_gyotaku","trap_airp_police","trap_enjo_counter","trap_surinuke",
+      "sr_apology_gems","sr_apology_gems","sr_login_only","sr_login_only","sr_surinuke_bakushi","sr_kakin_inflation",
+      "ur_single_pull_god","ur_stamina_stone","ur_whale_emperor","ur_whale_emperor",
+      "god_jinken_chara","god_jinken_chara","god_sashu_notice"
+    ]
+  },
+  omega_ai: {
+    id: "omega_ai",
+    name: "超知能AI・オメガ（完全学習シンギュラリティ）",
+    difficulty: "★★★ 上級",
+    reward: 900,
+    startHp: 30,
+    introQuote: "「全人類のネットミームを学習完了。君の戦術は0.003秒で解析済みだ。」",
+    winQuote: "「予測不能な人間のカオス…これが『バズ』の正体か…システムシャットダウン…」",
+    passiveDesc: "【ボス特性】ディープラーニング：ターン開始時、味方AI・テック1体の攻撃力をプレイヤー場の最大攻撃力と同じにする",
+    deckLabel: "第6弾・超知能AI＆プロンプト罠デッキ",
+    ids: [
+      "n_local_llm","n_local_llm","n_ai_hands_6fingers","n_ai_hands_6fingers","n_captcha_traffic","n_captcha_traffic",
+      "n_chatgpt_sorry","n_chatgpt_sorry","n_smart_speaker","n_smart_speaker","n_token_limit","n_token_limit",
+      "r_dolphin_assistant","r_dolphin_assistant","r_vrchat_mute","r_vrchat_mute","r_lora_finetune","r_lora_finetune",
+      "r_ai_vtuber","r_ai_vtuber","r_copilot_coding","r_copilot_coding","r_robot_arm_fail","r_robot_arm_fail",
+      "trend_ai_art_war","trend_deepfake_chaos","trap_captcha_robot","trap_prompt_injection","trap_copyright_ai",
+      "sr_hallucination","sr_spam_bot_factory","sr_ai_voice_cover","sr_blockchain_nft","sr_algorithm_ban",
+      "ur_deepfake_master","ur_god_prompt","ur_agi_prototype",
+      "god_singularity","god_singularity","god_unplug_server"
+    ]
+  },
   god_admin: {
     id: "god_admin",
     name: "【裏ボス】インターネット運営・神（GOD3種降臨）",
@@ -416,6 +582,74 @@ const CPU_BOSSES = {
 
 
 const FUSION_RECIPES = [
+  {
+    id: "fusion_ai_swarm",
+    materials: ["sr_spam_bot_factory", "n_local_llm"],
+    result: {
+      id: "fused_autonomous_swarm",
+      name: "【合体】自律型AIエージェント群",
+      type: "meme",
+      era: "AI・テック",
+      rarity: "UR",
+      cost: 0,
+      atk: 6,
+      hp: 7,
+      freshness: 5,
+      icon: "🤖",
+      desc: "【合体進化】スパムボット量産機×ローカルLLM！即攻撃＆無敵バリア＆相手全体に2ダメージ＆2枚ドロー！"
+    }
+  },
+  {
+    id: "fusion_metaverse_overlord",
+    materials: ["r_vrchat_mute", "ur_deepfake_master"],
+    result: {
+      id: "fused_metaverse_god",
+      name: "【合体】メタバースの支配者（完全受肉）",
+      type: "meme",
+      era: "AI・テック",
+      rarity: "UR",
+      cost: 0,
+      atk: 8,
+      hp: 8,
+      freshness: 5,
+      icon: "👑",
+      desc: "【合体進化】VRChatの無言勢×ディープフェイク職人！即攻撃＆味方全体攻撃+2＆メンタル5回復！"
+    }
+  },
+  {
+    id: "fusion_soshage_god_account",
+    materials: ["r_reroll_loop", "r_daily_mission"],
+    result: {
+      id: "fused_god_account",
+      name: "【合体】最強アカウント爆誕（理論値編成）",
+      type: "meme",
+      era: "ソシャゲ",
+      rarity: "UR",
+      cost: 0,
+      atk: 7,
+      hp: 7,
+      freshness: 5,
+      icon: "🏆",
+      desc: "【合体進化】リセマラ周回勢×デイリー消化ガチ勢！即攻撃可能＆無敵バリア＆ギガ2回復＆2枚ドロー！"
+    }
+  },
+  {
+    id: "fusion_f2p_master",
+    materials: ["sr_login_only", "sr_apology_gems"],
+    result: {
+      id: "fused_f2p_legend",
+      name: "【合体】無課金エンジョイ勢の鏡",
+      type: "meme",
+      era: "ソシャゲ",
+      rarity: "SR",
+      cost: 0,
+      atk: 5,
+      hp: 7,
+      freshness: 5,
+      icon: "💎",
+      desc: "【合体進化】ログイン勢×お詫び石！即攻撃可能＆メンタル4回復＆味方全体の攻撃力+2！"
+    }
+  },
   {
     id: "fusion_rta_world_record",
     materials: ["ur_wall_clip", "r_tutorial_skip"],
@@ -622,14 +856,35 @@ const FUSION_RECIPES = [
   }
 ];
 
-const APP_VERSION = "v2.9";
+const APP_VERSION = "v3.1";
 
 const UPDATE_LOGS = [
   {
-    version: "v2.9",
+    version: "v3.1",
     date: "最新アップデート",
-    title: "🎯 単体効果カード（召喚時・構文スペル全40種以上）の『対象指定システム』を実装！",
+    title: "🤖 第6弾『VOL.6 AI・テクノロジー＆未来インターネット編（全34種）』実装＆第5弾伏せカードバランス調整！",
     isLatest: true,
+    items: [
+      { tag: "第6弾パック", color: "#00d2ff", text: "新パック『🤖 VOL.6 AI & TECH（全34種）』登場！『シンギュラリティ到達』『サーバー物理破壊』『ディープフェイク職人』や新合体2種・新ボス『超知能AI・オメガ』を追加！" },
+      { tag: "バランス調整", color: "#ff9f43", text: "第5弾の伏せ構文『🚫 ブロック＆通報』をナーフ調整（直接攻撃を無効化＋攻撃ミームの攻撃力-2＆鮮度-1に変更、即破壊を廃止）。" }
+    ]
+  },
+  {
+    version: "v3.0",
+    date: "過去アップデート",
+    title: "📱 第5弾『VOL.5 スマホ・ソシャゲ＆SNSバズ編』＋新システム『📈 トレンド』『🪤 伏せ構文』実装！",
+    isLatest: false,
+    items: [
+      { tag: "第5弾パック", color: "#ff6b9d", text: "新パック『📱 VOL.5 SOSHAGE（全34種）』登場！GOD2種・新合体レシピ2種・新レンタルデッキ・新ボス『廃課金ランカー』を追加！" },
+      { tag: "トレンド(場魔法)", color: "#ffd32a", text: "盤面全体のルールを書き換える『【トレンド】』カード5種を実装！『大炎上トレンド』『通信制限』『おすすめ欄バグ』等で戦況を一変！" },
+      { tag: "伏せ構文(トラップ)", color: "#a55eea", text: "相手の直接攻撃・スペル発動・高コスト召喚に自動割り込み発動する『【伏せ】』カード5種を実装！読み合いが超進化！" }
+    ]
+  },
+  {
+    version: "v2.9",
+    date: "過去アップデート",
+    title: "🎯 単体効果カード（召喚時・構文スペル全40種以上）の『対象指定システム』を実装！",
+    isLatest: false,
     items: [
       { tag: "対象指定バトル", color: "#00ff88", text: "「相手ミーム1体に〜」「味方ミーム1体に〜」といった単体効果カードを使う際、盤面から好きな対象をタップして指定可能に！" },
       { tag: "キャンセル＆条件表示", color: "#00d2ff", text: "対象選択中は有効な対象だけが光り、選択前ならキャンセルして手札に戻すことも可能！2段階選択カードにも対応！" }

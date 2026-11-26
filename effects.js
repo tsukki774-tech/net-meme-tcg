@@ -22,7 +22,12 @@ window.CardEffects = {
       "ronpa", "numai", "seiron", "yakusoku_j", "digital_tattoo", "onmyoji",
       "enjo_nenryo", "jaken", "comnote", "ban", "omae_shindeiru", "douiukoto_nano",
       "uso_da", "jikai_yokoku", "op_skip", "sr_rage_quit", "r_patch_nerf",
-      "r_loading_99", "n_fps_drop", "n_fall_damage"
+      "r_loading_99", "n_fps_drop", "n_fall_damage",
+      "sr_surinuke_bakushi", "sr_shadowban", "r_badge_999",
+      "n_storage_full", "n_battery_1pct", "n_wifi_lost",
+      "ur_deepfake_master", "sr_hallucination", "sr_algorithm_ban",
+      "r_dolphin_assistant", "r_crypto_crash", "r_deep_learning_loop",
+      "n_captcha_traffic", "n_ai_hands_6fingers", "n_chatgpt_sorry", "n_token_limit"
     ];
     if (oppAnyIds.indexOf(id) !== -1) {
       return [{ side: "opp", label: "効果を与える相手ミーム" }];
@@ -47,6 +52,9 @@ window.CardEffects = {
     }
     if (id === "sr_kusoge_hunter") {
       return [{ side: "opp", filter: function(m) { return m.cost <= 3; }, label: "破壊するコスト3以下の相手ミーム" }];
+    }
+    if (id === "sr_kakin_inflation") {
+      return [{ side: "opp", filter: function(m) { return m.cost <= 2; }, label: "破壊するコスト2以下の相手ミーム" }];
     }
     if (id === "owakon") {
       var oldEras = ["2ch", "ニコニコ", "例のアレ", "VIP/なんJ"];
@@ -78,7 +86,9 @@ window.CardEffects = {
       "nanimo_kowakunai", "anta_bakaa", "shujinkou_hosei", "gomen_yui",
       "tsundere", "to_be_continued", "ikari_no_super",
       "sr_speedrun_chart", "r_hitbox_bug", "r_double_jump",
-      "n_wooden_sword", "n_easter_egg", "n_respawn_point"
+      "n_wooden_sword", "n_easter_egg", "n_respawn_point",
+      "ur_stamina_stone", "r_oshi_kantotsu", "n_login_bonus",
+      "ur_god_prompt", "r_vrchat_mute", "r_lora_finetune", "n_gpu_fan_max", "n_prompt_typo"
     ];
     if (selfAnyIds.indexOf(id) !== -1) {
       return [{ side: "self", label: "効果を与える味方ミーム" }];
@@ -423,6 +433,129 @@ window.CardEffects = {
       ctx.drawCard(who);
       if (self.hand.length > 0) self.hand.splice(Math.floor(Math.random() * self.hand.length), 1);
       ctx.log("🧐 「私、気になります！」1枚ドロー＆1枚ランダム破棄！");
+    }
+    // ================= 第5弾：スマホ・ソシャゲ＆SNSバズ編 召喚効果 =================
+    else if (card.id === "god_jinken_chara") {
+      if (self.field.length < 3) {
+        var hiIdx = self.deck.findIndex(function(c) { return c.type === "meme" && c.cost >= 4; });
+        if (hiIdx !== -1) {
+          var pulled = self.deck.splice(hiIdx, 1)[0];
+          pulled.canAttack = true; pulled.isBuzz = true;
+          self.field.push(pulled);
+          ctx.log("🌈 【天井確定】山札から「" + pulled.name + "」が直接降臨！");
+        }
+      }
+      self.field.forEach(function(m) { m.shield = true; m.atk += 2; });
+      ctx.log("🌈 【GOD降臨】人権キャラ実装！味方全員に無敵バリア＆攻撃力+2！");
+    } else if (card.id === "ur_whale_emperor") {
+      card.shield = true;
+      self.field.forEach(function(m) { if (m.era === "ソシャゲ") m.atk += 2; });
+      ctx.log("👑 完凸理論値の廃課金ランカー！無敵バリア＆ソシャゲ味方全員の攻撃力+2！");
+    } else if (card.id === "sr_apology_gems") {
+      self.giga = Math.min(self.maxGiga, self.giga + 2);
+      opp.giga = Math.min(opp.maxGiga, opp.giga + 2);
+      ctx.drawCard(who); ctx.drawCard(who);
+      ctx.log("💎 メンテ延長のお詫び石！お互いギガ+2＆自分は2枚ドロー！");
+    } else if (card.id === "sr_login_only") {
+      self.hp = Math.min(20, self.hp + 2);
+      ctx.drawCard(who);
+      ctx.log("📅 ログイン勢！メンタル2回復＆1枚ドロー！");
+    } else if (card.id === "sr_kakin_inflation") {
+      if (t0 !== -1 && opp.field[t0] && opp.field[t0].cost <= 2) {
+        var oldUnit = opp.field.splice(t0, 1)[0];
+        ctx.log("📈 インフレ新環境！「" + oldUnit.name + "」は環境落ち（破壊）した！");
+      }
+    } else if (card.id === "r_reroll_loop") {
+      if (self.hand.length > 0) self.hand.splice(Math.floor(Math.random() * self.hand.length), 1);
+      ctx.drawCard(who); ctx.drawCard(who);
+      ctx.log("🔄 リセマラ周回勢！手札1枚をやり直して2枚ドロー！");
+    } else if (card.id === "r_collab_gacha") {
+      if (self.field.some(function(m) { return m !== card && m.era !== "ソシャゲ"; })) {
+        card.atk += 2; ctx.drawCard(who);
+        ctx.log("🎪 異業種コラボ成立！攻撃力+2＆1枚ドロー！");
+      }
+    } else if (card.id === "r_daily_mission") {
+      self.giga = Math.min(self.maxGiga, self.giga + 1);
+      ctx.log("✅ デイリー消化ガチ勢！ギガを1回復！");
+    } else if (card.id === "n_gacha_salt") {
+      self.hp = Math.min(20, self.hp + 2);
+      ctx.log("🧂 爆死スクショ供養勢！いいねでメンタルが2回復！");
+    }
+    // ================= 第6弾：AI・テクノロジー＆未来インターネット編 召喚効果 =================
+    else if (card.id === "god_singularity") {
+      self.field.forEach(function(m) { m.atk += 3; m.hp += 3; m.shield = true; });
+      ctx.drawCard(who); ctx.drawCard(who);
+      opp.hp -= 3;
+      ctx.log("🧠 【GOD降臨】シンギュラリティ到達！味方全体攻撃+3・HP+3＆無敵バリア＋2枚ドロー＋相手本体3ダメージ！");
+    } else if (card.id === "ur_deepfake_master") {
+      if (t0 !== -1 && opp.field[t0]) {
+        var copied = opp.field[t0];
+        card.atk = Math.max(card.atk, copied.atk);
+        card.hp = Math.max(card.hp, copied.hp);
+        ctx.log("🎭 ディープフェイク職人！「" + copied.name + "」を学習コピーしATK" + card.atk + "/HP" + card.hp + "になった！");
+      } else {
+        ctx.log("🎭 ディープフェイク職人がスタンバイ！");
+      }
+    } else if (card.id === "ur_agi_prototype") {
+      if (self.hand.length >= 3) {
+        self.field.forEach(function(m) { m.atk += 2; });
+        ctx.drawCard(who);
+        ctx.log("⚛️ 汎用人工知能AGI-0！豊富なデータ量で味方全体攻撃+2＆1枚ドロー！");
+      } else {
+        card.atk += 1;
+        ctx.log("⚛️ 汎用人工知能AGI-0！自己学習で攻撃力+1！");
+      }
+    } else if (card.id === "sr_spam_bot_factory") {
+      var spawned = 0;
+      while (self.field.length < 3 && spawned < 2) {
+        self.field.push({
+          id: "n_copy_bot_token", pack: 6, name: "自動生成コピーボット", type: "meme", era: "AI・テック",
+          rarity: "N", cost: 0, atk: 2, hp: 1, freshness: 2, icon: "🤖", canAttack: true, isBuzz: false
+        });
+        spawned++;
+      }
+      ctx.log("🏭 自動生成スパムボット量産機！コピーボットを" + spawned + "体展開した！");
+    } else if (card.id === "sr_ai_voice_cover") {
+      var spIdx = self.deck.findIndex(function(c) { return c.type === "spell"; });
+      if (spIdx !== -1) {
+        var pulledSp = self.deck.splice(spIdx, 1)[0];
+        self.hand.push(pulledSp);
+        ctx.log("🎙️ AI音声カバー職人！山札から構文「" + pulledSp.name + "」をサーチ＆ギガ+1！");
+      } else {
+        ctx.drawCard(who);
+        ctx.log("🎙️ AI音声カバー職人！1枚ドロー＆ギガ+1！");
+      }
+      self.giga = Math.min(self.maxGiga, self.giga + 1);
+    } else if (card.id === "sr_blockchain_nft") {
+      card.shield = true;
+      if (opp.hand.length >= 4) {
+        opp.hand.splice(Math.floor(Math.random() * opp.hand.length), 1);
+        ctx.log("🐵 高額NFTサル画像！無敵バリア付与＆相手の手札を1枚破棄！");
+      } else {
+        ctx.log("🐵 高額NFTサル画像！無敵バリアを付与！");
+      }
+    } else if (card.id === "r_vrchat_mute") {
+      if (t0 !== -1 && self.field[t0]) {
+        self.field[t0].shield = true;
+        ctx.log("🥽 VRChatの無言勢！ジェスチャーで「" + self.field[t0].name + "」に無敵バリア付与！");
+      }
+    } else if (card.id === "r_ai_vtuber") {
+      self.hp = Math.min(20, self.hp + 2);
+      ctx.log("📡 24時間稼働AIライバー！癒やし配信でメンタル2回復！");
+    } else if (card.id === "r_robot_arm_fail") {
+      opp.hp -= 1;
+      ctx.log("🦾 ポンコツ二足歩行ロボット転倒！勢いで相手本体に1ダメージ！");
+    } else if (card.id === "n_ai_hands_6fingers") {
+      if (t0 !== -1 && opp.field[t0]) {
+        var h6Name = opp.field[t0].name;
+        ctx.dealDamageToMeme(opp.field[t0], 1);
+        ctx.cleanupDeadMemes();
+        ctx.log("🖐️ 指が6本あるAI生成イラスト！違和感で「" + h6Name + "」に1ダメージ！");
+      }
+    } else if (card.id === "n_smart_speaker") {
+      opp.hp -= 1;
+      ctx.drawCard(who);
+      ctx.log("🔊 深夜に突然喋り出すスマートスピーカー！相手本体に1ダメ＆1枚ドロー！");
     }
   },
 
@@ -908,6 +1041,218 @@ window.CardEffects = {
       ctx.drawCard(who); ctx.drawCard(who); ctx.drawCard(who);
       self.hand.forEach(function(h) { h.cost = 0; });
       ctx.log("💻 【ADMIN権限発動】デバッグモード起動！3枚ドロー＆手札すべてのコストが0になった！");
+    }
+    // ================= 第5弾：スマホ・ソシャゲ＆SNSバズ編 スペル効果 =================
+    else if (card.id === "god_sashu_notice") {
+      self.field = []; opp.field = [];
+      self.hand = []; opp.hand = [];
+      var oppKey5 = (who === "p1" ? "p2" : "p1");
+      for (var s5 = 0; s5 < 3; s5++) { ctx.drawCard(who); ctx.drawCard(oppKey5); }
+      ctx.log("🪦 【GOD構文】サ終のお知らせ！両者の盤面をバリア貫通で全消滅＆手札リセット3枚ドロー！");
+    } else if (card.id === "ur_single_pull_god") {
+      ctx.drawCard(who); ctx.drawCard(who); ctx.drawCard(who);
+      self.hand.forEach(function(h) { h.cost = Math.max(0, h.cost - 1); });
+      ctx.log("✨ 無課金勢の奇跡（単発神引き）！3枚ドロー＆手札全てのコスト-1！");
+    } else if (card.id === "ur_stamina_stone") {
+      self.giga = self.maxGiga;
+      if (t0 !== -1 && self.field[t0]) {
+        self.field[t0].freshness += 2;
+        self.field[t0].canAttack = true;
+        ctx.log("💠 スタミナ全回復の石割り！ギガ全回復＆「" + self.field[t0].name + "」鮮度+2＆再行動可能！");
+      } else {
+        ctx.log("💠 スタミナ全回復の石割り！ギガが全回復した！");
+      }
+    } else if (card.id === "sr_surinuke_bakushi") {
+      if (t0 !== -1 && opp.field[t0]) {
+        var sbName = opp.field[t0].name;
+        ctx.dealDamageToMeme(opp.field[t0], 3);
+        if (opp.field[t0]) opp.field[t0].freshness = Math.max(1, opp.field[t0].freshness - 1);
+        ctx.log("😭 すり抜け爆死！「" + sbName + "」に3ダメ＆鮮度-1＋1枚ドロー！");
+      } else {
+        ctx.log("😭 すり抜け爆死！1枚ドロー！");
+      }
+      ctx.drawCard(who);
+    } else if (card.id === "sr_shadowban") {
+      if (t0 !== -1 && opp.field[t0]) {
+        opp.field[t0].shield = false;
+        opp.field[t0].atk = 0;
+        ctx.log("👻 シャドウバン！「" + opp.field[t0].name + "」の無敵バリア解除＆攻撃力を0にした！");
+      }
+    } else if (card.id === "r_oshi_kantotsu") {
+      self.hp -= 2;
+      if (t0 !== -1 && self.field[t0]) {
+        self.field[t0].atk += 3; self.field[t0].hp += 3;
+        ctx.log("💖 推しへの完凸報告！「" + self.field[t0].name + "」攻撃+3＆HP+3（代償メンタル-2）！");
+      }
+    } else if (card.id === "r_badge_999") {
+      if (t0 !== -1 && opp.field[t0]) {
+        var b9Name = opp.field[t0].name;
+        opp.field[t0].atk = Math.max(0, opp.field[t0].atk - 3);
+        opp.field[t0].freshness -= 1;
+        opp.field = opp.field.filter(function(m) { return m.freshness > 0; });
+        ctx.log("🔔 通知バッジ999+！「" + b9Name + "」攻撃力-3＆鮮度-1！");
+      }
+    } else if (card.id === "r_gacha_sim") {
+      if (Math.random() < 0.5) {
+        ctx.drawCard(who); ctx.drawCard(who);
+        self.giga = Math.min(self.maxGiga, self.giga + 1);
+        ctx.log("🎰 ガチャシミュレーター大当たり！2枚ドロー＆ギガ+1！");
+      } else {
+        ctx.drawCard(who);
+        ctx.log("🎰 ガチャシミュレーター：最低保証（1枚ドロー）！");
+      }
+    } else if (card.id === "r_trend_meta") {
+      if (state.activeTrend) {
+        var oldTrName = state.activeTrend.name;
+        state.activeTrend = null;
+        ctx.log("🤖 トレンド操作ボット！「" + oldTrName + "」を消滅させ2枚ドロー！");
+      } else {
+        ctx.log("🤖 トレンド操作ボット！2枚ドロー！");
+      }
+      ctx.drawCard(who); ctx.drawCard(who);
+    } else if (card.id === "n_storage_full") {
+      if (t0 !== -1 && opp.field[t0]) {
+        var dmg5 = (opp.field.length >= 3) ? 4 : 2;
+        var stName = opp.field[t0].name;
+        ctx.dealDamageToMeme(opp.field[t0], dmg5);
+        ctx.log("💾 容量不足！「" + stName + "」に" + dmg5 + "ダメージ！");
+      }
+    } else if (card.id === "n_battery_1pct") {
+      if (t0 !== -1 && opp.field[t0]) {
+        opp.field[t0].freshness = 1;
+        ctx.log("🪫 充電残り1%の絶望！「" + opp.field[t0].name + "」の鮮度が1になった！");
+      }
+    } else if (card.id === "n_wifi_lost") {
+      if (t0 !== -1 && opp.field[t0]) {
+        opp.field[t0].atk = Math.max(0, opp.field[t0].atk - 2);
+        ctx.log("📶 通信エラー！「" + opp.field[t0].name + "」の攻撃力-2＆本体に1ダメージ！");
+      } else {
+        ctx.log("📶 通信エラー！相手本体に1ダメージ！");
+      }
+      opp.hp -= 1;
+    } else if (card.id === "n_login_bonus") {
+      self.hp = Math.min(20, self.hp + 1);
+      if (t0 !== -1 && self.field[t0]) {
+        self.field[t0].hp += 2; self.field[t0].freshness += 1;
+        ctx.log("🎁 連続ログインボーナス！「" + self.field[t0].name + "」HP+2＆鮮度+1＆メンタル+1！");
+      } else {
+        ctx.log("🎁 連続ログインボーナス！メンタル+1！");
+      }
+    }
+    // ================= 第6弾：AI・テクノロジー＆未来インターネット編 スペル効果 =================
+    else if (card.id === "god_unplug_server") {
+      state.activeTrend = null;
+      self.traps = []; opp.traps = [];
+      self.field = []; opp.field = [];
+      self.maxGiga = Math.min(10, Math.max(3, self.maxGiga));
+      opp.maxGiga = Math.min(10, Math.max(3, opp.maxGiga));
+      self.giga = 3; opp.giga = 3;
+      ctx.log("🔌 【GOD構文】サーバー物理破壊！トレンド・伏せ構文・場のミームを全て強制リセット＆両者ギガ3！");
+    } else if (card.id === "ur_god_prompt") {
+      var hasAi = self.field.some(function(m) { return m.era === "AI・テック"; });
+      var boost = hasAi ? 4 : 2;
+      if (t0 !== -1 && self.field[t0]) {
+        self.field[t0].atk += boost;
+        self.field[t0].shield = true;
+        ctx.log("📜 神プロンプト詠唱！「" + self.field[t0].name + "」に攻撃+" + boost + "＆無敵バリア付与！");
+      }
+      ctx.drawCard(who);
+      if (hasAi) ctx.drawCard(who);
+    } else if (card.id === "sr_hallucination") {
+      if (t0 !== -1 && opp.field[t0]) {
+        var halName = opp.field[t0].name;
+        ctx.dealDamageToMeme(opp.field[t0], 4);
+        if (Math.random() < 0.5) {
+          self.hp -= 2;
+          ctx.log("🌀 ハルシネーション！「" + halName + "」に4ダメ！（大嘘がバレて自分もメンタル-2）");
+        } else {
+          ctx.log("🌀 ハルシネーション！自信満々の説得力で「" + halName + "」に4ダメージ！");
+        }
+      }
+    } else if (card.id === "sr_algorithm_ban") {
+      if (t0 !== -1 && opp.field[t0]) {
+        var abTarget = opp.field[t0];
+        abTarget.shield = false;
+        if (abTarget.cost <= 3) {
+          opp.field.splice(t0, 1);
+          ctx.log("⚖️ AI自動モデレーション誤BAN！「" + abTarget.name + "」は即座にアカウント消滅した！");
+        } else {
+          ctx.log("⚖️ AI自動モデレーション誤BAN！「" + abTarget.name + "」の無敵バリアを剥がした！");
+        }
+      }
+    } else if (card.id === "r_dolphin_assistant") {
+      if (t0 !== -1 && opp.field[t0]) {
+        var dolName = opp.field[t0].name;
+        opp.field[t0].freshness -= 2;
+        opp.field = opp.field.filter(function(m) { return m.freshness > 0; });
+        ctx.log("🐬 「お前を消す方法」「" + dolName + "」の鮮度-2＆1枚ドロー！");
+      } else {
+        ctx.log("🐬 「お前を消す方法」1枚ドロー！");
+      }
+      ctx.drawCard(who);
+    } else if (card.id === "r_crypto_crash") {
+      var spentGiga = self.giga;
+      self.giga = 0;
+      var cDmg = Math.max(2, spentGiga * 2);
+      if (t0 !== -1 && opp.field[t0]) {
+        var ccName = opp.field[t0].name;
+        ctx.dealDamageToMeme(opp.field[t0], cDmg);
+        ctx.log("📉 仮想通貨の暴落！全ギガ(" + spentGiga + ")を溶かし「" + ccName + "」に" + cDmg + "ダメージ！");
+      }
+    } else if (card.id === "r_lora_finetune") {
+      if (t0 !== -1 && self.field[t0]) {
+        self.field[t0].atk += 2; self.field[t0].hp += 2; self.field[t0].freshness += 1;
+        ctx.log("🧬 追加学習LoRAモデル適用！「" + self.field[t0].name + "」攻撃+2＆HP+2＆鮮度+1！");
+      }
+    } else if (card.id === "r_copilot_coding") {
+      ctx.drawCard(who); ctx.drawCard(who);
+      self.hand.forEach(function(h) { if (h.era === "AI・テック") h.cost = Math.max(0, h.cost - 1); });
+      ctx.log("⌨️ AIコード補完！2枚ドロー＆手札の「AI・テック」全てのコスト-1！");
+    } else if (card.id === "r_metaverse_land") {
+      if (self.maxGiga < 10) self.maxGiga++;
+      self.field.forEach(function(m) { m.hp += 2; });
+      ctx.log("🌐 過疎メタバースの高級土地！最大ギガ+1＆味方全体のHP+2！");
+    } else if (card.id === "r_deep_learning_loop") {
+      if (t0 !== -1 && opp.field[t0]) {
+        var dlName = opp.field[t0].name;
+        opp.field[t0].atk = Math.floor(opp.field[t0].atk / 2);
+        opp.field[t0].freshness -= 1;
+        opp.field = opp.field.filter(function(m) { return m.freshness > 0; });
+        ctx.log("🔁 過学習オーバーフィッティング！「" + dlName + "」の攻撃力半減＆鮮度-1！");
+      }
+    } else if (card.id === "n_captcha_traffic") {
+      if (t0 !== -1 && opp.field[t0]) {
+        var ctName = opp.field[t0].name;
+        opp.field[t0].atk = 0;
+        opp.field[t0].freshness -= 1;
+        opp.field = opp.field.filter(function(m) { return m.freshness > 0; });
+        ctx.log("🚦 信号機をすべて選択してください！「" + ctName + "」の攻撃力0＆鮮度-1！");
+      }
+    } else if (card.id === "n_chatgpt_sorry") {
+      self.hp = Math.min(20, self.hp + 2);
+      if (t0 !== -1 && opp.field[t0]) {
+        opp.field[t0].atk = Math.max(0, opp.field[t0].atk - 2);
+        ctx.log("🙇‍♂️ 「申し訳ありません、AI言語モデルとして…」「" + opp.field[t0].name + "」の攻撃力-2＆メンタル+2！");
+      } else {
+        ctx.log("🙇‍♂️ 「申し訳ありません、AI言語モデルとして…」メンタル+2！");
+      }
+    } else if (card.id === "n_token_limit") {
+      if (t0 !== -1 && opp.field[t0]) {
+        var tlName = opp.field[t0].name;
+        ctx.dealDamageToMeme(opp.field[t0], 2);
+        ctx.log("🧱 トークン上限到達！「" + tlName + "」に2ダメージ！");
+      }
+    } else if (card.id === "n_gpu_fan_max") {
+      if (t0 !== -1 && self.field[t0]) {
+        self.field[t0].atk += 2;
+        self.field[t0].freshness = Math.max(1, self.field[t0].freshness - 1);
+        ctx.log("🌀 冷却ファン全開！「" + self.field[t0].name + "」の攻撃力+2＆鮮度-1！");
+      }
+    } else if (card.id === "n_prompt_typo") {
+      if (t0 !== -1 && self.field[t0]) {
+        self.field[t0].hp += 3; self.field[t0].atk += 1;
+        ctx.log("🎲 プロンプトの誤字で謎生物爆誕！「" + self.field[t0].name + "」のHP+3＆攻撃力+1！");
+      }
     }
 
     ctx.cleanupDeadMemes();
