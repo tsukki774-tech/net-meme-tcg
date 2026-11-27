@@ -482,7 +482,14 @@ window.CardEffects = {
       ctx.log("🧂 爆死スクショ供養勢！いいねでメンタルが2回復！");
     }
     // ================= 第6弾：AI・テクノロジー＆未来インターネット編 召喚効果 =================
-    else if (card.id === "god_singularity") {
+    else if (card.id === "god_genesis_meme") {
+      card.pierceShield = true;
+      opp.field = [];
+      self.field.forEach(function(m) { m.atk += 5; m.hp += 5; m.shield = true; });
+      ctx.drawCard(who); ctx.drawCard(who); ctx.drawCard(who);
+      opp.hp -= 5;
+      ctx.log("👑 【伝説降臨】インターネットの創世神！相手盤面を全消滅＋味方全体ATK+5・HP+5＆無敵バリア＋3枚ドロー＋相手本体に5ダメージ！");
+    } else if (card.id === "god_singularity") {
       self.field.forEach(function(m) { m.atk += 3; m.hp += 3; m.shield = true; });
       ctx.drawCard(who); ctx.drawCard(who);
       opp.hp -= 3;

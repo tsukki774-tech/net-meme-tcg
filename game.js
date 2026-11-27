@@ -206,6 +206,7 @@ window.addEventListener("error", function(ev) {
 
       // 通常カード（シークレット除外）＋合体進化カードをすべて候補にまとめる
       var candidateCards = ALL_CARDS.filter(function(c) {
+        if (c.isShopLegend) return false;
         return !c.isAdminOnly || (userData.collection[c.id] || 0) > 0;
       }).slice();
       if (typeof FUSION_RECIPES !== "undefined") {
@@ -357,6 +358,70 @@ window.addEventListener("error", function(ev) {
       } else {
         container.appendChild(hGrid);
       }
+    } else if (currentShopTab === "legend") {
+      var legendCards = ALL_CARDS.filter(function(c) { return c.isShopLegend; });
+      var lWrap = document.createElement("div");
+      lWrap.style.cssText = "display:flex; flex-direction:column; gap:12px;";
+
+      legendCards.forEach(function(lc) {
+        var ownedCount = (userData.collection && userData.collection[lc.id]) ? userData.collection[lc.id] : 0;
+        var price = lc.shopPrice || 1000000;
+        var maxOwned = 3;
+        var isMax = ownedCount >= maxOwned;
+
+        var box = document.createElement("div");
+        box.style.cssText = "background: linear-gradient(135deg, rgba(45,27,78,0.96), rgba(15,23,42,0.98)); border: 2px solid #ffd32a; border-radius: 14px; padding: 14px; box-shadow: 0 0 24px rgba(255,211,42,0.35); display:flex; flex-direction:column; gap:10px;";
+        box.innerHTML =
+          '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">' +
+            '<div style="display:flex; align-items:center; gap:10px;">' +
+              '<span style="font-size:2rem; filter:drop-shadow(0 0 8px #ffd32a);">' + lc.icon + '</span>' +
+              '<div>' +
+                '<span style="display:inline-block; background:linear-gradient(90deg,#f59e0b,#ffd32a); color:#1c1917; font-weight:900; font-size:0.68rem; padding:2px 8px; border-radius:999px; margin-bottom:3px;">👑 ショップ限定・伝説GOD（パック排出なし）</span>' +
+                '<div style="font-size:1rem; font-weight:900; color:#ffd32a;">' + lc.name + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div style="text-align:right;">' +
+              '<div style="font-size:0.76rem; color:#cbd5e1;">所持枚数: <strong style="color:#00ff88; font-size:0.92rem;">' + ownedCount + '</strong> / ' + maxOwned + ' 枚</div>' +
+              '<div style="font-size:0.86rem; font-weight:900; color:#ffd32a;">💎 ' + price.toLocaleString() + ' BP</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="display:flex; gap:10px; flex-wrap:wrap; font-size:0.78rem; background:rgba(0,0,0,0.45); padding:8px 10px; border-radius:8px; border:1px solid rgba(255,211,42,0.25);">' +
+            '<span>種別: <strong style="color:#fff;">ミーム（' + lc.era + '）</strong></span>' +
+            '<span>コスト: <strong style="color:#38bdf8;">' + lc.cost + '</strong></span>' +
+            '<span>ATK: <strong style="color:#f87171;">' + lc.atk + '</strong></span>' +
+            '<span>HP: <strong style="color:#4ade80;">' + lc.hp + '</strong></span>' +
+            '<span>鮮度: <strong style="color:#facc15;">' + lc.freshness + '</strong></span>' +
+          '</div>' +
+          '<div style="font-size:0.8rem; color:#f1f5f9; line-height:1.45; background:rgba(255,211,42,0.08); padding:9px 10px; border-radius:8px; border-left:3px solid #ffd32a;">' +
+            lc.desc +
+          '</div>' +
+          '<button type="button" class="' + (isMax ? "sub-btn" : "primary-btn") + '" style="width:100%; padding:10px; font-size:0.88rem; font-weight:900;">' +
+            (isMax ? "✅ 最大所持数（3枚）達成済み" : ("👑 " + price.toLocaleString() + " BP で伝説のカードを購入する")) +
+          '</button>';
+
+        box.querySelector("button").addEventListener("click", function() {
+          if (isMax) {
+            alert("すでに最大枚数（3枚）を所持しています！デッキ編成からデッキに組み込めます。");
+            return;
+          }
+          if ((userData.points || 0) < price) {
+            alert("バズポイントが足りません！\n必要: " + price.toLocaleString() + " BP / 現在: " + (userData.points || 0).toLocaleString() + " BP");
+            return;
+          }
+          if (!confirm(price.toLocaleString() + " BP を使って伝説のカード\n「" + lc.name + "」を購入しますか？")) return;
+          userData.points -= price;
+          if (!userData.collection) userData.collection = {};
+          userData.collection[lc.id] = (userData.collection[lc.id] || 0) + 1;
+          saveUserData();
+          renderBpShopContent();
+          if (typeof updateAllBanners === "function") updateAllBanners();
+          alert("🎉 伝説のカード「" + lc.name + "」を獲得しました！（現在所持数: " + userData.collection[lc.id] + "枚）\nデッキ編成画面からデッキに入れることができます！");
+        });
+
+        lWrap.appendChild(box);
+      });
+
+      container.appendChild(lWrap);
     } else if (currentShopTab === "playmats") {
       var pGrid = document.createElement("div");
       pGrid.className = "shop-grid";

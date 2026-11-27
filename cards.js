@@ -6,6 +6,9 @@ const ALL_CARDS = [
   { id: "admin_god_dev", pack: 0, isAdminOnly: true, name: "【ADMIN】作者の気まぐれ（仕様変更）", type: "meme", era: "運営", rarity: "ADMIN", cost: 1, atk: 99, hp: 99, freshness: 99, icon: "👑", desc: "【管理者専用】召喚時：相手の場のミームを全て奪い取り、自身に無敵バリア（🛡️）を付与して降臨！" },
   { id: "admin_debug_mode", pack: 0, isAdminOnly: true, name: "【ADMIN】デバッグモード起動", type: "spell", era: "運営", rarity: "ADMIN", cost: 0, icon: "💻", desc: "【管理者専用】山札から3枚ドローし、このターン中自分の手札すべてのコストを0にする！" },
 
+  // ================= ショップ限定・伝説のカード（pack: 0 / 100万BP専売・パック排出なし） =================
+  { id: "god_genesis_meme", pack: 0, isShopLegend: true, shopPrice: 1000000, name: "【伝説】インターネットの創世神（アダム＆イヴ・オブ・ミーム）", type: "meme", era: "創世神", rarity: "GOD", cost: 8, atk: 10, hp: 10, freshness: 7, icon: "👑", desc: "【100万BP伝説神】無敵バリア貫通！召喚時：味方全体の攻撃力+5・HP+5＆無敵バリア付与＋山札から3枚ドロー＋相手場のミームを全て消滅＆相手本体に5ダメージ！" },
+
   // ================= 第1弾（pack: 1 / 全42種） =================
   { id: "god_internet", pack: 1, name: "インターネットの集合知", type: "meme", era: "2ch", rarity: "GOD", cost: 6, atk: 7, hp: 7, freshness: 5, icon: "🌌", desc: "【神降臨】召喚時：味方全員の攻撃力+2＆無敵バリア付与＆カードを2枚ドロー！" },
 
@@ -856,14 +859,23 @@ const FUSION_RECIPES = [
   }
 ];
 
-const APP_VERSION = "v3.1";
+const APP_VERSION = "v3.2";
 
 const UPDATE_LOGS = [
   {
-    version: "v3.1",
+    version: "v3.2",
     date: "最新アップデート",
-    title: "🤖 第6弾『VOL.6 AI・テクノロジー＆未来インターネット編（全34種）』実装＆第5弾伏せカードバランス調整！",
+    title: "👑 BPショップに『100万BP限定・伝説のカード』実装！",
     isLatest: true,
+    items: [
+      { tag: "ショップ限定", color: "#ffd32a", text: "バズポイントショップに新タブ『👑 伝説のカード』を追加！1,000,000 BPで購入できる究極のGODカード『【伝説】インターネットの創世神（アダム＆イヴ・オブ・ミーム）』を実装しました（パック排出なし・最大3枚まで購入してデッキ編成可能）。" }
+    ]
+  },
+  {
+    version: "v3.1",
+    date: "過去アップデート",
+    title: "🤖 第6弾『VOL.6 AI・テクノロジー＆未来インターネット編（全34種）』実装＆第5弾伏せカードバランス調整！",
+    isLatest: false,
     items: [
       { tag: "第6弾パック", color: "#00d2ff", text: "新パック『🤖 VOL.6 AI & TECH（全34種）』登場！『シンギュラリティ到達』『サーバー物理破壊』『ディープフェイク職人』や新合体2種・新ボス『超知能AI・オメガ』を追加！" },
       { tag: "バランス調整", color: "#ff9f43", text: "第5弾の伏せ構文『🚫 ブロック＆通報』をナーフ調整（直接攻撃を無効化＋攻撃ミームの攻撃力-2＆鮮度-1に変更、即破壊を廃止）。" }

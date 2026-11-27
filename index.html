@@ -932,7 +932,7 @@
     }
 
   
-    /* v3.1.8 iPadOS Chrome/Safari 完全互換タッチ・スクロールCSS */
+    /* v3.2.8 iPadOS Chrome/Safari 完全互換タッチ・スクロールCSS */
     html, body {
       overflow-y: auto !important;
       overflow-x: hidden !important;
@@ -961,7 +961,7 @@
     }
 
   
-    /* v3.1.8 ホーム画面・カオスネット掲示板＆弾幕タイムライン背景 */
+    /* v3.2.8 ホーム画面・カオスネット掲示板＆弾幕タイムライン背景 */
     #home-chaos-bg {
       position: fixed;
       top: 0;
@@ -1056,7 +1056,7 @@
 
 
     /* ============================================================
-       v3.1.0 新サイバー・ネオン3カラム・ホーム画面UI
+       v3.2.0 新サイバー・ネオン3カラム・ホーム画面UI
        ============================================================ */
     #home-screen {
       max-width: none !important;
@@ -1596,7 +1596,7 @@
     }
 
   
-    /* ================= デュアル・プレイマット・アリーナ（新バトルUI v3.1） ================= */
+    /* ================= デュアル・プレイマット・アリーナ（新バトルUI v3.2） ================= */
     #game-screen.arena-v2 {
       gap: 4px;
       padding: 6px 8px 8px 8px;
@@ -2447,6 +2447,7 @@
         <button type="button" class="sub-btn shop-tab-btn active" data-shoptab="titles" style="padding:6px 12px; font-size:0.8rem;">🏷️ プレイヤー称号</button>
         <button type="button" class="sub-btn shop-tab-btn" data-shoptab="holo" style="padding:6px 12px; font-size:0.8rem;">🌟 ホロ加工</button>
         <button type="button" class="sub-btn shop-tab-btn" data-shoptab="playmats" style="padding:6px 12px; font-size:0.8rem;">🎨 プレイマット</button>
+        <button type="button" class="sub-btn shop-tab-btn" data-shoptab="legend" style="padding:6px 12px; font-size:0.8rem; border-color:#ffd32a; color:#ffd32a;">👑 伝説のカード</button>
       </div>
 
       <div id="bp-shop-content"></div>
@@ -3208,7 +3209,7 @@
     </div>
   </div>
 
-  <div id="ver-stamp-badge">v3.1.8</div>
+  <div id="ver-stamp-badge">v3.2.8</div>
   <!-- インライン統合スクリプト（キャッシュ完全回避・即時実行版） -->
   <script>
 // cards.js - カード一覧・レンタルデッキ・ミッションデータ定義
@@ -3218,6 +3219,9 @@ const ALL_CARDS = [
   { id: "admin_ban_hammer", pack: 0, isAdminOnly: true, name: "【ADMIN】開発者の特権（BANハンマー）", type: "spell", era: "運営", rarity: "ADMIN", cost: 0, icon: "🔨", desc: "【管理者専用】相手場のミームを無敵バリアごと全消滅＆相手手札2枚破壊＆自分メンタル全回復・ギガ最大！" },
   { id: "admin_god_dev", pack: 0, isAdminOnly: true, name: "【ADMIN】作者の気まぐれ（仕様変更）", type: "meme", era: "運営", rarity: "ADMIN", cost: 1, atk: 99, hp: 99, freshness: 99, icon: "👑", desc: "【管理者専用】召喚時：相手の場のミームを全て奪い取り、自身に無敵バリア（🛡️）を付与して降臨！" },
   { id: "admin_debug_mode", pack: 0, isAdminOnly: true, name: "【ADMIN】デバッグモード起動", type: "spell", era: "運営", rarity: "ADMIN", cost: 0, icon: "💻", desc: "【管理者専用】山札から3枚ドローし、このターン中自分の手札すべてのコストを0にする！" },
+
+  // ================= ショップ限定・伝説のカード（pack: 0 / 100万BP専売・パック排出なし） =================
+  { id: "god_genesis_meme", pack: 0, isShopLegend: true, shopPrice: 1000000, name: "【伝説】インターネットの創世神（アダム＆イヴ・オブ・ミーム）", type: "meme", era: "創世神", rarity: "GOD", cost: 8, atk: 10, hp: 10, freshness: 7, icon: "👑", desc: "【100万BP伝説神】無敵バリア貫通！召喚時：味方全体の攻撃力+5・HP+5＆無敵バリア付与＋山札から3枚ドロー＋相手場のミームを全て消滅＆相手本体に5ダメージ！" },
 
   // ================= 第1弾（pack: 1 / 全42種） =================
   { id: "god_internet", pack: 1, name: "インターネットの集合知", type: "meme", era: "2ch", rarity: "GOD", cost: 6, atk: 7, hp: 7, freshness: 5, icon: "🌌", desc: "【神降臨】召喚時：味方全員の攻撃力+2＆無敵バリア付与＆カードを2枚ドロー！" },
@@ -4069,14 +4073,23 @@ const FUSION_RECIPES = [
   }
 ];
 
-const APP_VERSION = "v3.1";
+const APP_VERSION = "v3.2";
 
 const UPDATE_LOGS = [
   {
-    version: "v3.1",
+    version: "v3.2",
     date: "最新アップデート",
-    title: "🤖 第6弾『VOL.6 AI・テクノロジー＆未来インターネット編（全34種）』実装＆第5弾伏せカードバランス調整！",
+    title: "👑 BPショップに『100万BP限定・伝説のカード』実装！",
     isLatest: true,
+    items: [
+      { tag: "ショップ限定", color: "#ffd32a", text: "バズポイントショップに新タブ『👑 伝説のカード』を追加！1,000,000 BPで購入できる究極のGODカード『【伝説】インターネットの創世神（アダム＆イヴ・オブ・ミーム）』を実装しました（パック排出なし・最大3枚まで購入してデッキ編成可能）。" }
+    ]
+  },
+  {
+    version: "v3.1",
+    date: "過去アップデート",
+    title: "🤖 第6弾『VOL.6 AI・テクノロジー＆未来インターネット編（全34種）』実装＆第5弾伏せカードバランス調整！",
+    isLatest: false,
     items: [
       { tag: "第6弾パック", color: "#00d2ff", text: "新パック『🤖 VOL.6 AI & TECH（全34種）』登場！『シンギュラリティ到達』『サーバー物理破壊』『ディープフェイク職人』や新合体2種・新ボス『超知能AI・オメガ』を追加！" },
       { tag: "バランス調整", color: "#ff9f43", text: "第5弾の伏せ構文『🚫 ブロック＆通報』をナーフ調整（直接攻撃を無効化＋攻撃ミームの攻撃力-2＆鮮度-1に変更、即破壊を廃止）。" }
@@ -4766,7 +4779,14 @@ window.CardEffects = {
       ctx.log("🧂 爆死スクショ供養勢！いいねでメンタルが2回復！");
     }
     // ================= 第6弾：AI・テクノロジー＆未来インターネット編 召喚効果 =================
-    else if (card.id === "god_singularity") {
+    else if (card.id === "god_genesis_meme") {
+      card.pierceShield = true;
+      opp.field = [];
+      self.field.forEach(function(m) { m.atk += 5; m.hp += 5; m.shield = true; });
+      ctx.drawCard(who); ctx.drawCard(who); ctx.drawCard(who);
+      opp.hp -= 5;
+      ctx.log("👑 【伝説降臨】インターネットの創世神！相手盤面を全消滅＋味方全体ATK+5・HP+5＆無敵バリア＋3枚ドロー＋相手本体に5ダメージ！");
+    } else if (card.id === "god_singularity") {
       self.field.forEach(function(m) { m.atk += 3; m.hp += 3; m.shield = true; });
       ctx.drawCard(who); ctx.drawCard(who);
       opp.hp -= 3;
@@ -5753,6 +5773,7 @@ window.addEventListener("error", function(ev) {
 
       // 通常カード（シークレット除外）＋合体進化カードをすべて候補にまとめる
       var candidateCards = ALL_CARDS.filter(function(c) {
+        if (c.isShopLegend) return false;
         return !c.isAdminOnly || (userData.collection[c.id] || 0) > 0;
       }).slice();
       if (typeof FUSION_RECIPES !== "undefined") {
@@ -5904,6 +5925,70 @@ window.addEventListener("error", function(ev) {
       } else {
         container.appendChild(hGrid);
       }
+    } else if (currentShopTab === "legend") {
+      var legendCards = ALL_CARDS.filter(function(c) { return c.isShopLegend; });
+      var lWrap = document.createElement("div");
+      lWrap.style.cssText = "display:flex; flex-direction:column; gap:12px;";
+
+      legendCards.forEach(function(lc) {
+        var ownedCount = (userData.collection && userData.collection[lc.id]) ? userData.collection[lc.id] : 0;
+        var price = lc.shopPrice || 1000000;
+        var maxOwned = 3;
+        var isMax = ownedCount >= maxOwned;
+
+        var box = document.createElement("div");
+        box.style.cssText = "background: linear-gradient(135deg, rgba(45,27,78,0.96), rgba(15,23,42,0.98)); border: 2px solid #ffd32a; border-radius: 14px; padding: 14px; box-shadow: 0 0 24px rgba(255,211,42,0.35); display:flex; flex-direction:column; gap:10px;";
+        box.innerHTML =
+          '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">' +
+            '<div style="display:flex; align-items:center; gap:10px;">' +
+              '<span style="font-size:2rem; filter:drop-shadow(0 0 8px #ffd32a);">' + lc.icon + '</span>' +
+              '<div>' +
+                '<span style="display:inline-block; background:linear-gradient(90deg,#f59e0b,#ffd32a); color:#1c1917; font-weight:900; font-size:0.68rem; padding:2px 8px; border-radius:999px; margin-bottom:3px;">👑 ショップ限定・伝説GOD（パック排出なし）</span>' +
+                '<div style="font-size:1rem; font-weight:900; color:#ffd32a;">' + lc.name + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div style="text-align:right;">' +
+              '<div style="font-size:0.76rem; color:#cbd5e1;">所持枚数: <strong style="color:#00ff88; font-size:0.92rem;">' + ownedCount + '</strong> / ' + maxOwned + ' 枚</div>' +
+              '<div style="font-size:0.86rem; font-weight:900; color:#ffd32a;">💎 ' + price.toLocaleString() + ' BP</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="display:flex; gap:10px; flex-wrap:wrap; font-size:0.78rem; background:rgba(0,0,0,0.45); padding:8px 10px; border-radius:8px; border:1px solid rgba(255,211,42,0.25);">' +
+            '<span>種別: <strong style="color:#fff;">ミーム（' + lc.era + '）</strong></span>' +
+            '<span>コスト: <strong style="color:#38bdf8;">' + lc.cost + '</strong></span>' +
+            '<span>ATK: <strong style="color:#f87171;">' + lc.atk + '</strong></span>' +
+            '<span>HP: <strong style="color:#4ade80;">' + lc.hp + '</strong></span>' +
+            '<span>鮮度: <strong style="color:#facc15;">' + lc.freshness + '</strong></span>' +
+          '</div>' +
+          '<div style="font-size:0.8rem; color:#f1f5f9; line-height:1.45; background:rgba(255,211,42,0.08); padding:9px 10px; border-radius:8px; border-left:3px solid #ffd32a;">' +
+            lc.desc +
+          '</div>' +
+          '<button type="button" class="' + (isMax ? "sub-btn" : "primary-btn") + '" style="width:100%; padding:10px; font-size:0.88rem; font-weight:900;">' +
+            (isMax ? "✅ 最大所持数（3枚）達成済み" : ("👑 " + price.toLocaleString() + " BP で伝説のカードを購入する")) +
+          '</button>';
+
+        box.querySelector("button").addEventListener("click", function() {
+          if (isMax) {
+            alert("すでに最大枚数（3枚）を所持しています！デッキ編成からデッキに組み込めます。");
+            return;
+          }
+          if ((userData.points || 0) < price) {
+            alert("バズポイントが足りません！\n必要: " + price.toLocaleString() + " BP / 現在: " + (userData.points || 0).toLocaleString() + " BP");
+            return;
+          }
+          if (!confirm(price.toLocaleString() + " BP を使って伝説のカード\n「" + lc.name + "」を購入しますか？")) return;
+          userData.points -= price;
+          if (!userData.collection) userData.collection = {};
+          userData.collection[lc.id] = (userData.collection[lc.id] || 0) + 1;
+          saveUserData();
+          renderBpShopContent();
+          if (typeof updateAllBanners === "function") updateAllBanners();
+          alert("🎉 伝説のカード「" + lc.name + "」を獲得しました！（現在所持数: " + userData.collection[lc.id] + "枚）\nデッキ編成画面からデッキに入れることができます！");
+        });
+
+        lWrap.appendChild(box);
+      });
+
+      container.appendChild(lWrap);
     } else if (currentShopTab === "playmats") {
       var pGrid = document.createElement("div");
       pGrid.className = "shop-grid";
